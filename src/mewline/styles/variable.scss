@@ -1,0 +1,9 @@
+@use "sass:color";
+@use "theme.scss";
+
+$radius: 10px;
+$radius-large: 100px;
+
+$border-width: 1px;
+$border-color: theme.$surface-disabled;
+$border: $border-width solid $border-color;
