@@ -8,6 +8,7 @@ from fabric.widgets.wayland import WaylandWindow as Window
 from utils.widget_utils import setup_cursor_hover
 
 from ..screen_corners import MyCorner
+from .notifications import NotificationContainer
 from .power import PowerMenu
 
 
@@ -25,6 +26,7 @@ class DynamicIsland(Window):
         )
 
         self.power = PowerMenu(self)
+        self.notification = NotificationContainer(self)
 
         compact_button = Button(
             name="compact-label",
@@ -48,6 +50,7 @@ class DynamicIsland(Window):
             children=[
                 self.compact,
                 self.power,
+                self.notification
             ],
         )
 
@@ -94,10 +97,10 @@ class DynamicIsland(Window):
             self.di_box.remove_style_class("hideshow")
             self.di_box.add_style_class("hidden")
 
-        for widget in [self.power]:
+        for widget in [self.power, self.notification]:
             widget.remove_style_class("open")
 
-        for style in ["power"]:
+        for style in ["power", "notification"]:
             self.stack.remove_style_class(style)
 
         self.stack.set_visible_child(self.compact)
@@ -109,17 +112,22 @@ class DynamicIsland(Window):
             self.di_box.remove_style_class("hidden")
             self.di_box.add_style_class("hideshow")
 
-        widgets = {"power": self.power}
+        widgets = {
+            "power": self.power,
+            "notification": self.notification
+        }
 
-        for style in widgets.keys():
+        for style, w in widgets.items():
             self.stack.remove_style_class(style)
-        for w in widgets.values():
             w.remove_style_class("open")
 
         if widget in widgets:
             self.stack.add_style_class(widget)
             self.stack.set_visible_child(widgets[widget])
             widgets[widget].add_style_class("open")
+
+            if widget == "notification":
+                self.set_keyboard_mode("none")
         else:
             self.stack.set_visible_child(self.dashboard)
 

@@ -2,6 +2,7 @@
 @use "../theme.scss";
 
 @use "./power.scss";
+@use "./notifications.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -30,9 +31,18 @@
     min-width: 320px;
     border-radius: 0 0 36px 36px;
   }
+
+  &.notification {
+    padding: 16px;
+    min-height: 45px;
+    min-width: 360px;
+    border-radius: 0 0 36px 36px;
+  }
 }
 
-#power-menu {
+
+#power-menu,
+#notification {
   opacity: 1;
   margin: -800px;
   transition: all 0.25s cubic-bezier(0.5, 0.25, 0, 1);
@@ -49,15 +59,14 @@
 
 #dynamic-island-corner-left {
   margin-left: -16px;
-
-  #corner {
-    background-color: theme.$background-dark;
-  }
 }
 
 #dynamic-island-corner-right {
   margin-right: -16px;
+}
 
+#dynamic-island-corner-left,
+#dynamic-island-corner-right {
   #corner {
     background-color: theme.$background-dark;
   }

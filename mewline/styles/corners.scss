@@ -1,5 +1,8 @@
+@use "sass:color";
+@use "theme.scss";
+
 #corner {
-    background-color: #000000;
+    background-color: theme.$screen-corners;
     border-radius: 0;
 }
   
