@@ -22,7 +22,6 @@ def generate():
 
 
 def main():
-    print(sys.argv[0])
     disable_logging()
 
     ##==> Creating App
