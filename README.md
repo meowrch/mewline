@@ -1,48 +1,81 @@
-# MewLine
-A bar for the [meowrch](https://github.com/meowrch/meowrch) distribution written in python, using the [fabric](https://github.com/Fabric-Development/fabric) library.
+# ✨ MewLine 
+Элегантный и расширяемый статус-бар для дистрибутива [meowrch](https://github.com/meowrch/meowrch), написанный на Python с использованием фреймворка [Fabric](https://github.com/Fabric-Development/fabric). Сочетает в себе минималистичный дизайн с мощной функциональностью.
 
-> [!WARNING]
-> The project is in active development. 
->Some functionality may not work correctly, or may not work at all
+> [!Warning]
+> Проект находится в активной разработке.
+>Некоторые функции могут работать нестабильно
 
-# Install
-1. Clone the repository `git clone https://github.com/meowrch/mewline`
-2. Go to project catalog `cd mewline`
-3. Intall all dependencies `uv sync`
-4. Generate default config `uv run generate`
-5. Fill in the configuration file according to the generated example
-6. Run the mewline `uv run mewline`
+## 🌟 Особенности
+- [X] **Модульная архитектура**
+- [X] **Кастомизация** на любой вкус через JSON-конфиг
+- [X] Поддержка **тем**
+- [X] Полная интеграция с дистрибутивом [meowrch](https://github.com/meowrch/meowrch)
+- [X] Анимированные переходы и эффекты
+- [X] Низкое потребление ресурсов
+
+## ⚡ Быстрый старт
+```bash
+# Склонируйте репозиторий
+git clone https://github.com/meowrch/mewline && cd mewline
+
+# Установите пакетный менеджер
+pip install uv
+
+# Установите зависимости
+uv sync
+
+# Сгенерируйте конфиг по умолчанию
+python mewline/app.py --generate-default-config
+
+# Настройте config.json под свои нужды
+micro ~/.config/mewline/config.json
+
+# Запустите MewLine
+python mewline/app.py
+```
+
+## 🎨 Виджеты
+| Компонент          | Описание                           |
+| ------------------ | ---------------------------------- |
+| `tray`             | Системный трей                     |
+| `workspaces`       | Управление рабочими пространствами |
+| `dynamic_island`   | Динамический остров                |
+| `power_menu`       | Меню для управления питанием       |
 
 
-# Support
-If you would like to support my work, you can send a donation to the following cryptocurrency wallets:
+## 🐾 Особые Благодарности
+Проект вдохновлён и использует лучшие идеи из:
 
-- **Ton Address:**  
-  `UQB9qNTcAazAbFoeobeDPMML9MG73DUCAFTpVanQnLk3BHg3`  
-  Supports Toncoin (TON) and other tokens of the TON network.
+- **[HyDePanel](https://github.com/rubiin/HyDePanel)** \
+    Архитектура модульной системы, некоторые стили и виджеты.
 
-- **Ethereum (ETH, USDT, USDC and other ERC-20 tokens):**  
-  `0x56e8bf8Ec07b6F2d6aEdA7Bd8814DB5A72164b13`
-  
-- **Bitcoin (BTC):**  
-  `bc1qt5urnw7esunf0v7e9az0jhatxrdd0smem98gdn`
+- **[Ax-Shell](https://github.com/Axenide/Ax-Shell)** \
+    Подход к обработке системных событий, IPC-механизмы, некоторые стили и виджеты. 
 
-- **Tron (TRX, USDT-TRC20):**  
-  `TBTZ5RRMfGQQ8Vpf8i5N8DZhNxSum2rzAs`
+Мы глубоко признательны авторам этих проектов за их вклад в open-source сообщество.
+Отдельные компоненты были адаптированы и улучшены для интеграции с MewLine.
 
-Thank you for your support! ❤️
+## 🚀 Развитие проекта
+Хотите добавить новый виджет или улучшить существующий?
 
-# Special Thanks
-Many thanks to the following projects and their maintainers for interesting ideas, and development help:
-- [HyDePanel](https://github.com/rubiin/HyDePanel)
-- [Ax-Shell](https://github.com/Axenide/Ax-Shell)
+1. Форкните репозиторий
+2. Создайте ветку с фичей: `git checkout -b feature/amazing-widget`
+3. Залейте изменения: `git push origin feature/amazing-widget`
+4. Откройте Pull Request
 
-# Star History
+Рекомендуем сначала обсудить идею в Issues.
 
-<a href="https://star-history.com/#meowrch/mewline&Date">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=meowrch/mewline&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=meowrch/mewline&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=meowrch/mewline&type=Date" />
- </picture>
-</a>
+## ☕ Поддержать проект
+Если вам нравится MewLine, вы можете помочь его развитию:
+| Криптовалюта | Адрес                                              |
+| ------------ | -------------------------------------------------- |
+| **TON**      | `UQB9qNTcAazAbFoeobeDPMML9MG73DUCAFTpVanQnLk3BHg3` |
+| **Ethereum** | `0x56e8bf8Ec07b6F2d6aEdA7Bd8814DB5A72164b13`       |
+| **Bitcoin**  | `bc1qt5urnw7esunf0v7e9az0jhatxrdd0smem98gdn`       |
+| **Tron**     | `TBTZ5RRMfGQQ8Vpf8i5N8DZhNxSum2rzAs`               |
+
+
+Ваша поддержка мотивирует нас делать больше крутых фич! ❤️
+
+## 📊 Статистика
+[![Star History Chart](https://api.star-history.com/svg?repos=meowrch/mewline&type=Date)](https://star-history.com/#meowrch/mewline&Date)
