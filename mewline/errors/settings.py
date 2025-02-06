@@ -4,6 +4,6 @@ class ExecutableNotFoundError(ImportError):
     def __init__(self, executable_name: str):
         super().__init__(
             f"Executable {executable_name}"
-            " not found. Please install it using your package"
+            f" not found. Please install it using your package"
             " manager."
         )

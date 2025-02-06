@@ -1,7 +1,7 @@
 from typing import Literal
-from fabric.widgets.label import Label
 
 import gi
+from fabric.widgets.label import Label
 from gi.repository import Gdk
 
 gi.require_version("Gtk", "3.0")
