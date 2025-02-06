@@ -7,6 +7,7 @@ from .datetime import DateTimeWidget
 from .dynamic_island import DynamicIsland
 from .power import PowerButton
 from .system_tray import SystemTray
+from .volume import VolumeWidget
 from .workspaces import HyprlandWorkSpacesWidget
 
 
@@ -31,7 +32,7 @@ class StatusBar(WaylandWindow):
             end_children=Box(
                 spacing=4,
                 orientation="h",
-                children=[DateTimeWidget(), PowerButton(di=di)],
+                children=[VolumeWidget(), DateTimeWidget(), PowerButton(di=di)],
             ),
         )
 

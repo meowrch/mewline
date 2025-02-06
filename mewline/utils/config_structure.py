@@ -59,6 +59,18 @@ class DatetimeModule(BaseModel):  # noqa: D101
     format: str
 
 
+class VolumeModule(BaseModel):  # noqa: D101
+    icon_size: str
+    label: bool
+    tooltip: bool
+    step_size: int
+    overamplified_icon: str
+    high_icon: str
+    medium_icon: str
+    low_icon: str
+    muted_icon: str
+
+
 class Modules(BaseModel):  # noqa: D101
     osd: OSDModule
     workspaces: WorkspacesModule
@@ -66,6 +78,7 @@ class Modules(BaseModel):  # noqa: D101
     power: PowerModule
     dynamic_island: DynamicIsland
     datetime: DatetimeModule
+    volume: VolumeModule
 
 
 class Config(BaseModel):  # noqa: D101

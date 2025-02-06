@@ -52,6 +52,17 @@ DEFAULT_CONFIG = {
         "system_tray": { "icon_size": 16, "ignore": [] },
         "power": { "icon": "", "icon_size": "16px", "tooltip": True },
         "datetime": { "format": "%d-%m-%y %H:%M" },
+        "volume": {
+            "icon_size": "14px",
+            "label": True,
+            "tooltip": True,
+            "step_size": 5,
+            "overamplified_icon": "󰕾",
+            "high_icon": "󰕾",
+            "medium_icon": "󰖀",
+            "low_icon": "󰕿",
+            "muted_icon": "󰝟",
+        },
         "dynamic_island": {
             "power_menu": {
                 "lock_icon": "",
@@ -68,4 +79,12 @@ DEFAULT_CONFIG = {
             }
         }
     },
+}
+
+volume_text_icons = {
+    "overamplified": "󰕾",
+    "high": "󰕾",
+    "medium": "󰖀",
+    "low": "󰕿",
+    "muted": "󰝟",
 }
