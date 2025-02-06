@@ -22,9 +22,6 @@ Changelog = "https://github.com/meowrch/mewline/blob/master/CHANGELOG.md"
 [tool.uv.sources]
 fabric = { git = "https://github.com/Fabric-Development/fabric.git" }
 
-[tool.uv]
-package=true
-
 [tool.ruff]
 target-version = "py311"
 line-length = 88
@@ -41,7 +38,6 @@ unfixable = []
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
 
 [tool.ruff.format]
 line-ending = "auto"
