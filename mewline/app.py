@@ -1,3 +1,4 @@
+import argparse
 import sys
 
 import constants as cnst
@@ -50,4 +51,18 @@ def main():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Mewline: A minimalist status bar for meowrch."
+    )
+    parser.add_argument(
+        "--generate-default-config",
+        action="store_true",
+        help="Generate a default configuration for mewline",
+    )
+
+    args = parser.parse_args()
+    if args.generate_default_config:
+        generate()
+        sys.exit(0)
+
     main()

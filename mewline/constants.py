@@ -67,5 +67,4 @@ DEFAULT_CONFIG = {
             }
         }
     },
-
 }
