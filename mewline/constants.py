@@ -51,7 +51,7 @@ DEFAULT_CONFIG = {
         },
         "system_tray": { "icon_size": 16, "ignore": [] },
         "power": { "icon": "", "icon_size": "16px", "tooltip": True },
-        "datetime": { "format": "%d-%M-%y %H:%m" },
+        "datetime": { "format": "%d-%m-%y %H:%M" },
         "dynamic_island": {
             "power_menu": {
                 "lock_icon": "",
