@@ -1,11 +1,11 @@
 from pathlib import Path
 
+import constants as cnst
+from errors.settings import ExecutableNotFoundError
 from fabric import Application
 from fabric.utils import exec_shell_command
 from loguru import logger
 
-from .. import constants as cnst
-from ..errors.settings import ExecutableNotFoundError
 from .misc import executable_exists
 
 
@@ -15,9 +15,7 @@ def process_and_apply_css(app: Application):
         raise ExecutableNotFoundError("sass")
 
     logger.info("[Main] Compiling CSS")
-    exec_shell_command(
-        f"sass {cnst.MAIN_STYLE} {cnst.COMPILED_STYLE} --no-source-map"
-    )
+    exec_shell_command(f"sass {cnst.MAIN_STYLE} {cnst.COMPILED_STYLE} --no-source-map")
     logger.info("[Main] CSS applied")
     app.set_stylesheet_from_file(cnst.COMPILED_STYLE)
 
@@ -33,8 +31,7 @@ def copy_theme(path: Path):
 
     if not path.exists():
         logger.warning(
-            f"Warning: The theme file '{path}' was not found."
-            "Using default theme."
+            f"Warning: The theme file '{path}' was not found." "Using default theme."
         )
         path = cnst.DEFAULT_THEME_STYLE
 
@@ -44,12 +41,8 @@ def copy_theme(path: Path):
 
         with open(cnst.THEME_STYLE, "w") as f:
             f.write(content)
-            logger.info(
-                f"[THEME] '{path}' applied successfully."
-            )
+            logger.info(f"[THEME] '{path}' applied successfully.")
 
     except FileNotFoundError:
-        logger.error(
-            f"Error: The theme file '{path}' was not found."
-        )
+        logger.error(f"Error: The theme file '{path}' was not found.")
         exit(1)

@@ -1,8 +1,8 @@
 from fabric.hyprland.widgets import WorkspaceButton, Workspaces
 
-from ..config import cfg
-from ..shared.widget_container import BoxWidget
-from ..utils.misc import unique_list
+from config import cfg
+from shared.widget_container import BoxWidget
+from utils.misc import unique_list
 
 
 def buttons_factory(ws_id) -> WorkspaceButton:

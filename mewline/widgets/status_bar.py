@@ -1,7 +1,7 @@
 from fabric.widgets.box import Box
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.wayland import WaylandWindow
-from ..utils.hyprland_monitors import HyprlandMonitors
+from utils.hyprland_monitors import HyprlandMonitors
 
 from .workspaces import HyprlandWorkSpacesWidget
 from .system_tray import SystemTray

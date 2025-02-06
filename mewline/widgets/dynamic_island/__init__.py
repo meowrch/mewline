@@ -5,10 +5,10 @@ from fabric.widgets.button import Button
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.stack import Stack
 from fabric.widgets.wayland import WaylandWindow as Window
+from utils.widget_utils import setup_cursor_hover
 
 from ..screen_corners import MyCorner
 from .power import PowerMenu
-from ...utils.widget_utils import setup_cursor_hover
 
 
 class DynamicIsland(Window):

@@ -3,22 +3,22 @@ from typing import Dict, List
 from pydantic import BaseModel
 
 
-class Theme(BaseModel):
+class Theme(BaseModel):  # noqa: D101
     name: str
 
 
-class Options(BaseModel):
+class Options(BaseModel):  # noqa: D101
     screen_corners: bool
     intercept_notifications: bool
     osd_enabled: bool
 
 
-class OSDModule(BaseModel):
+class OSDModule(BaseModel):  # noqa: D101
     timeout: int
     anchor: str
 
 
-class WorkspacesModule(BaseModel):
+class WorkspacesModule(BaseModel):  # noqa: D101
     count: int
     hide_unoccupied: bool
     ignored: List[int]
@@ -27,18 +27,18 @@ class WorkspacesModule(BaseModel):
     icon_map: Dict[str, str]
 
 
-class TrayModule(BaseModel):
+class TrayModule(BaseModel):  # noqa: D101
     icon_size: int
     ignore: List[str]
 
 
-class PowerModule(BaseModel):
+class PowerModule(BaseModel):  # noqa: D101
     icon: str
     icon_size: str
     tooltip: bool
 
 
-class PowerMenu(BaseModel):
+class PowerMenu(BaseModel):  # noqa: D101
     lock_icon: str
     lock_icon_size: str
     suspend_icon: str
@@ -51,11 +51,11 @@ class PowerMenu(BaseModel):
     shutdown_icon_size: str
 
 
-class DynamicIsland(BaseModel):
+class DynamicIsland(BaseModel):  # noqa: D101
     power_menu: PowerMenu
 
 
-class Modules(BaseModel):
+class Modules(BaseModel):  # noqa: D101
     osd: OSDModule
     workspaces: WorkspacesModule
     system_tray: TrayModule
@@ -63,7 +63,7 @@ class Modules(BaseModel):
     dynamic_island: DynamicIsland
 
 
-class Config(BaseModel):
+class Config(BaseModel):  # noqa: D101
     theme: Theme
     options: Options
     modules: Modules

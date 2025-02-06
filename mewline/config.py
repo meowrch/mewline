@@ -1,10 +1,9 @@
 import json
 from pathlib import Path
 
+import constants as cnst
 from loguru import logger
-
-from . import constants as cnst
-from .utils.config_structure import Config
+from utils.config_structure import Config
 
 
 def generate_default_config():

@@ -8,6 +8,7 @@ import gi
 import psutil
 from fabric.utils import exec_shell_command, exec_shell_command_async
 from gi.repository import Gdk, Gtk
+from loguru import logger
 
 gi.require_version("Gtk", "3.0")
 
@@ -185,3 +186,12 @@ def unique_list(lst) -> List:
 # Function to check if an app is running
 def is_app_running(app_name: str) -> bool:
     return len(exec_shell_command(f"pidof {app_name}")) != 0
+
+
+def disable_logging():
+    for log in [
+        "fabric.hyprland.widgets",
+        "fabric.audio.service",
+        "fabric.bluetooth.service",
+    ]:
+        logger.disable(log)

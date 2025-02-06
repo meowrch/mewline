@@ -2,11 +2,10 @@ from typing import TYPE_CHECKING
 
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
-from fabric.widgets.label import Label
 from gi.repository import GLib
 
-from ...config import cfg
-from ...utils.widget_utils import setup_cursor_hover, text_icon
+from config import cfg
+from utils.widget_utils import setup_cursor_hover, text_icon
 
 if TYPE_CHECKING:
     from ..dynamic_island import DynamicIsland
