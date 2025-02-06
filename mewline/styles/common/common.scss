@@ -9,7 +9,7 @@ label {
 }
 
 #panel {
-  background-color: #00000000;
+  background-color: theme.$bar-background;
 
   &-inner {
     padding: 0.3em 0.7em 0.35em 0.7em;

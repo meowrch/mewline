@@ -1,0 +1,58 @@
+@use "sass:color";
+@use "../theme.scss";
+
+
+#notification-action-buttons {
+  button {
+    background-color: theme.$notify-action-btn-color;
+    padding: 8px;
+    margin-top: 8px;
+
+    &:hover {
+      background-color: theme.$notify-action-btn-hover-color;
+    }
+
+    &:active {
+      background-color: theme.$notify-action-btn-active-color;
+    }
+
+    &.action {
+      border-radius: 10px;
+    }
+  }
+}
+
+#close-button {
+  padding: 0 10px 0 10px;
+  border-radius: 10px;
+  background-color: theme.$notify-close-btn-color;
+}
+
+#close-label {
+  color: theme.$notify-close-btn-label-color
+}
+
+
+#notification-image {
+  image {
+    border-radius: 16px;
+  }
+}
+
+#notification-title,
+#button-label {
+  font-weight: bold;
+}
+
+#notification-title {
+  font-weight: bold;
+  color: theme.$notify-title-color;
+}
+
+#notification-app-name {
+  color: theme.$notify-app-name-color;
+}
+
+#notification-text {
+  color: theme.$notify-text-color;
+}
