@@ -1,0 +1,40 @@
+@use "theme.scss";
+@use "common/functions.scss";
+@use "variable.scss";
+
+$workspace-transition: all 0.4s cubic-bezier(0.55, -0.68, 0.48, 1.682);
+
+/** workspace switcher widget */
+
+#workspaces {
+  padding: 0.19em 1em;
+  font-weight: 700;
+
+  & > button {
+    padding: functions.toEm(2) 0.5em;
+    transition: padding 0.05s steps(8);
+    border-radius: variable.$radius-large;
+
+    &:hover {
+      background-color: theme.$ws-hover;
+      transition: $workspace-transition;
+
+      label {
+        color: theme.$background-dark;
+      }
+    }
+
+    &.active {
+      font-weight: 600;
+      padding-left: functions.toEm(14);
+      padding-right: functions.toEm(14);
+      background-color: theme.$ws-active;
+      min-width: 1.4rem;
+      transition: $workspace-transition;
+
+      & > label {
+        color: theme.$background-dark;
+      }
+    }
+  }
+}

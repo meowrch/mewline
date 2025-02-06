@@ -1,0 +1,26 @@
+@use "common/common.scss";
+@use "theme.scss";
+@use "common/mixins.scss";
+
+@use "system_tray.scss";
+@use "workspace.scss";
+@use "power.scss";
+
+@use "corners.scss";
+@use "dynamic_island/island.scss";
+
+/* unset so we can style everything from the ground up. */
+* {
+	all: unset;
+	font-size: 16px;
+	font-family: "JetBrainsMono Nerd Font Propo", monospace;
+}
+
+.cover {
+	min-height: 0.8em;
+	min-width: 3em;
+	border-radius: 10px;
+	background-position: center;
+	background-size: contain;
+	margin: 3px 10px 3px 0px;
+}

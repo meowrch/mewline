@@ -1,0 +1,51 @@
+@use "theme.scss";
+@use "variable.scss";
+@use "common/functions.scss";
+
+/* system tray widget*/
+#system-tray {
+  padding: 0.125em 0.7em;
+  color: theme.$text-main;
+
+  & > button {
+    margin: 0 0.1em;
+    padding: 0 0.15em;
+    border-radius: variable.$radius-large;
+    &:hover {
+      background-color: theme.$surface-disabled;
+    }
+
+    &:active {
+      background-color: theme.$text-main;
+    }
+  }
+}
+
+#system-tray-menu > menuitem menu,
+#system-tray-menu {
+  background-color: theme.$surface-disabled;
+  border-radius: 1em;
+  padding: functions.toEm(10);
+  min-width: 100px;
+}
+
+#system-tray-menu > menuitem menu > menuitem,
+#system-tray-menu > menuitem {
+  margin: 5px 0px;
+  background-color: theme.$surface-disabled;
+  padding: 0.3em 0.5em;
+  border-radius: variable.$radius;
+}
+
+#system-tray-menu > menuitem menu > menuitem:disabled,
+#system-tray-menu > menuitem:disabled {
+  background-color: transparent;
+  color: theme.$text-muted-dark;
+}
+
+#system-tray-menu > menuitem menu > menuitem:hover,
+#system-tray-menu > menuitem:hover,
+#submenu-button:hover {
+  background-color: theme.$surface-neutral;
+  color: theme.$accent-purple;
+}

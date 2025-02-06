@@ -1,0 +1,186 @@
+@use "../theme.scss";
+@use "../variable.scss";
+
+%unset {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+%clear_icon {
+  -gtk-icon-transform: scale(1.05);
+  -gtk-icon-effect: highlight;
+}
+
+%widget_hover {
+  background-color: theme.$background;
+  transition: border-color 400ms ease-in-out;
+}
+
+/* General Typography */
+%large_title {
+  font-weight: 300;
+  font-size: 32px;
+}
+
+%title_1 {
+  font-weight: 800;
+  font-size: 27px;
+}
+
+%title_2 {
+  font-weight: 800;
+  font-size: 20px;
+}
+
+%title_3 {
+  font-weight: 700;
+  font-size: 20px;
+}
+
+%title_5 {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+%title_4 {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+%heading {
+  font-weight: 700;
+  font-size: 14.6px;
+}
+
+%caption_heading {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+%caption {
+  font-weight: 400;
+  font-size: 12px;
+}
+
+%smaller {
+  font-weight: 400;
+  font-size: 12px;
+}
+
+%widget {
+  transition: 200ms;
+  border-radius: variable.$radius;
+  color: theme.$text-main;
+  background-color: theme.$background-alt;
+  border: variable.$border;
+}
+
+@mixin slider(
+  $radius: variable.$radius,
+  $highlight-color: white,
+  $length: 150px,
+  $slider-color: theme.$background-dark
+) {
+  slider {
+    min-height: 8px;
+    border-radius: $radius;
+    background-color: transparent;
+    border: none;
+    box-shadow: 0 0 3px 0 theme.$shadow-color;
+  }
+
+  scale {
+    min-width: $length;
+  }
+
+  trough {
+    min-height: inherit;
+    border-radius: $radius;
+    border: none;
+    background-color: $slider-color;
+  }
+
+  highlight,
+  progress {
+    background-color: $highlight-color;
+    border-radius: $radius;
+  }
+}
+
+@mixin floating-widget($radius: variable.$popover-radius) {
+  box-shadow: 0 0 1px 0 theme.$shadow-color;
+  margin: max(variable.$spacing, 8px);
+  border: variable.$border-width solid variable.$popover-border-color;
+  background-color: theme.$background-dark;
+  color: theme.$text-main;
+  border-radius: $radius;
+  padding: variable.$popover-padding;
+}
+
+@mixin switch {
+  slider {
+    background-color: theme.$background-dark;
+    border-radius: variable.$radius-large;
+    min-width: 24px;
+    min-height: 24px;
+  }
+
+  image {
+    color: transparent;
+  }
+}
+
+@mixin spacing($multiplier: 1, $spacing: variable.$spacing, $rec: false) {
+  &.horizontal > * {
+    margin: 0 calc($spacing * $multiplier / 2);
+
+    &:first-child {
+      margin-left: 0;
+    }
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  &.vertical > * {
+    margin: calc($spacing * $multiplier / 2) 0;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  @if $rec {
+    box {
+      &.horizontal > * {
+        margin: 0 $spacing * $multiplier / 2;
+
+        &:first-child {
+          margin-left: 0;
+        }
+
+        &:last-child {
+          margin-right: 0;
+        }
+      }
+
+      &.vertical > * {
+        margin: $spacing * $multiplier / 2 0;
+
+        &:first-child {
+          margin-top: 0;
+        }
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}

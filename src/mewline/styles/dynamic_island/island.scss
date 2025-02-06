@@ -1,0 +1,64 @@
+@use "sass:color";
+@use "../theme.scss";
+
+@use "./power.scss";
+
+#dynamic-island-box {
+  margin: 10px;
+  margin-top: 0px;
+  transition: all 0.5s cubic-bezier(0.5, 0.25, 0, 1);
+
+  &.hidden {
+    opacity: 0;
+  }
+
+  &.hideshow {
+    opacity: 1;
+    margin-top: 40px;
+  }
+}
+
+#dynamic-island-content {
+  background-color: theme.$background-dark;
+  min-height: 40px;
+  min-width: 256px;
+  border-radius: 0 0 20px 20px;
+  transition: all 0.5s cubic-bezier(0.5, 0.25, 0, 1.25);
+
+  &.power {
+    min-height: 80px;
+    min-width: 320px;
+    border-radius: 0 0 36px 36px;
+  }
+}
+
+#power-menu {
+  opacity: 1;
+  margin: -800px;
+  transition: all 0.25s cubic-bezier(0.5, 0.25, 0, 1);
+
+  &.open {
+    opacity: 1;
+    margin: 0px;
+  }
+}
+
+#compact-label {
+  font-weight: bold;
+}
+
+#dynamic-island-corner-left {
+  margin-left: -16px;
+
+  #corner {
+    background-color: theme.$background-dark;
+  }
+}
+
+#dynamic-island-corner-right {
+  margin-right: -16px;
+
+  #corner {
+    background-color: theme.$background-dark;
+  }
+}

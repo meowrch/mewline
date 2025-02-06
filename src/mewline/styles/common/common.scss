@@ -1,0 +1,79 @@
+@use "sass:color";
+
+@use "mixins.scss";
+@use "../theme.scss";
+@use "../variable.scss";
+
+label {
+  font-size: 1rem;
+}
+
+#panel {
+  background-color: #00000000;
+
+  &-inner {
+    padding: 0.3em 0.7em 0.35em 0.7em;
+    border-color: theme.$surface-disabled;
+  }
+}
+
+.panel-box,
+.panel-button {
+  border-radius: variable.$radius-large;
+  background-color: theme.$background-dark;
+}
+
+.panel-box {
+  padding: 0.1em 0.9em;
+  color: theme.$text-main;
+  font-weight: 700;
+}
+
+.panel-button {
+  padding: 0 1.25em;
+
+  label {
+    color: theme.$text-main;
+  }
+
+  &:hover {
+    @extend %widget_hover;
+  }
+}
+
+.panel-text {
+  font-weight: 700;
+  margin-left: 10px;
+}
+
+.panel-text-icon {
+  color: theme.$text-main;
+}
+
+tooltip {
+  @extend %unset;
+  background-color: theme.$background-dark;
+  border-radius: variable.$radius;
+  box-shadow: 0 0 3px 0 theme.$shadow-color;
+  animation: tooltipShow 0.25s cubic-bezier(0.5, 0.25, 0, 1);
+
+  label {
+    @extend %unset;
+    color: theme.$text-main;
+    font-weight: normal;
+  }
+}
+
+tooltip > * {
+  padding: 0.125em 0.25em;
+}
+
+@keyframes tooltipShow {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

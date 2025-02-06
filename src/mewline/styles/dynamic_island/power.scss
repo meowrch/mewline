@@ -1,0 +1,29 @@
+@use "sass:color";
+@use "../theme.scss";
+
+#power-menu-button {
+  border-radius: 10px;
+  padding: 15px;
+
+  label {
+    font-size: 24px;
+    color: theme.$text-main;
+  }
+
+  &:hover,
+  &:focus {
+    background-color: theme.$accent-lavender;
+
+    label {
+      color: theme.$background-dark;
+    }
+  }
+
+  &:active {
+    background-color: theme.$accent-lavender;
+
+    label {
+      color: theme.$background-dark;
+    }
+  }
+}
