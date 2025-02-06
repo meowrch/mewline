@@ -55,12 +55,17 @@ class DynamicIsland(BaseModel):  # noqa: D101
     power_menu: PowerMenu
 
 
+class DatetimeModule(BaseModel):  # noqa: D101
+    format: str
+
+
 class Modules(BaseModel):  # noqa: D101
     osd: OSDModule
     workspaces: WorkspacesModule
     system_tray: TrayModule
     power: PowerModule
     dynamic_island: DynamicIsland
+    datetime: DatetimeModule
 
 
 class Config(BaseModel):  # noqa: D101

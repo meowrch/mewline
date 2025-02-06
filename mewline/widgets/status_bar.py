@@ -3,26 +3,25 @@ from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.wayland import WaylandWindow
 from utils.hyprland_monitors import HyprlandMonitors
 
-from .workspaces import HyprlandWorkSpacesWidget
-from .system_tray import SystemTray
-from .power import PowerButton
+from .datetime import DateTimeWidget
 from .dynamic_island import DynamicIsland
+from .power import PowerButton
+from .system_tray import SystemTray
+from .workspaces import HyprlandWorkSpacesWidget
+
 
 class StatusBar(WaylandWindow):
     """A widget to display the status bar panel."""
 
     widgets_list: dict
 
-    def __init__(self, di: DynamicIsland,  **kwargs):
+    def __init__(self, di: DynamicIsland, **kwargs):
         box = CenterBox(
             name="panel-inner",
             start_children=Box(
                 spacing=4,
                 orientation="h",
-                children=[
-                    SystemTray(),
-                    HyprlandWorkSpacesWidget()
-                ],
+                children=[SystemTray(), HyprlandWorkSpacesWidget()],
             ),
             center_children=Box(
                 spacing=4,
@@ -32,9 +31,7 @@ class StatusBar(WaylandWindow):
             end_children=Box(
                 spacing=4,
                 orientation="h",
-                children=[
-                    PowerButton(di=di)
-                ],
+                children=[DateTimeWidget(), PowerButton(di=di)],
             ),
         )
 
@@ -53,4 +50,4 @@ class StatusBar(WaylandWindow):
         )
 
     def pr(self):
-        print("hello!") 
+        print("hello!")
