@@ -1,8 +1,13 @@
 import gi
-from config import cfg
 from fabric.widgets.button import Button
 from fabric.widgets.image import Image
-from gi.repository import Gdk, GdkPixbuf, GLib, Gray, Gtk
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import GLib
+from gi.repository import Gray
+from gi.repository import Gtk
+
+from config import cfg
 from shared.widget_container import BoxWidget
 
 gi.require_version("Gray", "0.1")

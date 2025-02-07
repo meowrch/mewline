@@ -1,8 +1,9 @@
 from typing import Literal
 
-from config import cfg
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
+
+from config import cfg
 from services import audio_service
 from shared.widget_container import EventBoxWidget
 from utils.widget_utils import text_icon
@@ -99,7 +100,7 @@ class VolumeWidget(EventBoxWidget):
                 }
 
         # If the volume exceeds 100
-        return dict(
-            icon_text=self.config.overamplified_icon,
-            icon="audio-volume-overamplified-symbolic",
-        )
+        return {
+            "icon_text": self.config.overamplified_icon,
+            "icon": "audio-volume-overamplified-symbolic",
+        }

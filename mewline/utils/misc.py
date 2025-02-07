@@ -1,13 +1,16 @@
 import datetime
 import os
+import shlex
 import shutil
 import subprocess
 from typing import Literal
 
 import gi
 import psutil
-from fabric.utils import exec_shell_command, exec_shell_command_async
-from gi.repository import Gdk, Gtk
+from fabric.utils import exec_shell_command
+from fabric.utils import exec_shell_command_async
+from gi.repository import Gdk
+from gi.repository import Gtk
 from loguru import logger
 
 gi.require_version("Gtk", "3.0")
@@ -36,7 +39,7 @@ def validate_widgets(parsed_data, default_config):
         for widget in layout[section]:
             if widget not in default_config:
                 raise ValueError(
-                    f"Invalid widget {widget} found in section {section}. Please check the widget name."  # noqa: E501
+                    f"Invalid widget {widget} found in section {section}. Please check the widget name."
                 )
 
 
@@ -49,7 +52,7 @@ def exclude_keys(d: dict, keys_to_exclude: list[str]) -> dict:
 def format_time(secs: int):
     mm, _ = divmod(secs, 60)
     hh, mm = divmod(mm, 60)
-    return "%d h %02d min" % (hh, mm)
+    return f"{hh} h {mm} min"
 
 
 # Function to convert bytes to kilobytes, megabytes, or gigabytes
@@ -109,24 +112,25 @@ def send_notification(
     app_name="Application",
     timeout=None,
 ):
-    """
-    Sends a notification using the notify-send command.
-    :param title: The title of the notification
-    :param body: The message body of the notification
-    :param urgency: The urgency of the notification ('low', 'normal', 'critical')
-    :param icon: Optional icon for the notification
-    :param app_name: The application name that is sending the notification
-    :param timeout: Optional timeout in milliseconds (e.g., 5000 for 5 seconds)
+    """Sends a notification using the notify-send command.
+
+    Args:
+        title (str): The title of the notification
+        body (str): The message body of the notification
+        urgency (Literal): The urgency of the notification ('low', 'normal', 'critical')
+        icon (_type_, optional): Optional icon for the notification. Defaults to None.
+        app_name (str, optional): The application name. Defaults to "Application".
+        timeout (_type_, optional): Timeout in milliseconds. Defaults to None.
     """
     # Base command
     command = [
         "notify-send",
         "--urgency",
-        urgency,
+        shlex.quote(urgency),
         "--app-name",
-        app_name,
-        title,
-        body,
+        shlex.quote(app_name),
+        shlex.quote(title),
+        shlex.quote(body)
     ]
 
     # Add icon if provided
@@ -136,8 +140,17 @@ def send_notification(
     if timeout is not None:
         command.extend(["-t", str(timeout)])
 
+    if urgency not in ["low", "normal", "critical"]:
+        raise ValueError("Invalid urgency level")
+
+    if icon and not os.path.isfile(icon):
+        raise ValueError("Invalid icon path")
+
+    if timeout is not None and not isinstance(timeout, int):
+        raise ValueError("Timeout must be an integer")
+
     try:
-        subprocess.run(command, check=True)
+        subprocess.run(command, check=True)  # noqa: S603
     except subprocess.CalledProcessError as e:
         print(f"Failed to send notification: {e}")
 

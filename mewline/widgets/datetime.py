@@ -1,6 +1,7 @@
-from config import cfg
 from fabric.widgets.box import Box
 from fabric.widgets.datetime import DateTime
+
+from config import cfg
 from shared.widget_container import ButtonWidget
 
 

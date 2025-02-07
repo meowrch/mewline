@@ -1,13 +1,16 @@
 import argparse
 import sys
 
-import constants as cnst
 import setproctitle
-from config import cfg, generate_default_config
 from fabric import Application
 from fabric.utils import monitor_file
+
+import constants as cnst
+from config import cfg
+from config import generate_default_config
 from utils.misc import disable_logging
-from utils.theming import copy_theme, process_and_apply_css
+from utils.theming import copy_theme
+from utils.theming import process_and_apply_css
 from widgets.dynamic_island import DynamicIsland
 from widgets.screen_corners import ScreenCorners
 from widgets.status_bar import StatusBar

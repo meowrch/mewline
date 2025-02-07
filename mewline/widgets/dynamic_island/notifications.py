@@ -1,24 +1,25 @@
 import os
 from typing import TYPE_CHECKING
 
-from fabric.notifications.service import (
-    Notification,
-    NotificationAction,
-    Notifications,
-)
+from fabric.notifications.service import Notification
+from fabric.notifications.service import NotificationAction
+from fabric.notifications.service import Notifications
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.label import Label
-from gi.repository import Gdk, GdkPixbuf, GLib
+from gi.repository import Gdk
+from gi.repository import GdkPixbuf
+from gi.repository import GLib
 from loguru import logger
+
 from shared.rounded_image import CustomImage
 from utils.widget_utils import text_icon
 
 if TYPE_CHECKING:
-    from . import DynamicIsland
+    from widgets.dynamic_island import DynamicIsland
 
 
-class ActionButton(Button):  # noqa: D101
+class ActionButton(Button):
     def __init__(
         self, action: NotificationAction, index: int, total: int, notification_box
     ):
@@ -43,7 +44,7 @@ class ActionButton(Button):  # noqa: D101
         self.action.parent.close("dismissed-by-user")
 
 
-class NotificationBox(Box):  # noqa: D101
+class NotificationBox(Box):
     def __init__(self, notification: Notification, timeout_ms=5000, **kwargs):
         super().__init__(
             name="notification-box",
@@ -146,7 +147,7 @@ class NotificationBox(Box):  # noqa: D101
     def create_close_button(self):
         close_button = Button(
             name="close-button",
-            child=text_icon(icon="", size="24px", props=dict(name="close-label")),
+            child=text_icon(icon="", size="24px", props={"name": "close-label"}),
             on_clicked=lambda *_: self.notification.close("dismissed-by-user"),
         )
         close_button.connect(
@@ -199,7 +200,7 @@ class NotificationBox(Box):  # noqa: D101
 
 
 class NotificationContainer(Box):
-    """Widget for notification"""
+    """Widget for notification."""
 
     __slots__ = "dynamic_island"
 

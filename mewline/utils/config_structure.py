@@ -1,22 +1,22 @@
 from pydantic import BaseModel
 
 
-class Theme(BaseModel):  # noqa: D101
+class Theme(BaseModel):
     name: str
 
 
-class Options(BaseModel):  # noqa: D101
+class Options(BaseModel):
     screen_corners: bool
     intercept_notifications: bool
     osd_enabled: bool
 
 
-class OSDModule(BaseModel):  # noqa: D101
+class OSDModule(BaseModel):
     timeout: int
     anchor: str
 
 
-class WorkspacesModule(BaseModel):  # noqa: D101
+class WorkspacesModule(BaseModel):
     count: int
     hide_unoccupied: bool
     ignored: list[int]
@@ -25,18 +25,18 @@ class WorkspacesModule(BaseModel):  # noqa: D101
     icon_map: dict[str, str]
 
 
-class TrayModule(BaseModel):  # noqa: D101
+class TrayModule(BaseModel):
     icon_size: int
     ignore: list[str]
 
 
-class PowerModule(BaseModel):  # noqa: D101
+class PowerModule(BaseModel):
     icon: str
     icon_size: str
     tooltip: bool
 
 
-class PowerMenu(BaseModel):  # noqa: D101
+class PowerMenu(BaseModel):
     lock_icon: str
     lock_icon_size: str
     suspend_icon: str
@@ -49,15 +49,15 @@ class PowerMenu(BaseModel):  # noqa: D101
     shutdown_icon_size: str
 
 
-class DynamicIsland(BaseModel):  # noqa: D101
+class DynamicIsland(BaseModel):
     power_menu: PowerMenu
 
 
-class DatetimeModule(BaseModel):  # noqa: D101
+class DatetimeModule(BaseModel):
     format: str
 
 
-class VolumeModule(BaseModel):  # noqa: D101
+class VolumeModule(BaseModel):
     icon_size: str
     label: bool
     tooltip: bool
@@ -69,7 +69,7 @@ class VolumeModule(BaseModel):  # noqa: D101
     muted_icon: str
 
 
-class Modules(BaseModel):  # noqa: D101
+class Modules(BaseModel):
     osd: OSDModule
     workspaces: WorkspacesModule
     system_tray: TrayModule
@@ -79,7 +79,7 @@ class Modules(BaseModel):  # noqa: D101
     volume: VolumeModule
 
 
-class Config(BaseModel):  # noqa: D101
+class Config(BaseModel):
     theme: Theme
     options: Options
     modules: Modules
