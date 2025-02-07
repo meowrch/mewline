@@ -1,8 +1,7 @@
-from gi.repository import GLib
-
 from config import cfg
 from shared.widget_container import ButtonWidget
 from utils.widget_utils import text_icon
+
 from .dynamic_island import DynamicIsland
 
 

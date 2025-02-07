@@ -12,15 +12,21 @@ dependencies = [
     "setproctitle>=1.3.4",
 ]
 
+[dependency-groups]
+dev = [
+    "detect-secrets>=1.5.0",
+    "pre-commit>=4.1.0",
+]
+
+[tool.uv.sources]
+fabric = { git = "https://github.com/Fabric-Development/fabric.git" }
+
 [project.urls]
 Homepage = "https://github.com/meowrch/mewline"
 Documentation = "https://github.com/meowrch/mewline/wiki"
 Repository = "https://github.com/meowrch/mewline.git"
 "Bug Tracker" = "https://github.com/meowrch/mewline/issues"
 Changelog = "https://github.com/meowrch/mewline/blob/master/CHANGELOG.md"
-
-[tool.uv.sources]
-fabric = { git = "https://github.com/Fabric-Development/fabric.git" }
 
 [tool.ruff]
 target-version = "py311"

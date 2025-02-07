@@ -1,9 +1,11 @@
 from fabric.widgets.box import Box
-
 from fabric.widgets.shapes import Corner
 from fabric.widgets.wayland import WaylandWindow as Window
 
+
 class MyCorner(Box):
+    """A container for a corner widget."""
+
     def __init__(self, corner):
         super().__init__(
             name="corner-container",
@@ -16,6 +18,8 @@ class MyCorner(Box):
 
 
 class ScreenCorners(Window):
+    """A window to display the screen corners."""
+
     def __init__(self):
         super().__init__(
             name="corners",

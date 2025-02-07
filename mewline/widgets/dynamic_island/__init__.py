@@ -13,6 +13,7 @@ from .power import PowerMenu
 
 
 class DynamicIsland(Window):
+    """A dynamic island window for the status bar."""
     def __init__(self, **kwargs):
         super().__init__(
             name="dynamic_island",

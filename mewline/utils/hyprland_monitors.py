@@ -1,6 +1,5 @@
 import json
 import warnings
-from typing import Dict
 
 import gi
 from fabric.hyprland import Hyprland
@@ -35,7 +34,7 @@ class HyprlandMonitors(Hyprland):
         super().__init__(commands_only, **kwargs)
 
     # Add new arguments
-    def get_all_monitors(self) -> Dict:
+    def get_all_monitors(self) -> dict:
         monitors = json.loads(self.send_command("j/monitors").reply)
         return {
             monitor["id"]: monitor["name"] for monitor in monitors
