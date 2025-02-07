@@ -1,10 +1,9 @@
 from typing import TYPE_CHECKING
 
+from config import cfg
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from gi.repository import GLib
-
-from config import cfg
 from utils.widget_utils import setup_cursor_hover, text_icon
 
 if TYPE_CHECKING:
@@ -12,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class PowerMenu(Box):
+    """A power menu widget for the dynamic island."""
+
     def __init__(self, di: "DynamicIsland", **kwargs):
         super().__init__(
             name="power-menu",

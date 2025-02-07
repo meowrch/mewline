@@ -1,9 +1,8 @@
 import gi
+from config import cfg
 from fabric.widgets.button import Button
 from fabric.widgets.image import Image
 from gi.repository import Gdk, GdkPixbuf, GLib, Gray, Gtk
-
-from config import cfg
 from shared.widget_container import BoxWidget
 
 gi.require_version("Gray", "0.1")
@@ -32,8 +31,8 @@ class SystemTray(BoxWidget):
             return
 
         if not item.get_property("title"):
-            return 
-        
+            return
+
         item_button = self.do_bake_item_button(item)
         item.connect(
             "removed", lambda *_: self.destroy_btn(item_button)

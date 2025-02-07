@@ -1,6 +1,5 @@
-from fabric.hyprland.widgets import WorkspaceButton, Workspaces
-
 from config import cfg
+from fabric.hyprland.widgets import WorkspaceButton, Workspaces
 from shared.widget_container import BoxWidget
 from utils.misc import unique_list
 
@@ -17,8 +16,7 @@ def buttons_factory(ws_id) -> WorkspaceButton:
     return WorkspaceButton(
         id=ws_id,
         label=f"{cfg.modules.workspaces.icon_map.get(str(ws_id), ws_id)}",
-        visible=ws_id
-        not in unique_list(cfg.modules.workspaces.ignored),
+        visible=ws_id not in unique_list(cfg.modules.workspaces.ignored),
     )
 
 

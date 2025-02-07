@@ -2,7 +2,7 @@ import datetime
 import os
 import shutil
 import subprocess
-from typing import Dict, List, Literal
+from typing import Literal
 
 import gi
 import psutil
@@ -41,7 +41,7 @@ def validate_widgets(parsed_data, default_config):
 
 
 # Function to exclude keys from a dictionary        )
-def exclude_keys(d: Dict, keys_to_exclude: List[str]) -> Dict:
+def exclude_keys(d: dict, keys_to_exclude: list[str]) -> dict:
     return {k: v for k, v in d.items() if k not in keys_to_exclude}
 
 
@@ -179,7 +179,7 @@ def ensure_dir_exists(path: str):
 
 
 # Function to unique list
-def unique_list(lst) -> List:
+def unique_list(lst) -> list:
     return list(set(lst))
 
 

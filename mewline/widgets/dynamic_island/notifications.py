@@ -199,6 +199,8 @@ class NotificationBox(Box):  # noqa: D101
 
 
 class NotificationContainer(Box):
+    """Widget for notification"""
+
     __slots__ = "dynamic_island"
 
     def __init__(self, dynamic_island: "DynamicIsland"):

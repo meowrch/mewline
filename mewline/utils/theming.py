@@ -36,7 +36,7 @@ def copy_theme(path: Path):
         path = cnst.DEFAULT_THEME_STYLE
 
     try:
-        with open(path, "r") as f:
+        with open(path) as f:
             content = f.read()
 
         with open(cnst.THEME_STYLE, "w") as f:

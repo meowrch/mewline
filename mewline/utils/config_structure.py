@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 from pydantic import BaseModel
 
 
@@ -21,15 +19,15 @@ class OSDModule(BaseModel):  # noqa: D101
 class WorkspacesModule(BaseModel):  # noqa: D101
     count: int
     hide_unoccupied: bool
-    ignored: List[int]
+    ignored: list[int]
     reverse_scroll: bool
     empty_scroll: bool
-    icon_map: Dict[str, str]
+    icon_map: dict[str, str]
 
 
 class TrayModule(BaseModel):  # noqa: D101
     icon_size: int
-    ignore: List[str]
+    ignore: list[str]
 
 
 class PowerModule(BaseModel):  # noqa: D101
