@@ -1,17 +1,19 @@
+from fabric.hyprland.widgets import WorkspaceButton
+from fabric.hyprland.widgets import Workspaces
+
 from config import cfg
-from fabric.hyprland.widgets import WorkspaceButton, Workspaces
 from shared.widget_container import BoxWidget
 from utils.misc import unique_list
 
 
 def buttons_factory(ws_id) -> WorkspaceButton:
-    """Factory function to create buttons for each workspace
+    """Factory function to create buttons for each workspace.
 
     Args:
-        ws_id (_type_): _description_
+        ws_id (_type_): Identifier of the workspace
 
     Returns:
-        WorkspaceButton: _description_
+        WorkspaceButton: Button for each workspace
     """
     return WorkspaceButton(
         id=ws_id,

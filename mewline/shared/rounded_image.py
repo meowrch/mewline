@@ -7,7 +7,7 @@ from gi.repository import Gtk
 
 
 class CustomImage(Image):
-    """A class to render a photo with rounded corners"""
+    """A class to render a photo with rounded corners."""
     def do_render_rectangle(
         self, cr: cairo.Context, width: int, height: int, radius: int = 0
     ):

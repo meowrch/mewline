@@ -1,14 +1,14 @@
 from fabric.widgets.box import Box
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.wayland import WaylandWindow
-from utils.hyprland_monitors import HyprlandMonitors
 
-from .datetime import DateTimeWidget
-from .dynamic_island import DynamicIsland
-from .power import PowerButton
-from .system_tray import SystemTray
-from .volume import VolumeWidget
-from .workspaces import HyprlandWorkSpacesWidget
+from utils.hyprland_monitors import HyprlandMonitors
+from widgets.datetime import DateTimeWidget
+from widgets.dynamic_island import DynamicIsland
+from widgets.power import PowerButton
+from widgets.system_tray import SystemTray
+from widgets.volume import VolumeWidget
+from widgets.workspaces import HyprlandWorkSpacesWidget
 
 
 class StatusBar(WaylandWindow):

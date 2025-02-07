@@ -1,8 +1,9 @@
 import json
 from pathlib import Path
 
-import constants as cnst
 from loguru import logger
+
+import constants as cnst
 from utils.config_structure import Config
 
 

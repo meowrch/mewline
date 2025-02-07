@@ -1,8 +1,7 @@
 from config import cfg
 from shared.widget_container import ButtonWidget
 from utils.widget_utils import text_icon
-
-from .dynamic_island import DynamicIsland
+from widgets.dynamic_island import DynamicIsland
 
 
 class PowerButton(ButtonWidget):

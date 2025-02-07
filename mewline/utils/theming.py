@@ -1,12 +1,12 @@
 from pathlib import Path
 
-import constants as cnst
-from errors.settings import ExecutableNotFoundError
 from fabric import Application
 from fabric.utils import exec_shell_command
 from loguru import logger
 
-from .misc import executable_exists
+import constants as cnst
+from errors.settings import ExecutableNotFoundError
+from utils.misc import executable_exists
 
 
 def process_and_apply_css(app: Application):
@@ -21,7 +21,7 @@ def process_and_apply_css(app: Application):
 
 
 def copy_theme(path: Path):
-    """Function to get the system icon theme
+    """Function to get the system icon theme.
 
     Args:
         path (Path): path to theme
@@ -31,7 +31,7 @@ def copy_theme(path: Path):
 
     if not path.exists():
         logger.warning(
-            f"Warning: The theme file '{path}' was not found." "Using default theme."
+            f"Warning: The theme file '{path}' was not found.Using default theme."
         )
         path = cnst.DEFAULT_THEME_STYLE
 

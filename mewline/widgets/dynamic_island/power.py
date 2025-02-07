@@ -1,13 +1,15 @@
 from typing import TYPE_CHECKING
 
-from config import cfg
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from gi.repository import GLib
-from utils.widget_utils import setup_cursor_hover, text_icon
+
+from config import cfg
+from utils.widget_utils import setup_cursor_hover
+from utils.widget_utils import text_icon
 
 if TYPE_CHECKING:
-    from ..dynamic_island import DynamicIsland
+    from widgets.dynamic_island import DynamicIsland
 
 
 class PowerMenu(Box):
@@ -26,14 +28,14 @@ class PowerMenu(Box):
             **kwargs,
         )
         self.config = cfg.modules.dynamic_island.power_menu
-        self.dynamic_island: "DynamicIsland" = di
+        self.dynamic_island: DynamicIsland = di
 
         self.btn_lock = Button(
             name="power-menu-button",
             child=text_icon(
                 icon=self.config.lock_icon,
                 size=self.config.lock_icon_size,
-                props=dict(name="button-label"),
+                props={"name": "button-label"},
             ),
             on_clicked=self.lock,
         )
@@ -43,7 +45,7 @@ class PowerMenu(Box):
             child=text_icon(
                 icon=self.config.suspend_icon,
                 size=self.config.suspend_icon_size,
-                props=dict(name="button-label"),
+                props={"name": "button-label"},
             ),
             on_clicked=self.suspend,
         )
@@ -53,7 +55,7 @@ class PowerMenu(Box):
             child=text_icon(
                 icon=self.config.logout_icon,
                 size=self.config.logout_icon_size,
-                props=dict(name="button-label"),
+                props={"name": "button-label"},
             ),
             on_clicked=self.logout,
         )
@@ -63,7 +65,7 @@ class PowerMenu(Box):
             child=text_icon(
                 icon=self.config.reboot_icon,
                 size=self.config.reboot_icon_size,
-                props=dict(name="button-label"),
+                props={"name": "button-label"},
             ),
             on_clicked=self.reboot,
         )
@@ -73,7 +75,7 @@ class PowerMenu(Box):
             child=text_icon(
                 icon=self.config.shutdown_icon,
                 size=self.config.shutdown_icon_size,
-                props=dict(name="button-label"),
+                props={"name": "button-label"},
             ),
             on_clicked=self.poweroff,
         )
