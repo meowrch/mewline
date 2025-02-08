@@ -69,6 +69,11 @@ class VolumeModule(BaseModel):
     muted_icon: str
 
 
+class BatteryModule(BaseModel):
+    hide_label_when_full: bool
+    label: bool
+    tooltip: bool
+
 class Modules(BaseModel):
     osd: OSDModule
     workspaces: WorkspacesModule
@@ -77,6 +82,7 @@ class Modules(BaseModel):
     dynamic_island: DynamicIsland
     datetime: DatetimeModule
     volume: VolumeModule
+    battery: BatteryModule
 
 
 class Config(BaseModel):

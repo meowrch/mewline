@@ -3,6 +3,7 @@ from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.wayland import WaylandWindow
 
 from utils.hyprland_monitors import HyprlandMonitors
+from widgets.battery import Battery
 from widgets.datetime import DateTimeWidget
 from widgets.dynamic_island import DynamicIsland
 from widgets.power import PowerButton
@@ -32,7 +33,12 @@ class StatusBar(WaylandWindow):
             end_children=Box(
                 spacing=4,
                 orientation="h",
-                children=[VolumeWidget(), DateTimeWidget(), PowerButton(di=di)],
+                children=[
+                    Battery(),
+                    VolumeWidget(),
+                    DateTimeWidget(),
+                    PowerButton(di=di),
+                ],
             ),
         )
 

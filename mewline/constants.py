@@ -63,6 +63,11 @@ DEFAULT_CONFIG = {
             "low_icon": "󰕿",
             "muted_icon": "󰝟",
         },
+        "battery": {
+            "hide_label_when_full": True,
+            "label": True,
+            "tooltip": True,
+        },
         "dynamic_island": {
             "power_menu": {
                 "lock_icon": "",
