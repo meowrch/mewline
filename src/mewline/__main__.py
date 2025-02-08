@@ -5,15 +5,15 @@ import setproctitle
 from fabric import Application
 from fabric.utils import monitor_file
 
-import constants as cnst
-from config import cfg
-from config import generate_default_config
-from utils.misc import disable_logging
-from utils.theming import copy_theme
-from utils.theming import process_and_apply_css
-from widgets.dynamic_island import DynamicIsland
-from widgets.screen_corners import ScreenCorners
-from widgets.status_bar import StatusBar
+from mewline import constants as cnst
+from mewline.config import cfg
+from mewline.config import generate_default_config
+from mewline.utils.misc import disable_logging
+from mewline.utils.theming import copy_theme
+from mewline.utils.theming import process_and_apply_css
+from mewline.widgets.dynamic_island import DynamicIsland
+from mewline.widgets.screen_corners import ScreenCorners
+from mewline.widgets.status_bar import StatusBar
 
 
 def generate():
@@ -26,10 +26,7 @@ def main():
     ##==> Creating App
     ##############################
     app = Application(
-        cnst.APPLICATION_NAME,
-        ScreenCorners(),
-        StatusBar(),
-        DynamicIsland()
+        cnst.APPLICATION_NAME, ScreenCorners(), StatusBar(), DynamicIsland()
     )
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)

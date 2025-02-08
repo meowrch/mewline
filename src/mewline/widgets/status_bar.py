@@ -2,14 +2,14 @@ from fabric.widgets.box import Box
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.wayland import WaylandWindow
 
-from utils.hyprland_monitors import HyprlandMonitors
-from widgets.battery import Battery
-from widgets.brightness import BrightnessWidget
-from widgets.datetime import DateTimeWidget
-from widgets.power import PowerButton
-from widgets.system_tray import SystemTray
-from widgets.volume import VolumeWidget
-from widgets.workspaces import HyprlandWorkSpacesWidget
+from mewline.utils.hyprland_monitors import HyprlandMonitors
+from mewline.widgets.battery import Battery
+from mewline.widgets.brightness import BrightnessWidget
+from mewline.widgets.datetime import DateTimeWidget
+from mewline.widgets.power import PowerButton
+from mewline.widgets.system_tray import SystemTray
+from mewline.widgets.volume import VolumeWidget
+from mewline.widgets.workspaces import HyprlandWorkSpacesWidget
 
 
 class StatusBar(WaylandWindow):
@@ -38,7 +38,7 @@ class StatusBar(WaylandWindow):
                     Battery(),
                     VolumeWidget(),
                     DateTimeWidget(),
-                    PowerButton()
+                    PowerButton(),
                 ],
             ),
         )

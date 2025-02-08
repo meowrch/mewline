@@ -1,8 +1,8 @@
 from fabric.widgets.box import Box
 from fabric.widgets.datetime import DateTime
 
-from config import cfg
-from shared.widget_container import ButtonWidget
+from mewline.config import cfg
+from mewline.shared.widget_container import ButtonWidget
 
 
 class DateTimeWidget(ButtonWidget):

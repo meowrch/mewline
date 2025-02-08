@@ -7,8 +7,8 @@ from gi.repository import GLib
 from gi.repository import Gray
 from gi.repository import Gtk
 
-from config import cfg
-from shared.widget_container import BoxWidget
+from mewline.config import cfg
+from mewline.shared.widget_container import BoxWidget
 
 gi.require_version("Gray", "0.1")
 gi.require_version("Gtk", "3.0")

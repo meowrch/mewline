@@ -3,10 +3,10 @@ from typing import Literal
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 
-from config import cfg
-from services import audio_service
-from shared.widget_container import EventBoxWidget
-from utils.widget_utils import text_icon
+from mewline.config import cfg
+from mewline.services import audio_service
+from mewline.shared.widget_container import EventBoxWidget
+from mewline.utils.widget_utils import text_icon
 
 
 class VolumeWidget(EventBoxWidget):

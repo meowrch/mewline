@@ -8,7 +8,7 @@ from fabric.utils import monitor_file
 from gi.repository import GLib
 from loguru import logger
 
-from utils.misc import executable_exists
+from mewline.utils.misc import executable_exists
 
 
 def exec_brightnessctl_async(args: str):

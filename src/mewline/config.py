@@ -3,8 +3,8 @@ from pathlib import Path
 
 from loguru import logger
 
-import constants as cnst
-from utils.config_structure import Config
+import mewline.constants as cnst
+from mewline.utils.config_structure import Config
 
 
 def generate_default_config():

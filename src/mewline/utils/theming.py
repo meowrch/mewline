@@ -4,9 +4,9 @@ from fabric import Application
 from fabric.utils import exec_shell_command
 from loguru import logger
 
-import constants as cnst
-from errors.settings import ExecutableNotFoundError
-from utils.misc import executable_exists
+import mewline.constants as cnst
+from mewline.errors.settings import ExecutableNotFoundError
+from mewline.utils.misc import executable_exists
 
 
 def process_and_apply_css(app: Application):
