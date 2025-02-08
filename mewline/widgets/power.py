@@ -1,13 +1,15 @@
+from fabric.utils import exec_shell_command_async
+
+import constants as cnst
 from config import cfg
 from shared.widget_container import ButtonWidget
 from utils.widget_utils import text_icon
-from widgets.dynamic_island import DynamicIsland
 
 
 class PowerButton(ButtonWidget):
     """A widget to power off the system."""
 
-    def __init__(self, di: DynamicIsland, **kwargs):
+    def __init__(self, **kwargs):
         super().__init__(name="power", **kwargs)
         self.config = cfg.modules.power
 
@@ -22,5 +24,7 @@ class PowerButton(ButtonWidget):
 
         self.connect(
             "clicked",
-            lambda *_: di.open("power"),
+            lambda *_: exec_shell_command_async(
+                f"{cnst.ACTION_COMMAND} dynamic-island-open 'power'"
+            ),
         )

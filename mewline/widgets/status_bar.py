@@ -6,7 +6,6 @@ from utils.hyprland_monitors import HyprlandMonitors
 from widgets.battery import Battery
 from widgets.brightness import BrightnessWidget
 from widgets.datetime import DateTimeWidget
-from widgets.dynamic_island import DynamicIsland
 from widgets.power import PowerButton
 from widgets.system_tray import SystemTray
 from widgets.volume import VolumeWidget
@@ -18,7 +17,7 @@ class StatusBar(WaylandWindow):
 
     widgets_list: dict
 
-    def __init__(self, di: DynamicIsland, **kwargs):
+    def __init__(self, **kwargs):
         box = CenterBox(
             name="panel-inner",
             start_children=Box(
@@ -39,7 +38,7 @@ class StatusBar(WaylandWindow):
                     Battery(),
                     VolumeWidget(),
                     DateTimeWidget(),
-                    PowerButton(di=di),
+                    PowerButton()
                 ],
             ),
         )
@@ -57,6 +56,3 @@ class StatusBar(WaylandWindow):
             child=box,
             **kwargs,
         )
-
-    def pr(self):
-        print("hello!")

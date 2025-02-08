@@ -1,5 +1,6 @@
 import os
 
+from fabric import Application
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.centerbox import CenterBox
@@ -89,6 +90,7 @@ class DynamicIsland(Window):
         self.show_all()
 
         ## Настраиваем хоткеи
+        Application.action("dynamic-island-open")(self.open)
         self.add_keybinding("Escape", lambda *_: self.close())
 
     def close(self):
