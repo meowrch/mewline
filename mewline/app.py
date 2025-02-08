@@ -15,10 +15,6 @@ from widgets.dynamic_island import DynamicIsland
 from widgets.screen_corners import ScreenCorners
 from widgets.status_bar import StatusBar
 
-dynamic_island = DynamicIsland()
-screen_corners = ScreenCorners()
-status_bar = StatusBar(dynamic_island)
-
 
 def generate():
     generate_default_config()
@@ -31,10 +27,11 @@ def main():
     ##############################
     app = Application(
         cnst.APPLICATION_NAME,
-        screen_corners,
-        status_bar,
-        dynamic_island,
+        ScreenCorners(),
+        StatusBar(),
+        DynamicIsland()
     )
+
     setproctitle.setproctitle(cnst.APPLICATION_NAME)
     cnst.APP_CACHE_DIRECTORY.mkdir(parents=True, exist_ok=True)
 
