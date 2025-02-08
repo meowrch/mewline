@@ -2,6 +2,11 @@ from pathlib import Path
 
 from gi.repository import GLib
 
+NOTIFICATION_WIDTH = 400
+NOTIFICATION_IMAGE_SIZE = 64
+NOTIFICATION_ACTION_NUMBER = 3
+HIGH_POLL_INTERVAL = 1000 * 3600  # 1 hour
+
 APP_FOLDER = Path(__file__).resolve().parent
 STYLES_FOLDER = APP_FOLDER / "styles"
 DIST_FOLDER = APP_FOLDER / "dist"
@@ -9,6 +14,7 @@ DIST_FOLDER = APP_FOLDER / "dist"
 APPLICATION_NAME = "mewline"
 SYSTEM_CACHE_DIR = Path(GLib.get_user_cache_dir())
 APP_CACHE_DIRECTORY = SYSTEM_CACHE_DIR / APPLICATION_NAME
+NOTIFICATION_CACHE_FILE = APP_CACHE_DIRECTORY / "notifications.json"
 
 MAIN_STYLE = STYLES_FOLDER / "main.scss"
 THEME_STYLE = STYLES_FOLDER / "theme.scss"
@@ -51,9 +57,9 @@ DEFAULT_CONFIG = {
                 "10": "10",
             },
         },
-        "system_tray": { "icon_size": 16, "ignore": [] },
-        "power": { "icon": "", "icon_size": "16px", "tooltip": True },
-        "datetime": { "format": "%d-%m-%y %H:%M" },
+        "system_tray": {"icon_size": 16, "ignore": []},
+        "power": {"icon": "", "icon_size": "16px", "tooltip": True},
+        "datetime": {"format": "%d-%m-%y %H:%M"},
         "volume": {
             "icon_size": "14px",
             "label": True,
@@ -91,17 +97,27 @@ DEFAULT_CONFIG = {
                 "reboot_icon": "󰑓",
                 "reboot_icon_size": "20px",
                 "shutdown_icon": "",
-                "shutdown_icon_size": "20px"
-
+                "shutdown_icon_size": "20px",
             }
-        }
+        },
     },
 }
 
-volume_text_icons = {
-    "overamplified": "󰕾",
-    "high": "󰕾",
-    "medium": "󰖀",
-    "low": "󰕿",
-    "muted": "󰝟",
+
+icons = {
+    "fallback": {
+        "notification": "dialog-information-symbolic",
+    },
+    "ui": {
+        "close": "window-close-symbolic",
+    },
+    "notifications": {
+        "noisy": "org.gnome.Settings-notifications-symbolic",
+        "silent": "notifications-disabled-symbolic",
+        "message": "chat-bubbles-symbolic",
+    },
+    "trash": {
+        "full": "user-trash-full-symbolic",
+        "empty": "user-trash-symbolic",
+    }
 }

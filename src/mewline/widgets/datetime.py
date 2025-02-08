@@ -1,6 +1,8 @@
+from fabric.utils import exec_shell_command_async
 from fabric.widgets.box import Box
 from fabric.widgets.datetime import DateTime
 
+import mewline.constants as cnst
 from mewline.config import cfg
 from mewline.shared.widget_container import ButtonWidget
 
@@ -15,4 +17,10 @@ class DateTimeWidget(ButtonWidget):
             spacing=10,
             v_align="center",
             children=(DateTime(self.config.format, name="date-time"),),
+        )
+        self.connect(
+            "clicked",
+            lambda *_: exec_shell_command_async(
+                f"{cnst.ACTION_COMMAND} dynamic-island-open 'date_notification'"
+            ),
         )
