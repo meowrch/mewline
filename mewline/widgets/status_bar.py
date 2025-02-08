@@ -4,6 +4,7 @@ from fabric.widgets.wayland import WaylandWindow
 
 from utils.hyprland_monitors import HyprlandMonitors
 from widgets.battery import Battery
+from widgets.brightness import BrightnessWidget
 from widgets.datetime import DateTimeWidget
 from widgets.dynamic_island import DynamicIsland
 from widgets.power import PowerButton
@@ -34,6 +35,7 @@ class StatusBar(WaylandWindow):
                 spacing=4,
                 orientation="h",
                 children=[
+                    BrightnessWidget(),
                     Battery(),
                     VolumeWidget(),
                     DateTimeWidget(),
