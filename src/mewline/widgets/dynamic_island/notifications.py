@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 
 from fabric.notifications.service import Notification
 from fabric.notifications.service import NotificationAction
-from fabric.notifications.service import Notifications
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.label import Label
@@ -12,8 +11,11 @@ from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from loguru import logger
 
+from mewline.services import cache_notification_service
+from mewline.services import notification_service
 from mewline.shared.rounded_image import CustomImage
 from mewline.utils.widget_utils import text_icon
+from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 if TYPE_CHECKING:
     from mewline.widgets.dynamic_island import DynamicIsland
@@ -199,24 +201,28 @@ class NotificationBox(Box):
         self.set_pointer_cursor(button, "arrow")
 
 
-class NotificationContainer(Box):
+class NotificationContainer(BaseDiWidget, Box):
     """Widget for notification."""
 
     __slots__ = "dynamic_island"
+    focuse_kb: bool = False
 
-    def __init__(self, dynamic_island: "DynamicIsland"):
-        super().__init__(
+    def __init__(self, di: "DynamicIsland"):
+        Box.__init__(
+            self,
             name="notification",
             orientation="v",
             spacing=4,
             v_expand=True,
             h_expand=True,
         )
-        self.dynamic_island = dynamic_island
-        self._server = Notifications()
-        self._server.connect("notification-added", self.on_new_notification)
+        self.dynamic_island = di
+        notification_service.connect("notification-added", self.on_new_notification)
 
     def on_new_notification(self, fabric_notif, id):
+        if cache_notification_service.dont_disturb:
+            return
+
         for child in self.get_children():
             child.destroy()
 

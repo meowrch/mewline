@@ -3,6 +3,7 @@
 
 @use "./power.scss";
 @use "./notifications.scss";
+@use "./datemenu.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -38,11 +39,19 @@
     min-width: 360px;
     border-radius: 0 0 36px 36px;
   }
+
+  &.date-notification {
+    padding: 16px;
+    min-height: 45px;
+    min-width: 360px;
+    border-radius: 0 0 36px 36px;
+  }
 }
 
 
 #power-menu,
-#notification {
+#notification,
+#date-notification {
   opacity: 1;
   margin: -800px;
   transition: all 0.25s cubic-bezier(0.5, 0.25, 0, 1);

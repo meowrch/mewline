@@ -62,3 +62,9 @@ $notify-action-btn-label-color: $background-dark;
 
 $notify-close-btn-label-color: $background-dark;
 $notify-close-btn-color: $accent-pink;
+
+/* ------------------ Date Notification ---------------------- */
+$dnd-switch: lighten($background, 10%);
+$dnd-switch-circle: $text-main;
+$dnd-switch-active: $accent-lavender;
+$dnd-switch-circle-active: $background;

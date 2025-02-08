@@ -7,16 +7,20 @@ from gi.repository import GLib
 from mewline.config import cfg
 from mewline.utils.widget_utils import setup_cursor_hover
 from mewline.utils.widget_utils import text_icon
+from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 if TYPE_CHECKING:
     from mewline.widgets.dynamic_island import DynamicIsland
 
 
-class PowerMenu(Box):
+class PowerMenu(BaseDiWidget, Box):
     """A power menu widget for the dynamic island."""
 
+    focuse_kb: bool = True
+
     def __init__(self, di: "DynamicIsland", **kwargs):
-        super().__init__(
+        Box.__init__(
+            self,
             name="power-menu",
             orientation="h",
             spacing=4,
