@@ -7,14 +7,15 @@ from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.stack import Stack
 from fabric.widgets.wayland import WaylandWindow as Window
 
-from utils.widget_utils import setup_cursor_hover
-from widgets.dynamic_island.notifications import NotificationContainer
-from widgets.dynamic_island.power import PowerMenu
-from widgets.screen_corners import MyCorner
+from mewline.utils.widget_utils import setup_cursor_hover
+from mewline.widgets.dynamic_island.notifications import NotificationContainer
+from mewline.widgets.dynamic_island.power import PowerMenu
+from mewline.widgets.screen_corners import MyCorner
 
 
 class DynamicIsland(Window):
     """A dynamic island window for the status bar."""
+
     def __init__(self, **kwargs):
         super().__init__(
             name="dynamic_island",
@@ -49,11 +50,7 @@ class DynamicIsland(Window):
             h_expand=True,
             transition_type="crossfade",
             transition_duration=250,
-            children=[
-                self.compact,
-                self.power,
-                self.notification
-            ],
+            children=[self.compact, self.power, self.notification],
         )
 
         self.corner_left = Box(
@@ -115,10 +112,7 @@ class DynamicIsland(Window):
             self.di_box.remove_style_class("hidden")
             self.di_box.add_style_class("hideshow")
 
-        widgets = {
-            "power": self.power,
-            "notification": self.notification
-        }
+        widgets = {"power": self.power, "notification": self.notification}
 
         for style, w in widgets.items():
             self.stack.remove_style_class(style)

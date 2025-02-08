@@ -1,11 +1,11 @@
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 
-from config import cfg
-from services.brightness import Brightness
-from shared.widget_container import EventBoxWidget
-from utils.misc import convert_to_percent
-from utils.widget_utils import text_icon
+from mewline.config import cfg
+from mewline.services.brightness import Brightness
+from mewline.shared.widget_container import EventBoxWidget
+from mewline.utils.misc import convert_to_percent
+from mewline.utils.widget_utils import text_icon
 
 
 class BrightnessWidget(EventBoxWidget):

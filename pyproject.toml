@@ -22,17 +22,8 @@ dev = [
     "ruff>=0.9.4",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["mewline"]
-
 [tool.uv]
-# TODO: Set to ">=0.5,<0.6" when bug is fixed
-# https://github.com/astral-sh/setup-uv/issues/264
-required-version = "<0.6"
+package=true
 
 [tool.uv.sources]
 fabric = { git = "https://github.com/Fabric-Development/fabric.git" }
@@ -44,8 +35,11 @@ Repository = "https://github.com/meowrch/mewline.git"
 "Bug Tracker" = "https://github.com/meowrch/mewline/issues"
 Changelog = "https://github.com/meowrch/mewline/blob/master/CHANGELOG.md"
 
+[project.scripts]
+mewline = "mewline.__main__:main"
+
 [tool.ruff]
-src = ["mewline"]
+src = ["src"]
 target-version = "py311"
 line-length = 88
 indent-width = 4

@@ -4,12 +4,12 @@ from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from gi.repository import GLib
 
-from config import cfg
-from utils.widget_utils import setup_cursor_hover
-from utils.widget_utils import text_icon
+from mewline.config import cfg
+from mewline.utils.widget_utils import setup_cursor_hover
+from mewline.utils.widget_utils import text_icon
 
 if TYPE_CHECKING:
-    from widgets.dynamic_island import DynamicIsland
+    from mewline.widgets.dynamic_island import DynamicIsland
 
 
 class PowerMenu(Box):

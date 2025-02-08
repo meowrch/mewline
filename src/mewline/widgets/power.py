@@ -1,9 +1,9 @@
 from fabric.utils import exec_shell_command_async
 
-import constants as cnst
-from config import cfg
-from shared.widget_container import ButtonWidget
-from utils.widget_utils import text_icon
+import mewline.constants as cnst
+from mewline.config import cfg
+from mewline.shared.widget_container import ButtonWidget
+from mewline.utils.widget_utils import text_icon
 
 
 class PowerButton(ButtonWidget):

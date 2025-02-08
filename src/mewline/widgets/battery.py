@@ -4,10 +4,10 @@ from fabric.widgets.box import Box
 from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 
-from config import cfg
-from shared.widget_container import ButtonWidget
-from utils.misc import format_time
-from utils.psutil import psutil_fabricator
+from mewline.config import cfg
+from mewline.shared.widget_container import ButtonWidget
+from mewline.utils.misc import format_time
+from mewline.utils.psutil import psutil_fabricator
 
 
 class Battery(ButtonWidget):

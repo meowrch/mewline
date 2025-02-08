@@ -12,11 +12,11 @@ from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from loguru import logger
 
-from shared.rounded_image import CustomImage
-from utils.widget_utils import text_icon
+from mewline.shared.rounded_image import CustomImage
+from mewline.utils.widget_utils import text_icon
 
 if TYPE_CHECKING:
-    from widgets.dynamic_island import DynamicIsland
+    from mewline.widgets.dynamic_island import DynamicIsland
 
 
 class ActionButton(Button):
