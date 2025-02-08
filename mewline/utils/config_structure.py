@@ -74,6 +74,18 @@ class BatteryModule(BaseModel):
     label: bool
     tooltip: bool
 
+
+class BrightnessModule(BaseModel):
+    off_icon: str
+    low_icon: str
+    medium_icon: str
+    high_icon: str
+    icon_size: str
+    label: bool
+    tooltip: bool
+    step_size: int
+
+
 class Modules(BaseModel):
     osd: OSDModule
     workspaces: WorkspacesModule
@@ -83,6 +95,7 @@ class Modules(BaseModel):
     datetime: DatetimeModule
     volume: VolumeModule
     battery: BatteryModule
+    brightness: BrightnessModule
 
 
 class Config(BaseModel):

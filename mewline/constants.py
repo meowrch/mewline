@@ -68,6 +68,16 @@ DEFAULT_CONFIG = {
             "label": True,
             "tooltip": True,
         },
+        "brightness": {
+            "off_icon": "",
+            "low_icon": "",
+            "medium_icon": "",
+            "high_icon": "",
+            "icon_size": "14px",
+            "label": True,
+            "tooltip": True,
+            "step_size": 5,
+        },
         "dynamic_island": {
             "power_menu": {
                 "lock_icon": "",
