@@ -206,6 +206,7 @@ class DateNotificationMenu(BaseDiWidget, Box):
         )
 
         self.uptime = Label(style_classes="uptime", label=f"uptime: {uptime()}")
+        self.uptime.set_tooltip_text("System uptime")
 
         # Placeholder for when there are no notifications
         self.placeholder = Box(
@@ -282,7 +283,10 @@ class DateNotificationMenu(BaseDiWidget, Box):
                     style_classes="notification-scrollable",
                     v_scrollbar_policy="automatic",
                     h_scrollbar_policy="never",
-                    child=Box(children=(self.placeholder, self.notification_list_box)),
+                    child=Box(
+                        orientation="v",
+                        children=(self.notification_list_box, self.placeholder),
+                    ),
                 ),
             ),
         )

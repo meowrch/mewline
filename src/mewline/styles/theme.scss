@@ -64,7 +64,28 @@ $notify-close-btn-label-color: $background-dark;
 $notify-close-btn-color: $accent-pink;
 
 /* ------------------ Date Notification ---------------------- */
-$dnd-switch: lighten($background, 10%);
-$dnd-switch-circle: $text-main;
-$dnd-switch-active: $accent-lavender;
-$dnd-switch-circle-active: $background;
+$dnm-dnd-switch: lighten($background, 10%);
+$dnm-dnd-switch-circle: $text-main;
+$dnm-dnd-switch-active: $accent-lavender;
+$dnm-dnd-switch-circle-active: $background;
+
+$dnm-clear-btn: $background;
+$dnm-clear-btn-hover: $background-alt;
+
+$dnm-separator-color: $accent-lavender;
+
+$dnm-clock-color: $text-main;
+$dnm-uptime-color: $text-muted;
+
+$dnm-calendar-background: $background-alt;
+
+$dnm-month-year-color: $accent-lavender;
+$dnm-weekdays-color: $accent-lavender;
+
+$dnm-arrow-button-color: $text-main;
+$dnm-arrow-button-hover-color: $accent-lavender;
+
+$dnm-selected-color: $text-main;
+$dnm-selected-highlight-color: $accent-lavender;
+
+$dnm-indeterminate-color: $surface-disabled;

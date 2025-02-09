@@ -3,14 +3,6 @@
 @use "../common/mixins.scss";
 @use "../variable.scss";
 
-#date-time-button {
-  .notification-count {
-    font-weight: 700;
-    font-size: 11px;
-  }
-}
-
-/************** DATE MENU **************/
 
 #date-notification {
   @include mixins.floating-widget;
@@ -34,7 +26,7 @@
         transition: all 75ms cubic-bezier(0, 0, 0.2, 1);
         margin: 4px 0;
         border-radius: 9999px;
-        background-color: theme.$dnd-switch;
+        background-color: theme.$dnm-dnd-switch;
         background-clip: padding-box;
         font-size: 0;
         color: transparent;
@@ -46,16 +38,16 @@
           margin: 2px;
           border-radius: 9999px;
           outline: none;
-          background-color: theme.$dnd-switch-circle;
+          background-color: theme.$dnm-dnd-switch-circle;
           border: none;
           color: transparent;
         }
 
         &:checked {
-          background-color: theme.$dnd-switch-active;
+          background-color: theme.$dnm-dnd-switch-active;
 
           slider {
-            background-color: theme.$background;
+            background-color: theme.$dnm-dnd-switch-circle-active;
           }
         }
 
@@ -68,7 +60,7 @@
         padding: variable.$padding * 0.5 variable.$padding;
         border: variable.$border;
         border-radius: variable.$radius;
-        background-color: theme.$background;
+        background-color: theme.$dnm-clear-btn;
         margin-right: 5px;
         border-width: 2px;
 
@@ -77,7 +69,7 @@
         }
 
         &:hover {
-          background-color: theme.$background-alt;
+          background-color: theme.$dnm-clear-btn-hover;
 
           #clear-icon {
             @extend %clear_icon;
@@ -105,10 +97,7 @@
   }
 
   separator {
-    background-color: color.adjust(
-      variable.$popover-border-color,
-      $lightness: 10%
-    );
+    background-color: theme.$dnm-separator-color;
     border-radius: variable.$radius;
     margin-right: variable.$spacing;
   }
@@ -118,17 +107,18 @@
       padding: variable.$padding;
 
       .clock {
+        color: theme.$dnm-clock-color;
         font-size: 4.5em;
       }
 
       .uptime {
-        color: color.adjust(theme.$text-main, $alpha: -0.2);
+        color: theme.$dnm-uptime-color;
       }
     }
 
     .calendar {
       @extend %widget;
-      background-color: theme.$background-alt;
+      background-color: theme.$dnm-calendar-background;
 
       padding: variable.$padding * 2 variable.$padding * 2 0;
 
@@ -138,33 +128,34 @@
         &.button {
           transition: 200ms;
           border-radius: variable.$radius;
-          color: theme.$text-main;
+          color: theme.$dnm-arrow-button-color;
         }
 
         &:hover {
-          color: theme.$accent-teal;
+          color: theme.$dnm-arrow-button-hover-color;
         }
 
         &:selected {
+          color: theme.$dnm-selected-color;
           box-shadow:
-            inset 0 -5px 0 0 color.adjust(theme.$ws-active, $alpha: -0.5),
-            inset 0 0 0 1px theme.$ws-active;
+            inset 0 -5px 0 0 theme.$dnm-selected-highlight-color,
+            inset 0 0 0 1px theme.$dnm-selected-highlight-color;
           border-radius: variable.$radius * 0.6;
         }
 
         &.header {
           background-color: transparent;
           border: none;
-          color: theme.$accent-blue;
+          color: theme.$dnm-month-year-color;
         }
 
         &.highlight {
           background-color: transparent;
-          color: theme.$accent-teal;
+          color: theme.$dnm-weekdays-color;
         }
 
         &:indeterminate {
-          color: color.adjust(theme.$text-main, $alpha: -0.9);
+          color: theme.$dnm-indeterminate-color;
         }
 
         font-size: 0.98em;

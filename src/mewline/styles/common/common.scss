@@ -77,3 +77,11 @@ tooltip > * {
     opacity: 1;
   }
 }
+
+
+scrollbar {
+  background-color: theme.$text-main;
+  border-radius: variable.$radius;
+  margin-left: 8px;
+  min-width: 0.3em;
+}
