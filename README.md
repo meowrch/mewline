@@ -6,10 +6,17 @@
 >Некоторые функции могут работать нестабильно
 
 
-![](./assets/default.png)
-![](./assets/date_notification.png)
-![](./assets/power.png)
-![](./assets/notify.png)
+<table align="center">
+  <tr>
+    <td colspan="4"><img src="./assets/default.png"></td>
+  </tr>
+  <tr>
+    <td colspan="1"><img src="./assets/date_notification.png"></td>
+    <td colspan="1"><img src="./assets/power.png"></td>
+    <td colspan="1" align="center"><img src="./assets/notify.png"></td>
+  </tr>
+</table>
+
 
 ## 🌟 Особенности
 - [X] **Модульная архитектура**
@@ -25,19 +32,19 @@
 git clone https://github.com/meowrch/mewline && cd mewline
 
 # Установите пакетный менеджер
-pip install uv
+pip install uv # Или sudo pacman -S uv
 
 # Установите зависимости
 uv sync
 
 # Сгенерируйте конфиг по умолчанию
-python mewline/app.py --generate-default-config
+uv run generate_default_config
 
 # Настройте config.json под свои нужды
 micro ~/.config/mewline/config.json
 
 # Запустите MewLine
-python mewline/app.py
+uv run mewline
 ```
 
 ## 🎨 Виджеты
@@ -49,10 +56,12 @@ python mewline/app.py
 | `datetime`         | Отображение даты и времени         |
 
 ## Динамический остров
-| Компонент          | Описание                           |
-| ------------------ | ---------------------------------- |
-| `notifications`    | Уведомления                        |
-| `power_menu`       | Меню для управления питанием       |
+| Компонент          | Описание                                 |
+| ------------------ | -----------------------------------------|
+| `notifications`    | Уведомления                              |
+| `power_menu`       | Меню для управления питанием             |
+| `date_notification`| Меню с календарем и историей уведомлений |
+| `bluetooth`        | Меню для управления bluetooth            |
 
 ## 🐾 Особые Благодарности
 Проект вдохновлён и использует лучшие идеи из:
