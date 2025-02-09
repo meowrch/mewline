@@ -1,0 +1,56 @@
+@use "sass:color";
+@use "../theme.scss";
+
+
+#bluetooth {
+    &-controls {
+      padding-bottom: 8px;
+    }
+
+    &-device {
+      background-color: theme.$bluetooth-device-color;
+      border-radius: 16px;
+      padding: 4px;
+      margin-bottom: 4px;
+    }
+
+    &-scan,
+    &-toggle {
+      background-color: theme.$bluetooth-scan-background;
+      color: theme.$bluetooth-scan-text-color;
+      border-radius: 16px;
+      padding: 8px 16px;
+      min-width: 96px;
+
+      label {
+        font-weight: bold;
+      }
+    }
+
+    &-toggle {
+      &.enabled {
+        color: theme.$bluetooth-toggle-active-text-color;
+        background-color: theme.$bluetooth-toggle-active-background;
+      }
+      &.disabled {
+        color: theme.$bluetooth-toggle-text-color;
+        background-color: theme.$bluetooth-toggle-background;
+      }
+    }
+
+    &-text {
+      font-weight: bold;
+      color: theme.$bluetooth-title;
+    }
+
+    &-connection {
+      font-size: 20px;
+    }
+
+    &-connect {
+      background-color: theme.$bluetooth-connect-background;
+      color: theme.$bluetooth-connect-text-color;
+      border-radius: 16px;
+      padding: 8px 16px;
+    }
+  }

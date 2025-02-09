@@ -4,6 +4,7 @@ from fabric.widgets.wayland import WaylandWindow
 
 from mewline.utils.hyprland_monitors import HyprlandMonitors
 from mewline.widgets.battery import Battery
+from mewline.widgets.bluetooth import Bluetooth
 from mewline.widgets.brightness import BrightnessWidget
 from mewline.widgets.datetime import DateTimeWidget
 from mewline.widgets.power import PowerButton
@@ -38,6 +39,7 @@ class StatusBar(WaylandWindow):
                     Battery(),
                     VolumeWidget(),
                     DateTimeWidget(),
+                    Bluetooth(),
                     PowerButton(),
                 ],
             ),
