@@ -1,22 +1,3 @@
-/* ---------------------------- */
-/* Base Colors                  */
-/* ---------------------------- */
-$background: #1e1e2e; // Main background
-$background-alt: #181825; // Secondary background
-$background-dark: #11111b; // Darkest background
-$bar-background: rgba(46, 46, 46, 0); // Bar background
-$shadow-color: rgba(0, 0, 0, 0.6);
-
-/* Text Colors */
-$text-main: #cdd6f4; // Primary text color
-$text-secondary: #bac2de; // Secondary text color
-$text-muted: #a6adc8; // Tertiary text, muted
-
-/* Surface Colors */
-$surface-disabled: #313244; // Background for disabled items
-$surface-neutral: #45475a; // Neutral surface for cards, panels
-$surface-highlight: #585b70; // Selection and highlights
-
 /* Accent Colors */
 $accent-light: #f5e0dc; // Lightest accent (Rosewater)
 $accent-pink: #f5c2e7; // Pink accent
@@ -29,6 +10,26 @@ $accent-teal: #94e2d5; // Teal for information
 $accent-blue: #89b4fa; // Blue for links and actions
 $accent-light-blue: #89dceb; // Sky blue accent
 $accent-lavender: #b4befe; // Lavender for subtle highlights
+
+
+/* Base Colors */
+$background: #1e1e2e; // Main background
+$background-alt: #181825; // Secondary background
+$background-dark: #11111b; // Darkest background
+$bar-background: rgba(46, 46, 46, 0); // Bar background
+$shadow-color: rgba(0, 0, 0, 0.6);
+$scrollbar-color: $background-alt;
+$scrollbar-slider-color: $accent-lavender;
+
+/* Text Colors */
+$text-main: #cdd6f4; // Primary text color
+$text-secondary: #bac2de; // Secondary text color
+$text-muted: #a6adc8; // Tertiary text, muted
+
+/* Surface Colors */
+$surface-disabled: #313244; // Background for disabled items
+$surface-neutral: #45475a; // Neutral surface for cards, panels
+$surface-highlight: #585b70; // Selection and highlights
 
 /* Overlay Colors */
 $text-disabled: #6c7086; // Text for disabled elements
@@ -89,3 +90,18 @@ $dnm-selected-color: $text-main;
 $dnm-selected-highlight-color: $accent-lavender;
 
 $dnm-indeterminate-color: $surface-disabled;
+
+/* ------------------ Bluetooth Menu ---------------------- */
+$bluetooth-title: $text-main;
+
+$bluetooth-device-color: $background;
+$bluetooth-scan-background: $background;
+$bluetooth-scan-text-color: $text-main;
+
+$bluetooth-toggle-background: $accent-pink;
+$bluetooth-toggle-text-color: $background-dark;
+$bluetooth-toggle-active-background: $accent-green;
+$bluetooth-toggle-active-text-color: $background-dark;
+
+$bluetooth-connect-background: $background-alt;
+$bluetooth-connect-text-color: $text-main;

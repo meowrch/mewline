@@ -5,6 +5,7 @@ from fabric.widgets.stack import Stack
 from fabric.widgets.wayland import WaylandWindow as Window
 
 from mewline.widgets.dynamic_island.base import BaseDiWidget
+from mewline.widgets.dynamic_island.bluetooth import BluetoothConnections
 from mewline.widgets.dynamic_island.compact import Compact
 from mewline.widgets.dynamic_island.date_notification import DateNotificationMenu
 from mewline.widgets.dynamic_island.notifications import NotificationContainer
@@ -35,12 +36,14 @@ class DynamicIsland(Window):
         self.notification = NotificationContainer(self)
         self.date_notification = DateNotificationMenu()
         self.power_menu = PowerMenu(self)
+        self.bluetooth = BluetoothConnections()
 
         self.widgets: dict[str, type[BaseDiWidget]] = {
             "compact": self.compact,
             "notification": self.notification,
             "date_notification": self.date_notification,
             "power": self.power_menu,
+            "bluetooth": self.bluetooth
         }
         self.stack = Stack(
             name="dynamic-island-content",
@@ -62,23 +65,31 @@ class DynamicIsland(Window):
             orientation="h",
             h_align="center",
             v_align="center",
-            start_children=Box(children=[Box(
-                name="dynamic-island-corner-left",
-                orientation="v",
+            start_children=Box(
                 children=[
-                    MyCorner("top-right"),
-                    Box(),
-                ],
-            )]),
+                    Box(
+                        name="dynamic-island-corner-left",
+                        orientation="v",
+                        children=[
+                            MyCorner("top-right"),
+                            Box(),
+                        ],
+                    )
+                ]
+            ),
             center_children=self.stack,
-            end_children=Box(children=[Box(
-                name="dynamic-island-corner-right",
-                orientation="v",
+            end_children=Box(
                 children=[
-                    MyCorner("top-left"),
-                    Box(),
-                ],
-            )]),
+                    Box(
+                        name="dynamic-island-corner-right",
+                        orientation="v",
+                        children=[
+                            MyCorner("top-left"),
+                            Box(),
+                        ],
+                    )
+                ]
+            ),
         )
 
         ##==> Show the dynamic island

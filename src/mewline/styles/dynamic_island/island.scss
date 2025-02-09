@@ -4,6 +4,7 @@
 @use "./power.scss";
 @use "./notifications.scss";
 @use "./date_notification.scss";
+@use "./bluetooth.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -40,6 +41,13 @@
     border-radius: 0 0 36px 36px;
   }
 
+  &.bluetooth {
+    padding: 16px;
+    min-height: 300px;
+    min-width: 500px;
+    border-radius: 0 0 36px 36px;
+  }
+
   &.date-notification {
     padding: 16px;
     min-height: 45px;
@@ -51,7 +59,8 @@
 
 #power-menu,
 #notification,
-#date-notification {
+#date-notification,
+#bluetooth {
   opacity: 1;
   margin: -800px;
   transition: all 0.25s cubic-bezier(0.5, 0.25, 0, 1);

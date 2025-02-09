@@ -119,5 +119,10 @@ icons = {
     "trash": {
         "full": "user-trash-full-symbolic",
         "empty": "user-trash-symbolic",
+    },
+    "bluetooth": {
+        "paired": "󰌆",
+        "bluetooth_connected": "󰂯",
+        "bluetooth_disconnected": "󰂲"
     }
 }

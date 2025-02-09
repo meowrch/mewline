@@ -80,8 +80,15 @@ tooltip > * {
 
 
 scrollbar {
-  background-color: theme.$text-main;
+  background-color: theme.$scrollbar-color;
   border-radius: variable.$radius;
   margin-left: 8px;
   min-width: 0.3em;
+
+  slider {
+    border-radius: variable.$radius;
+    min-width: 0.3em;
+    min-height: 3px;
+    background-color: theme.$scrollbar-slider-color;
+  }
 }
