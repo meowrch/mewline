@@ -1,3 +1,6 @@
+import shlex
+import subprocess
+
 from fabric.bluetooth import BluetoothClient
 from fabric.bluetooth import BluetoothDevice
 from fabric.widgets.box import Box
@@ -6,6 +9,7 @@ from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from fabric.widgets.scrolledwindow import ScrolledWindow
+from loguru import logger
 
 from mewline import constants as cnst
 from mewline.services import bluetooth_client
@@ -15,10 +19,13 @@ from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 
 class BluetoothDeviceSlot(CenterBox):
-    def __init__(self, device: BluetoothDevice, **kwargs):
+    def __init__(
+        self, device: BluetoothDevice, paired_box: Box, available_box: Box, **kwargs
+    ):
         super().__init__(name="bluetooth-device", **kwargs)
         self.device = device
-
+        self.paired_box = paired_box
+        self.available_box = available_box
         if not device.name or device.name.strip() == "":
             self.device.close()
             self.destroy()
@@ -36,39 +43,69 @@ class BluetoothDeviceSlot(CenterBox):
             on_clicked=lambda *_: self.device.set_connecting(not self.device.connected),
         )
         setup_cursor_hover(self.connect_button)
+        self.remove_button = Button(
+            name="bluetooth-connect",
+            child=text_icon("󰧧"),
+            on_clicked=lambda *_: self.remove_bluetooth_device(self.device.address),
+        )
+        setup_cursor_hover(self.remove_button)
 
-        icons = [
-            Image(icon_name=device.icon_name + "-symbolic", size=32),
-        ]
-
-        if device.paired:
-            icons.append(
-                text_icon(
-                    icon=cnst.icons["bluetooth"]["paired"],
-                    size="24px",
-                    props={"style_classes": "paired"},
-                )
-            )
-
+        self.device_icon = Image(icon_name=self.device.icon_name + "-symbolic", size=32)
+        self.paired_icon = text_icon(
+            icon=cnst.icons["bluetooth"]["paired"],
+            size="24px",
+            props={"style_classes": "paired", "visible": False},
+        )
         self.start_children = [
             Box(
                 spacing=8,
-                children=[*icons, Label(label=device.name)],
+                children=[
+                    self.device_icon,
+                    self.paired_icon,
+                    Label(label=self.device.name),
+                ],
             )
         ]
-        self.end_children = self.connect_button
-
+        self.end_children = [
+            Box(spacing=8, children=[self.remove_button, self.connect_button])
+        ]
         self.device.emit("changed")  # to update display status
+
+    @staticmethod
+    def remove_bluetooth_device(mac_address):
+        try:
+            command = shlex.split(f"bluetoothctl remove {shlex.quote(mac_address)}")
+
+            result = subprocess.run(  # noqa: S603
+                command,
+                capture_output=True,
+                text=True,
+            )
+
+            if result.returncode == 0:
+                logger.info(f'Device "{mac_address}" removed successfully!')
+            else:
+                logger.error(f"Error while device removing: {result.stderr}")
+
+        except Exception as e:
+            print(f"Error occured: {e}")
 
     def on_changed(self, *_):
         if self.device.connecting:
             self.connect_button.set_label(
-                "Connecting..." if not self.device.connecting else "Disconnecting..."
+                "Connecting..." if self.device.connecting else "Disconnecting..."
             )
         else:
             self.connect_button.set_label(
                 "Connect" if not self.device.connected else "Disconnect"
             )
+
+        if self.device.connected:
+            self.paired_icon.set_visible(True)
+        if self.device.connected and self in self.available_box:
+            self.available_box.remove(self)
+            self.paired_box.add(self)
+
         return
 
 
@@ -78,7 +115,14 @@ class BluetoothConnections(BaseDiWidget, Box):
     focuse_kb: bool = True
 
     def __init__(self):
-        Box.__init__(self, name="bluetooth", spacing=8, orientation="vertical")
+        Box.__init__(
+            self,
+            name="bluetooth",
+            spacing=8,
+            orientation="vertical",
+            v_expand=True,
+            v_align="start",
+        )
 
         bluetooth_client.connect("device-added", self.on_device_added)
         bluetooth_client.connect("notify::enabled", self.on_enabled)
@@ -98,17 +142,24 @@ class BluetoothConnections(BaseDiWidget, Box):
         setup_cursor_hover(self.toggle_button)
 
         self.paired_box = Box(spacing=2, orientation="vertical")
+        self.paired_scroll_box = ScrolledWindow(
+            min_content_size=(-1, -1), child=self.paired_box, visible=False
+        )
         self.available_box = Box(spacing=2, orientation="vertical")
+        self.available_scroll_box = ScrolledWindow(
+            min_content_size=(-1, -1), child=self.available_box, visible=False
+        )
 
         self.children = [
             CenterBox(
+                orientation="horizontal",
                 name="bluetooth-controls",
                 start_children=self.scan_button,
                 center_children=Label(name="bluetooth-text", label="Bluetooth Devices"),
                 end_children=self.toggle_button,
             ),
-            ScrolledWindow(min_content_size=(-1, -1), child=self.paired_box),
-            ScrolledWindow(min_content_size=(-1, -1), child=self.available_box),
+            self.paired_scroll_box,
+            self.available_scroll_box,
         ]
 
     def on_enabled(self, *_):
@@ -131,9 +182,12 @@ class BluetoothConnections(BaseDiWidget, Box):
         if not (device := client.get_device(address)):
             return
 
-        slot = BluetoothDeviceSlot(device)
+        logger.info(f'Device "{device.name}" ({device.address}) added.')
+        slot = BluetoothDeviceSlot(device, self.paired_box, self.available_box)
 
         if device.paired:
+            self.paired_scroll_box.set_visible(True)
             return self.paired_box.add(slot)
 
+        self.available_scroll_box.set_visible(True)
         return self.available_box.add(slot)
