@@ -1,11 +1,11 @@
-from typing import Literal
-
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 
+from mewline import constants as cnst
 from mewline.config import cfg
 from mewline.services import audio_service
 from mewline.shared.widget_container import EventBoxWidget
+from mewline.utils.widget_utils import get_audio_icon
 from mewline.utils.widget_utils import text_icon
 
 
@@ -21,7 +21,9 @@ class VolumeWidget(EventBoxWidget):
         self.config = cfg.modules.volume
 
         self.volume_label = Label(visible=False)
-        self.icon = text_icon(icon=self.config.medium_icon, size=self.config.icon_size)
+        self.icon = text_icon(
+            icon=cnst.icons["volume"]["medium"], size=self.config.icon_size
+        )
         self.box = Box(
             spacing=10,
             name="volume",
@@ -71,36 +73,4 @@ class VolumeWidget(EventBoxWidget):
             volume = round(self.audio.speaker.volume)
             self.volume_label.set_text(f"{volume}%")
 
-        self.icon.set_text(
-            self.get_audio_icon_name(volume, self.audio.speaker.muted)["icon_text"]
-        )
-
-    def get_audio_icon_name(
-        self, volume: int, is_muted: bool
-    ) -> dict[Literal["icon_text", "icon"], str]:
-        if is_muted:
-            return {
-                "icon_text": self.config.muted_icon,
-                "icon": "audio-volume-muted-symbolic",
-            }
-
-        # Define volume ranges and their corresponding values
-        volume_levels = {
-            (0, 0): (self.config.low_icon, "audio-volume-muted-symbolic"),
-            (1, 31): (self.config.low_icon, "audio-volume-low-symbolic"),
-            (32, 65): (self.config.medium_icon, "audio-volume-medium-symbolic"),
-            (66, 100): (self.config.high_icon, "audio-volume-high-symbolic"),
-        }
-
-        for (min_volume, max_volume), (icon_text, icon) in volume_levels.items():
-            if min_volume <= volume <= max_volume:
-                return {
-                    "icon_text": icon_text,
-                    "icon": icon,
-                }
-
-        # If the volume exceeds 100
-        return {
-            "icon_text": self.config.overamplified_icon,
-            "icon": "audio-volume-overamplified-symbolic",
-        }
+        self.icon.set_text(get_audio_icon(volume, self.audio.speaker.muted))

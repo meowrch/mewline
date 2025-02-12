@@ -62,11 +62,6 @@ class VolumeModule(BaseModel):
     label: bool
     tooltip: bool
     step_size: int
-    overamplified_icon: str
-    high_icon: str
-    medium_icon: str
-    low_icon: str
-    muted_icon: str
 
 
 class BatteryModule(BaseModel):
@@ -76,10 +71,6 @@ class BatteryModule(BaseModel):
 
 
 class BrightnessModule(BaseModel):
-    off_icon: str
-    low_icon: str
-    medium_icon: str
-    high_icon: str
     icon_size: str
     label: bool
     tooltip: bool

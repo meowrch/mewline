@@ -1,0 +1,26 @@
+@use "sass:color";
+@use "theme.scss";
+@use "common/mixins.scss";
+@use "common/functions.scss";
+@use "variable.scss";
+
+/* OSD widget*/
+
+#osd-container {
+  background-color: theme.$background-dark;
+  padding: functions.toEm(12) functions.toEm(20);
+  border-radius: variable.$radius-large;
+  min-width: 200px;
+  margin-bottom: 100px;
+  color: theme.$text-main;
+
+  #osd-icon {
+    color: theme.$text-main;
+  }
+  #osd-level {
+    font-weight: 600;
+    min-width: 35px;
+  }
+
+  @include mixins.slider;
+}

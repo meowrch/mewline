@@ -65,11 +65,6 @@ DEFAULT_CONFIG = {
             "label": True,
             "tooltip": True,
             "step_size": 5,
-            "overamplified_icon": "󰕾",
-            "high_icon": "󰕾",
-            "medium_icon": "󰖀",
-            "low_icon": "󰕿",
-            "muted_icon": "󰝟",
         },
         "battery": {
             "hide_label_when_full": True,
@@ -77,10 +72,6 @@ DEFAULT_CONFIG = {
             "tooltip": True,
         },
         "brightness": {
-            "off_icon": "",
-            "low_icon": "",
-            "medium_icon": "",
-            "high_icon": "",
             "icon_size": "14px",
             "label": True,
             "tooltip": True,
@@ -123,6 +114,20 @@ icons = {
     "bluetooth": {
         "paired": "󰌆",
         "bluetooth_connected": "󰂯",
-        "bluetooth_disconnected": "󰂲"
+        "bluetooth_disconnected": "󰂲",
+    },
+    "volume": {
+        "overamplified": "󰕾",
+        "high": "󰕾",
+        "medium": "󰖀",
+        "low": "󰕿",
+        "muted": "󰝟",
+    },
+    "brightness": {
+        "symbolic": "display-brightness-symbolic",
+        "off": "󰃝",
+        "low": "󰃞",
+        "medium": "󰃟",
+        "high": "󰃠"
     }
 }
