@@ -65,10 +65,8 @@ class NotificationCacheService(Service):
         """Remove the notification of goven id."""
         item = next((p for p in self._notifications if p["id"] == id), None)
         index = self._notifications.index(item)
-
-        self.write_notifications(self._notifications)
-
         self._notifications.pop(index)
+        self.write_notifications(self._notifications)
         self._count -= 1
         self.emit("notification_count", self._count)
 
@@ -111,6 +109,8 @@ class NotificationCacheService(Service):
 
     def get_deserialized(self) -> list[Notification]:
         """Return the notifications."""
+        self._notifications = self.do_read_notifications()
+
         if len(self.notifications) <= 0:
             self.notifications = [
                 Notification.deserialize(data) for data in self._notifications

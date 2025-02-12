@@ -26,7 +26,10 @@ def main():
     ##==> Creating App
     ##############################
     app = Application(
-        cnst.APPLICATION_NAME, ScreenCorners(), StatusBar(), DynamicIsland()
+        cnst.APPLICATION_NAME,
+        ScreenCorners(),
+        StatusBar(),
+        DynamicIsland()
     )
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)

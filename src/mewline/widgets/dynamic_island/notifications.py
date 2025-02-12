@@ -5,16 +5,18 @@ from fabric.notifications.service import Notification
 from fabric.notifications.service import NotificationAction
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
+from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
 from gi.repository import GLib
 from loguru import logger
 
+from mewline import constants as cnst
 from mewline.services import cache_notification_service
 from mewline.services import notification_service
 from mewline.shared.rounded_image import CustomImage
-from mewline.utils.widget_utils import text_icon
+from mewline.utils.misc import check_icon_exists
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 if TYPE_CHECKING:
@@ -149,8 +151,17 @@ class NotificationBox(Box):
     def create_close_button(self):
         close_button = Button(
             name="close-button",
-            child=text_icon(icon="", size="24px", props={"name": "close-label"}),
-            on_clicked=lambda *_: self.notification.close("dismissed-by-user"),
+            visible=True,
+            h_align="end",
+            image=Image(
+                style_classes="close-icon",
+                icon_name=check_icon_exists(
+                    "close-symbolic",
+                    cnst.icons["ui"]["close"],
+                ),
+                icon_size=16,
+            ),
+            on_clicked=lambda _: self.close_notification(),
         )
         close_button.connect(
             "enter-notify-event", lambda *_: self.hover_button(close_button)
@@ -220,18 +231,17 @@ class NotificationContainer(BaseDiWidget, Box):
         notification_service.connect("notification-added", self.on_new_notification)
 
     def on_new_notification(self, fabric_notif, id):
-        if cache_notification_service.dont_disturb:
-            return
-
         for child in self.get_children():
             child.destroy()
 
         notification = fabric_notif.get_notification_from_id(id)
-        notification.connect("closed", self.on_notification_closed)
-        new_box = NotificationBox(notification)
+        cache_notification_service.cache_notification(notification)
 
-        self.add(new_box)
-        self.dynamic_island.open("notification")
+        if not cache_notification_service.dont_disturb:
+            notification.connect("closed", self.on_notification_closed)
+            new_box = NotificationBox(notification)
+            self.add(new_box)
+            self.dynamic_island.open("notification")
 
     def on_notification_closed(self, notification, reason):
         self.dynamic_island.close()
