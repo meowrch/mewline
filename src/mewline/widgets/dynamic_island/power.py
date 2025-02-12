@@ -39,7 +39,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.lock_icon,
                 size=self.config.lock_icon_size,
-                props={"name": "button-label"},
+                name="button-label"
             ),
             on_clicked=self.lock,
         )
@@ -49,7 +49,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.suspend_icon,
                 size=self.config.suspend_icon_size,
-                props={"name": "button-label"},
+                name="button-label"
             ),
             on_clicked=self.suspend,
         )
@@ -59,7 +59,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.logout_icon,
                 size=self.config.logout_icon_size,
-                props={"name": "button-label"},
+                name="button-label"
             ),
             on_clicked=self.logout,
         )
@@ -69,7 +69,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.reboot_icon,
                 size=self.config.reboot_icon_size,
-                props={"name": "button-label"},
+                name="button-label"
             ),
             on_clicked=self.reboot,
         )
@@ -79,7 +79,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.shutdown_icon,
                 size=self.config.shutdown_icon_size,
-                props={"name": "button-label"},
+                name="button-label"
             ),
             on_clicked=self.poweroff,
         )

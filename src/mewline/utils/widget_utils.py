@@ -62,7 +62,7 @@ def get_icon(app_icon, size=25) -> Image:
         )
 
 
-def text_icon(icon: str, size: str = "16px", props=None):
+def text_icon(icon: str, size: str = "16px", **kwargs):
     label_props = {
         "label": str(icon),  # Directly use the provided icon name
         "name": "nerd-icon",
@@ -71,9 +71,7 @@ def text_icon(icon: str, size: str = "16px", props=None):
         "v_align": "center",  # Align vertically
     }
 
-    if props:
-        label_props.update(props)
-
+    label_props.update(kwargs)
     return Label(**label_props)
 
 
