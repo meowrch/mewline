@@ -1,10 +1,12 @@
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 
+from mewline import constants as cnst
 from mewline.config import cfg
 from mewline.services.brightness import Brightness
 from mewline.shared.widget_container import EventBoxWidget
 from mewline.utils.misc import convert_to_percent
+from mewline.utils.widget_utils import get_brightness_icon
 from mewline.utils.widget_utils import text_icon
 
 
@@ -26,7 +28,7 @@ class BrightnessWidget(EventBoxWidget):
             label=f"{normalized_brightness}%",
         )
         self.icon = text_icon(
-            icon=self.config.medium_icon,
+            icon=cnst.icons["brightness"]["medium"],
             size=self.config.icon_size,
             props={
                 "style_classes": "panel-text-icon overlay-icon",
@@ -66,17 +68,7 @@ class BrightnessWidget(EventBoxWidget):
         )
 
         self.brightness_label.set_text(f"{normalized_brightness}%")
-
-        if normalized_brightness <= 0:
-            text_icon = self.config.off_icon
-        elif normalized_brightness > 0 and normalized_brightness < 32:
-            text_icon = self.config.low_icon
-        elif normalized_brightness > 32 and normalized_brightness < 66:
-            text_icon = self.config.medium_icon
-        else:
-            text_icon = self.config.high_icon
-
-        self.icon.set_text(text_icon)
+        self.icon.set_text(get_brightness_icon(normalized_brightness))
 
         if self.config.tooltip:
             self.set_tooltip_text(f"{normalized_brightness}%")
