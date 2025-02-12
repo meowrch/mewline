@@ -105,7 +105,7 @@ def create_scale(
 
 def get_audio_icon(volume: int, is_muted: bool) -> str:
         if is_muted:
-            return cnst.icons["volume"]["muted"],
+            return cnst.icons["volume"]["muted"]
 
         # Define volume ranges and their corresponding values
         volume_levels = {
