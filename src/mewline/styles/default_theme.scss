@@ -61,8 +61,13 @@ $notify-action-btn-hover-color: $accent-lavender;
 $notify-action-btn-active-color: $background;
 $notify-action-btn-label-color: $background-dark;
 
-$notify-close-btn-label-color: $background-dark;
-$notify-close-btn-color: $accent-pink;
+$notify-close-btn-label-color: $text-main;
+$notify-close-btn-color-hover: $surface-disabled;
+
+$notification-history-element-bg: $background-alt;
+$notification-history-summury-color: $text-main;
+$notification-history-text-color: $text-main;
+$notification-history-close-btn-hover-color: $surface-disabled;
 
 /* ------------------ Date Notification ---------------------- */
 $dnm-dnd-switch: lighten($background, 10%);

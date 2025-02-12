@@ -2,6 +2,53 @@
 @use "../theme.scss";
 @use "../common/mixins.scss";
 @use "../variable.scss";
+@use "../common/functions.scss";
+
+
+#notification-history-el {
+  padding: 0.9rem;
+  border-radius: 1rem;
+  background-color: theme.$notification-history-element-bg;
+  border: variable.$border-width solid theme.$surface-disabled;
+  transition: border 100ms ease-in-out;
+
+  .text {
+    color: theme.$notification-history-text-color;
+    font-size: 13px;
+  }
+
+  .app-icon {
+    -gtk-icon-effect: none;
+    -gtk-icon-shadow: 0 1px 4px black;
+  }
+
+  .close-button {
+    border-radius: variable.$radius-large;
+    padding: 3px;
+
+    &:hover {
+      box-shadow: none;
+      border: none;
+      background-color: theme.$notification-history-close-btn-hover-color;
+      transition: background 0.15s ease-in-out;
+
+      .close-icon {
+        @extend %clear_icon;
+      }
+    }
+  }
+
+  .summary {
+    @extend %heading;
+    color: theme.$notification-history-summury-color;
+    text-shadow: none;
+  }
+
+  .image {
+    -gtk-icon-effect: none;
+    border-radius: functions.toEm(15);
+  }
+}
 
 
 #date-notification {

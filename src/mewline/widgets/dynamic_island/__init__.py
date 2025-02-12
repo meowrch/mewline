@@ -95,7 +95,6 @@ class DynamicIsland(Window):
         ##==> Show the dynamic island
         ######################################
         self.add(self.di_box)
-        self.show_all()
 
     def close(self):
         self.set_keyboard_mode("none")

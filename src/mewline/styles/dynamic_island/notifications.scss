@@ -1,5 +1,7 @@
 @use "sass:color";
 @use "../theme.scss";
+@use "../variable.scss";
+@use "../common/mixins.scss";
 
 
 #notification-action-buttons {
@@ -23,9 +25,20 @@
 }
 
 #close-button {
-  padding: 0 10px 0 10px;
-  border-radius: 10px;
-  background-color: theme.$notify-close-btn-color;
+  border-radius: variable.$radius-large;
+  color: theme.$notify-close-btn-label-color;
+  padding: 3px;
+
+  &:hover {
+    box-shadow: none;
+    border: none;
+    background-color: theme.$notify-close-btn-color-hover;
+    transition: background 0.15s ease-in-out;
+
+    .close-icon {
+      @extend %clear_icon;
+    }
+  }
 }
 
 #close-label {

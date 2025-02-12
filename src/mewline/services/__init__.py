@@ -4,11 +4,10 @@ from fabric.notifications import Notifications
 
 from mewline.services.cache_notification import NotificationCacheService
 
-cache_notification_service = NotificationCacheService().get_initial()
-
 audio_service = Audio()
 
 notification_service = Notifications()
+cache_notification_service = NotificationCacheService().get_initial()
 
 
 bluetooth_client = BluetoothClient()
