@@ -65,7 +65,7 @@ class VolumeWidget(EventBoxWidget):
         if current_stream:
             current_stream.muted = not current_stream.muted
             self.icon.set_text(
-                self.config.muted_icon,
+                cnst.icons["volume"]["muted"],
             ) if current_stream.muted else self.update_volume()
 
     def update_volume(self, *_):
