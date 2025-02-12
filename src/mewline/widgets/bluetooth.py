@@ -37,5 +37,5 @@ class Bluetooth(ButtonWidget):
         self.children = text_icon(
             icon,
             "16px",
-            props={"style_classes": "panel-text-icon"},
+            style_classes="panel-text-icon",
         )

@@ -54,7 +54,8 @@ class BluetoothDeviceSlot(CenterBox):
         self.paired_icon = text_icon(
             icon=cnst.icons["bluetooth"]["paired"],
             size="24px",
-            props={"style_classes": "paired", "visible": False},
+            style_classes="paired",
+            visible=False
         )
         self.start_children = [
             Box(

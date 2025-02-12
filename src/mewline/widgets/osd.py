@@ -36,9 +36,7 @@ class GenericOSDContainer(Box):
         self.icon: Label = text_icon(
             icon=cnst.icons["brightness"]["medium"],
             size="24px",
-            props={
-                "name": "osd-icon",
-            },
+            name="osd-icon"
         )
         self.scale = create_scale()
 
