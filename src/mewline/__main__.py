@@ -36,6 +36,7 @@ def main():
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)
     cnst.APP_CACHE_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    cnst.DIST_FOLDER.mkdir(parents=True, exist_ok=True)
 
     ##==> Theming
     ##############################
