@@ -7,6 +7,7 @@ from fabric.utils import monitor_file
 
 from mewline import constants as cnst
 from mewline.config import cfg
+from mewline.config import change_hypr_config
 from mewline.config import generate_default_config
 from mewline.utils.misc import disable_logging
 from mewline.utils.theming import copy_theme
@@ -17,9 +18,8 @@ from mewline.widgets.osd import OSDContainer
 from mewline.widgets.screen_corners import ScreenCorners
 
 
-def generate():
-    generate_default_config()
-
+def create_keybindings():
+    change_hypr_config()
 
 def main():
     disable_logging()
@@ -61,10 +61,20 @@ if __name__ == "__main__":
         action="store_true",
         help="Generate a default configuration for mewline",
     )
+    parser.add_argument(
+        "--create-keybindings",
+        action="store_true",
+        help="Generating a config for hyprland to use keyboard shortcuts",
+    )
 
     args = parser.parse_args()
-    if args.generate_default_config:
-        generate()
-        sys.exit(0)
 
-    main()
+    if args.generate_default_config:
+        generate_default_config()
+        sys.exit(0)
+    elif args.create_keybindings:
+        create_keybindings()
+        sys.exit(0)
+    else:
+        main()
+
