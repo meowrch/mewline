@@ -49,10 +49,6 @@ class PowerMenu(BaseModel):
     shutdown_icon_size: str
 
 
-class DynamicIsland(BaseModel):
-    power_menu: PowerMenu
-
-
 class DatetimeModule(BaseModel):
     format: str
 
@@ -75,6 +71,18 @@ class BrightnessModule(BaseModel):
     label: bool
     tooltip: bool
     step_size: int
+
+
+class WindowTitlesModule(BaseModel):
+    enable_icon: bool
+    truncation: bool
+    truncation_size: int
+    title_map: list[tuple[str, str, str]]
+
+
+class DynamicIsland(BaseModel):
+    power_menu: PowerMenu
+    window_titles: WindowTitlesModule
 
 
 class Modules(BaseModel):
