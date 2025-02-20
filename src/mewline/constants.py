@@ -15,6 +15,9 @@ APP_CACHE_DIRECTORY = SYSTEM_CACHE_DIR / APPLICATION_NAME
 STYLES_FOLDER = APP_FOLDER / "styles"
 DIST_FOLDER = APP_CACHE_DIRECTORY / "dist"
 
+HYPRLAND_CONFIG_FOLDER = Path.home() / ".config" / "hypr"
+HYPRLAND_CONFIG_FILE = HYPRLAND_CONFIG_FOLDER / "hyprland.conf"
+
 SYSTEM_CACHE_DIR = Path(GLib.get_user_cache_dir())
 APP_CACHE_DIRECTORY = SYSTEM_CACHE_DIR / APPLICATION_NAME
 NOTIFICATION_CACHE_FILE = APP_CACHE_DIRECTORY / "notifications.json"
@@ -103,6 +106,17 @@ DEFAULT_CONFIG = {
     },
 }
 
+
+##==> Keybindings (prefix, suffix, command)
+############################################
+kb_prefix = "Super+Alt"
+kb_di_open = "python -m fabric invoke-action mewline dynamic-island-open \"{module}\""
+KEYBINDINGS = {
+    "power_menu": (kb_prefix, "P", kb_di_open.format(module="power_menu")),
+    "date_notification": (kb_prefix, "D", kb_di_open.format(module="date_notification")),
+    "bluetooth": (kb_prefix, "B", kb_di_open.format(module="bluetooth")),
+    "app_launcher": (kb_prefix, "A", kb_di_open.format(module="app_launcher")),
+}
 
 
 ##==> Icons

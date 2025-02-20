@@ -25,6 +25,6 @@ class PowerButton(ButtonWidget):
         self.connect(
             "clicked",
             lambda *_: exec_shell_command_async(
-                f"{cnst.ACTION_COMMAND} dynamic-island-open 'power'"
+                f"{cnst.ACTION_COMMAND} dynamic-island-open 'power_menu'"
             ),
         )

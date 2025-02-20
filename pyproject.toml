@@ -37,7 +37,8 @@ Changelog = "https://github.com/meowrch/mewline/blob/master/CHANGELOG.md"
 
 [project.scripts]
 mewline = "mewline.__main__:main"
-generate_default_config = "mewline.__main__:generate"
+generate_default_config = "mewline.__main__:generate_default_config"
+create_keybindings = "mewline.__main__:create_keybindings"
 
 [tool.ruff]
 src = ["src"]

@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 
 from loguru import logger
@@ -16,6 +17,30 @@ def generate_default_config():
             fp=f,
             indent=4,
         )
+
+
+def generate_hyprconf() -> str:
+    """Generate the Hypr configuration string using the current bind_vars."""
+    conf = ""
+    for key, (prefix, suffix, command) in cnst.KEYBINDINGS.items():
+        conf += f'bind = {prefix}, {suffix}, exec, {command} # Press {prefix} + {suffix} to open the "{key}" module.\n'
+
+    return conf
+
+
+def change_hypr_config():
+    """Adding generated keyboard shortcuts to the hyprland configuration."""
+    cnst.HYPRLAND_CONFIG_FOLDER.mkdir(parents=True, exist_ok=True)
+    mewline_kb_file_path = cnst.HYPRLAND_CONFIG_FOLDER / (cnst.APPLICATION_NAME + ".conf")
+
+    with open(mewline_kb_file_path, "w") as f:
+        f.write(generate_hyprconf())
+
+    with open(cnst.HYPRLAND_CONFIG_FILE, "a") as f:
+        f.write(f"source = {mewline_kb_file_path}")
+
+    # Reload Hyprland configuration
+    subprocess.run(["hyprctl", "reload"])  # noqa: S603, S607
 
 
 def load_config(path: Path) -> Config:

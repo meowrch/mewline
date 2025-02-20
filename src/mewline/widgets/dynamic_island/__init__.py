@@ -44,7 +44,7 @@ class DynamicIsland(Window):
             "compact": self.compact,
             "notification": self.notification,
             "date_notification": self.date_notification,
-            "power": self.power_menu,
+            "power_menu": self.power_menu,
             "bluetooth": self.bluetooth,
             "app_launcher": self.app_launcher
         }
