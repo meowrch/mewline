@@ -11,10 +11,10 @@ from mewline.config import generate_default_config
 from mewline.utils.misc import disable_logging
 from mewline.utils.theming import copy_theme
 from mewline.utils.theming import process_and_apply_css
+from mewline.widgets import StatusBar
 from mewline.widgets.dynamic_island import DynamicIsland
 from mewline.widgets.osd import OSDContainer
 from mewline.widgets.screen_corners import ScreenCorners
-from mewline.widgets.status_bar import StatusBar
 
 
 def generate():
