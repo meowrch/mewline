@@ -31,16 +31,31 @@ def generate_hyprconf() -> str:
 def change_hypr_config():
     """Adding generated keyboard shortcuts to the hyprland configuration."""
     cnst.HYPRLAND_CONFIG_FOLDER.mkdir(parents=True, exist_ok=True)
-    mewline_kb_file_path = cnst.HYPRLAND_CONFIG_FOLDER / (cnst.APPLICATION_NAME + ".conf")
+    mewline_kb_file_path = cnst.HYPRLAND_CONFIG_FOLDER / (
+        cnst.APPLICATION_NAME + ".conf"
+    )
 
     with open(mewline_kb_file_path, "w") as f:
         f.write(generate_hyprconf())
+        logger.info("[Config] Hyprland configuration file generated.")
 
-    with open(cnst.HYPRLAND_CONFIG_FILE, "a") as f:
-        f.write(f"source = {mewline_kb_file_path}")
+    with open(cnst.HYPRLAND_CONFIG_FILE) as f:
+        hypr_lines = f.readlines()
+
+    with open(cnst.HYPRLAND_CONFIG_FILE, "a+") as f:
+        incl_str = f"source = {mewline_kb_file_path}\n"
+
+        if incl_str not in hypr_lines:
+            f.write(f"\n{incl_str}")
+            logger.info("[Config] Keyboard shortcuts added to Hyprland configuration.")
+        else:
+            logger.info("[Config] Keyboard shortcuts already included in Hyprland configuration.")
 
     # Reload Hyprland configuration
-    subprocess.run(["hyprctl", "reload"])  # noqa: S603, S607
+    try:
+        subprocess.run(["hyprctl", "reload"], check=True)  # noqa: S603, S607
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to send notification: {e}")
 
 
 def load_config(path: Path) -> Config:
