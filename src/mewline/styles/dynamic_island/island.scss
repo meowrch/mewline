@@ -5,6 +5,7 @@
 @use "./notifications.scss";
 @use "./date_notification.scss";
 @use "./bluetooth.scss";
+@use "./app_launcher.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -54,13 +55,21 @@
     min-width: 360px;
     border-radius: 0 0 36px 36px;
   }
+
+  #launcher-box {
+    padding: 16px;
+    min-height: 220px;
+    min-width: 480px;
+    border-radius: 0 0 36px 36px;
+  }
 }
 
 
 #power-menu,
 #notification,
 #date-notification,
-#bluetooth {
+#bluetooth,
+#app-launcher {
   opacity: 1;
   margin: -800px;
   transition: all 0.25s cubic-bezier(0.5, 0.25, 0, 1);

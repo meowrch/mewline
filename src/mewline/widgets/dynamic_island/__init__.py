@@ -4,6 +4,7 @@ from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.stack import Stack
 from fabric.widgets.wayland import WaylandWindow as Window
 
+from mewline.widgets.dynamic_island.app_launcher import AppLauncher
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 from mewline.widgets.dynamic_island.bluetooth import BluetoothConnections
 from mewline.widgets.dynamic_island.compact import Compact
@@ -37,13 +38,15 @@ class DynamicIsland(Window):
         self.date_notification = DateNotificationMenu()
         self.power_menu = PowerMenu(self)
         self.bluetooth = BluetoothConnections()
+        self.app_launcher = AppLauncher(self)
 
         self.widgets: dict[str, type[BaseDiWidget]] = {
             "compact": self.compact,
             "notification": self.notification,
             "date_notification": self.date_notification,
             "power": self.power_menu,
-            "bluetooth": self.bluetooth
+            "bluetooth": self.bluetooth,
+            "app_launcher": self.app_launcher
         }
         self.stack = Stack(
             name="dynamic-island-content",

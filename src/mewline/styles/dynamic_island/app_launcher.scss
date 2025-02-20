@@ -1,0 +1,97 @@
+@use "sass:color";
+@use "../theme.scss";
+@use "../common/mixins.scss";
+@use "../variable.scss";
+@use "../common/functions.scss";
+
+#search-entry {
+  font-weight: bold;
+  background-color: theme.$background;
+  color: theme.$text-main;
+  border-radius: 15px;
+  padding: 10px;
+
+  selection {
+    color: theme.$background;
+    background-color: theme.$accent-lavender;
+  }
+}
+
+#close-button {
+  background-color: theme.$background;
+  border-radius: 15px;
+  padding: 10px 13px;
+
+  &:hover,
+  &:focus {
+    background-color: theme.$accent-red;
+  }
+
+  &:active {
+    background-color: theme.$accent-red;
+  }
+}
+
+#close-label {
+  color: var(--shadow);
+  background-color: theme.$accent-teal;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 999px;
+}
+
+#scrolled-window {
+  border-radius: 16px;
+
+  scrollbar {
+    border-radius: 10px;
+    background-color: theme.$background-dark;
+    padding: 4px;
+    margin-left: 6px;
+  }
+
+  slider {
+    border-radius: 8px;
+    min-width: 8px;
+    min-height: 48px;
+    background-color: theme.$accent-lavender;
+  }
+}
+
+#app-slot-button {
+  border-radius: 16px;
+  padding: 16px;
+  transition: padding 0.25s cubic-bezier(0.5, 0.25, 0, 1);
+  animation: loadSlot 0.5s ease;
+
+  @keyframes loadSlot {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  &:hover,
+  &:focus,
+  &:selected,
+  &.selected,
+  &:active {
+    background-color: theme.$app-l-item-focus;
+    padding-left: 24px;
+
+    #app-label {
+      color: theme.$app-l-item-focus-label;
+    }
+  }
+}
+
+#app-icon {
+  margin-right: 8px;
+}
+
+#app-label {
+  color: theme.$app-l-item-label;
+  font-weight: bold;
+}
