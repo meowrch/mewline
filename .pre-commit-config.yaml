@@ -47,3 +47,12 @@ repos:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
         exclude: package.lock.json
+
+  - repo: https://github.com/boidolr/pre-commit-images
+    rev: v1.8.2
+    hooks:
+      - id: optimize-avif
+      - id: optimize-jpg
+      - id: optimize-png
+      - id: optimize-svg
+      - id: optimize-webp
