@@ -110,7 +110,7 @@ DEFAULT_CONFIG = {
 ##==> Keybindings (prefix, suffix, command)
 ############################################
 kb_prefix = "Super+Alt"
-kb_di_open = "python -m fabric invoke-action mewline dynamic-island-open \"{module}\""
+kb_di_open = "fabric-cli invoke-action mewline dynamic-island-open \"{module}\""
 KEYBINDINGS = {
     "power_menu": (kb_prefix, "P", kb_di_open.format(module="power_menu")),
     "date_notification": (kb_prefix, "D", kb_di_open.format(module="date_notification")),
