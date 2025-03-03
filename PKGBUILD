@@ -13,6 +13,7 @@ depends=(
   'gnome-bluetooth-3.0'
   'dart-sass'
   'gray-git'
+  'fabric-cli-git'
 )
 makedepends=('python-uv')
 source=("git+https://github.com/meowrch/mewline.git")
