@@ -152,7 +152,7 @@ def send_notification(
     try:
         subprocess.run(command, check=True)  # noqa: S603
     except subprocess.CalledProcessError as e:
-        print(f"Failed to send notification: {e}")
+        logger.error(f"Failed to send notification: {e}")
 
 
 # Function to get the relative time

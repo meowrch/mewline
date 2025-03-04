@@ -55,7 +55,7 @@ def change_hypr_config():
     try:
         subprocess.run(["hyprctl", "reload"], check=True)  # noqa: S603, S607
     except subprocess.CalledProcessError as e:
-        print(f"Failed to send notification: {e}")
+        logger.error(f"Failed to send notification: {e}")
 
 
 def load_config(path: Path) -> Config:

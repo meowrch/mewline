@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from gi.repository import GLib
+from loguru import logger
 
 from mewline.config import cfg
 from mewline.utils.widget_utils import setup_cursor_hover
@@ -39,7 +40,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.lock_icon,
                 size=self.config.lock_icon_size,
-                name="button-label"
+                name="button-label",
             ),
             on_clicked=self.lock,
         )
@@ -49,7 +50,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.suspend_icon,
                 size=self.config.suspend_icon_size,
-                name="button-label"
+                name="button-label",
             ),
             on_clicked=self.suspend,
         )
@@ -59,7 +60,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.logout_icon,
                 size=self.config.logout_icon_size,
-                name="button-label"
+                name="button-label",
             ),
             on_clicked=self.logout,
         )
@@ -69,7 +70,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.reboot_icon,
                 size=self.config.reboot_icon_size,
-                name="button-label"
+                name="button-label",
             ),
             on_clicked=self.reboot,
         )
@@ -79,7 +80,7 @@ class PowerMenu(BaseDiWidget, Box):
             child=text_icon(
                 icon=self.config.shutdown_icon,
                 size=self.config.shutdown_icon_size,
-                name="button-label"
+                name="button-label",
             ),
             on_clicked=self.poweroff,
         )
@@ -102,26 +103,26 @@ class PowerMenu(BaseDiWidget, Box):
         self.dynamic_island.close()
 
     def lock(self, *args):
-        print("Locking screen...")
+        logger.info("Locking screen...")
         GLib.spawn_command_line_async("swaylock")
         self.close_menu()
 
     def suspend(self, *args):
-        print("Suspending system...")
+        logger.info("Suspending screen...")
         GLib.spawn_command_line_async("systemctl suspend")
         self.close_menu()
 
     def logout(self, *args):
-        print("Logging out...")
+        logger.info("Logging out...")
         GLib.spawn_command_line_async("hyprctl dispatch exit")
         self.close_menu()
 
     def reboot(self, *args):
-        print("Rebooting system...")
+        logger.info("Rebooting system...")
         GLib.spawn_command_line_async("systemctl reboot")
         self.close_menu()
 
     def poweroff(self, *args):
-        print("Powering off...")
+        logger.info("Powering off system...")
         GLib.spawn_command_line_async("systemctl poweroff")
         self.close_menu()
