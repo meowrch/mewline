@@ -188,6 +188,9 @@ dev = [
     { name = "pre-commit" },
     { name = "ruff" },
 ]
+stubs = [
+    { name = "pygobject-stubs" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -204,6 +207,7 @@ dev = [
     { name = "pre-commit", specifier = ">=4.1.0" },
     { name = "ruff", specifier = ">=0.9.4" },
 ]
+stubs = [{ name = "pygobject-stubs", specifier = ">=2.12.0" }]
 
 [[package]]
 name = "nodeenv"
@@ -343,6 +347,12 @@ dependencies = [
     { name = "pycairo" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/2b/58/d34e67a79631177e3c08e7d02b5165147f590171f2cae6769502af5f7f7e/pygobject-3.50.0.tar.gz", hash = "sha256:4500ad3dbf331773d8dedf7212544c999a76fc96b63a91b3dcac1e5925a1d103", size = 1080367 }
+
+[[package]]
+name = "pygobject-stubs"
+version = "2.12.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/99/04/e7dd3a2dc52977d54b98542742da2aa8c2fc5356e45339f37b908ff5dfc5/pygobject_stubs-2.12.0.tar.gz", hash = "sha256:4dad2d876c070a16f604c249bb70e8cbc36373151a6731d826a8436c6a80b99d", size = 810326 }
 
 [[package]]
 name = "pyyaml"
