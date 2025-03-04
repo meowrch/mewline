@@ -21,6 +21,6 @@ class DateTimeWidget(ButtonWidget):
         self.connect(
             "clicked",
             lambda *_: exec_shell_command_async(
-                f"{cnst.ACTION_COMMAND} dynamic-island-open 'date_notification'"
+                cnst.kb_di_open.format(module="date_notification")
             ),
         )

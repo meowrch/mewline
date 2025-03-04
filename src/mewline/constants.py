@@ -31,8 +31,6 @@ MEWLINE_SETTINGS_FOLDER = Path.home() / ".config" / "mewline"
 MEWLINE_CONFIG_PATH = MEWLINE_SETTINGS_FOLDER / "config.json"
 MEWLINE_THEMES_FOLDER = MEWLINE_SETTINGS_FOLDER / "themes"
 
-ACTION_COMMAND = "python -m fabric invoke-action mewline"
-
 ##==> Default settings
 ############################################
 DEFAULT_CONFIG = {
