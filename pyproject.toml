@@ -21,6 +21,9 @@ dev = [
     "pre-commit>=4.1.0",
     "ruff>=0.9.4",
 ]
+stubs = [
+    "pygobject-stubs>=2.12.0",
+]
 
 [tool.uv]
 package=true
