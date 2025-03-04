@@ -8,12 +8,12 @@
 #notification-history-el {
   padding: 0.9rem;
   border-radius: 1rem;
-  background-color: theme.$notification-history-element-bg;
+  background-color: theme.$dnm-notify-history-element-bg;
   border: variable.$border-width solid theme.$surface-disabled;
   transition: border 100ms ease-in-out;
 
   .text {
-    color: theme.$notification-history-text-color;
+    color: theme.$dnm-notify-history-text-color;
     font-size: 13px;
   }
 
@@ -29,7 +29,7 @@
     &:hover {
       box-shadow: none;
       border: none;
-      background-color: theme.$notification-history-close-btn-hover-color;
+      background-color: theme.$dnm-notify-history-close-btn-hover-color;
       transition: background 0.15s ease-in-out;
 
       .close-icon {
@@ -40,7 +40,7 @@
 
   .summary {
     @extend %heading;
-    color: theme.$notification-history-summury-color;
+    color: theme.$dnm-notify-history-summury-color;
     text-shadow: none;
   }
 

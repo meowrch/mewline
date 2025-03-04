@@ -150,7 +150,7 @@ class NotificationBox(Box):
 
     def create_close_button(self):
         close_button = Button(
-            name="close-button",
+            name="notify-close-button",
             visible=True,
             h_align="end",
             image=Image(

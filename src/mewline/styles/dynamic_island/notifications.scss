@@ -24,21 +24,20 @@
   }
 }
 
-#close-button {
+#notify-close-button {
   border-radius: variable.$radius-large;
-  color: theme.$notify-close-btn-label-color;
-  padding: 3px;
+    padding: 3px;
 
-  &:hover {
-    box-shadow: none;
-    border: none;
-    background-color: theme.$notify-close-btn-color-hover;
-    transition: background 0.15s ease-in-out;
+    &:hover {
+      box-shadow: none;
+      border: none;
+      background-color: theme.$notify-close-btn-color-hover;
+      transition: background 0.15s ease-in-out;
 
-    .close-icon {
-      @extend %clear_icon;
+      .close-icon {
+        @extend %clear_icon;
+      }
     }
-  }
 }
 
 #close-label {
