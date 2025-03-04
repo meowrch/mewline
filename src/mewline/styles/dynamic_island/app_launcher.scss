@@ -4,7 +4,7 @@
 @use "../variable.scss";
 @use "../common/functions.scss";
 
-#search-entry {
+#app-launcher-search-entry {
   font-weight: bold;
   background-color: theme.$background;
   color: theme.$text-main;
@@ -17,7 +17,7 @@
   }
 }
 
-#close-button {
+#app-launcher-close-button {
   background-color: theme.$background;
   border-radius: 15px;
   padding: 10px 13px;
@@ -32,7 +32,7 @@
   }
 }
 
-#close-label {
+#app-launcher-close-label {
   color: var(--shadow);
   background-color: theme.$accent-teal;
   font-size: 16px;
@@ -40,7 +40,7 @@
   border-radius: 999px;
 }
 
-#scrolled-window {
+#app-launcher-scrolled-window {
   border-radius: 16px;
 
   scrollbar {
@@ -58,7 +58,7 @@
   }
 }
 
-#app-slot-button {
+#app-launcher-app-slot-button {
   border-radius: 16px;
   padding: 16px;
   transition: padding 0.25s cubic-bezier(0.5, 0.25, 0, 1);
@@ -87,11 +87,11 @@
   }
 }
 
-#app-icon {
+#app-launcher-app-icon {
   margin-right: 8px;
 }
 
-#app-label {
+#app-launcher-app-label {
   color: theme.$app-l-item-label;
   font-weight: bold;
 }

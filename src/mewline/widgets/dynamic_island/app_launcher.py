@@ -37,7 +37,7 @@ class AppLauncher(BaseDiWidget, Box):
 
         self.viewport = Box(name="viewport", spacing=4, orientation="v")
         self.search_entry = Entry(
-            name="search-entry",
+            name="app-launcher-search-entry",
             placeholder="Search Applications...",
             h_expand=True,
             notify_text=lambda entry, *_: self.arrange_viewport(entry.get_text()),
@@ -48,7 +48,7 @@ class AppLauncher(BaseDiWidget, Box):
         )
         self.search_entry.props.xalign = 0.5
         self.scrolled_window = ScrolledWindow(
-            name="scrolled-window",
+            name="app-launcher-scrolled-window",
             spacing=10,
             min_content_size=(450, 105),
             max_content_size=(450, 105),
@@ -56,15 +56,14 @@ class AppLauncher(BaseDiWidget, Box):
         )
 
         self.header_box = Box(
-            name="header_box",
             spacing=10,
             orientation="h",
             children=[
                 self.search_entry,
                 Button(
-                    name="close-button",
+                    name="app-launcher-close-button",
                     image=Image(
-                        style_classes="close-label",
+                        style_classes="app-launcher-close-label",
                         icon_name=check_icon_exists(
                             "close-symbolic",
                             cnst.icons["ui"]["close"],
@@ -154,9 +153,9 @@ class AppLauncher(BaseDiWidget, Box):
 
     def bake_application_slot(self, app: DesktopApp, **kwargs) -> Button:
         button = Button(
-            name="app-slot-button",
+            name="app-launcher-app-slot-button",
             child=Box(
-                name="app-slot-box",
+                name="app-launcher-app-slot-box",
                 orientation="h",
                 spacing=10,
                 children=[
