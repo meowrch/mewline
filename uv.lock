@@ -122,7 +122,7 @@ wheels = [
 [[package]]
 name = "fabric"
 version = "0.0.2"
-source = { git = "https://github.com/Fabric-Development/fabric.git#0bbd337a786bb28764029f215cf4592a176f7fb6" }
+source = { git = "https://github.com/Fabric-Development/fabric.git#e97d57fe59d565112680ac4b6571a3a45be162d0" }
 dependencies = [
     { name = "click" },
     { name = "loguru" },
