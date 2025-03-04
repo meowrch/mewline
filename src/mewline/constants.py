@@ -94,11 +94,19 @@ DEFAULT_CONFIG = {
                 "shutdown_icon": "",
                 "shutdown_icon_size": "20px",
             },
-            "window_titles": {
-                "enable_icon": True,
-                "truncation": True,
-                "truncation_size": 50,
-                "title_map": []
+            "compact": {
+                "window_titles": {
+                    "enable_icon": True,
+                    "truncation": True,
+                    "truncation_size": 50,
+                    "title_map": []
+                },
+                "music": {
+                    "enabled": True,
+                    "truncation": True,
+                    "truncation_size": 30,
+                    "default_album_logo": "https://sonos-partner-documentation.s3.amazonaws.com/ReadMe-External/content-service-features/add-images/add-album-art/SonosApp-DefaultArt-Alone.png"
+                }
             }
         },
     },

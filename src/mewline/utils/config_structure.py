@@ -80,9 +80,21 @@ class WindowTitlesModule(BaseModel):
     title_map: list[tuple[str, str, str]]
 
 
+class MusicModule(BaseModel):
+    enabled: bool
+    truncation: bool
+    truncation_size: int
+    default_album_logo: str
+
+
+class Compact(BaseModel):
+    window_titles: WindowTitlesModule
+    music: MusicModule
+
+
 class DynamicIsland(BaseModel):
     power_menu: PowerMenu
-    window_titles: WindowTitlesModule
+    compact: Compact
 
 
 class Modules(BaseModel):
