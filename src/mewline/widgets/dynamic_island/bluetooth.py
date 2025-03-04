@@ -89,7 +89,7 @@ class BluetoothDeviceSlot(CenterBox):
                 logger.error(f"Error while device removing: {result.stderr}")
 
         except Exception as e:
-            print(f"Error occured: {e}")
+            logger.error(f"Error occured: {e}")
 
     def on_changed(self, *_):
         if self.device.connecting:
