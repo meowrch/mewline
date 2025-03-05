@@ -6,6 +6,7 @@
 @use "./date_notification.scss";
 @use "./bluetooth.scss";
 @use "./app_launcher.scss";
+@use "./wallpapers.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -56,6 +57,13 @@
     border-radius: 0 0 36px 36px;
   }
 
+  &.wallpapers {
+    padding: 16px;
+    min-height: 420px;
+    min-width: 620px;
+    border-radius: 0 0 36px 36px;
+  }
+
   #launcher-box {
     padding: 16px;
     min-height: 220px;
@@ -69,6 +77,7 @@
 #notification,
 #date-notification,
 #bluetooth,
+#wallpapers,
 #app-launcher {
   opacity: 1;
   margin: -800px;

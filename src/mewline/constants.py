@@ -12,6 +12,9 @@ APP_FOLDER = Path(__file__).resolve().parent
 SYSTEM_CACHE_DIR = Path(GLib.get_user_cache_dir())
 APP_CACHE_DIRECTORY = SYSTEM_CACHE_DIR / APPLICATION_NAME
 
+WALLPAPERS_DIR = Path.home() / ".config" / "meowrch" / "wallpapers"
+WALLPAPERS_THUMBS_DIR = APP_CACHE_DIRECTORY / "thumbs"
+
 STYLES_FOLDER = APP_FOLDER / "styles"
 DIST_FOLDER = APP_CACHE_DIRECTORY / "dist"
 
@@ -107,6 +110,9 @@ DEFAULT_CONFIG = {
                     "truncation_size": 30,
                     "default_album_logo": "https://sonos-partner-documentation.s3.amazonaws.com/ReadMe-External/content-service-features/add-images/add-album-art/SonosApp-DefaultArt-Alone.png"
                 }
+            },
+            "wallpapers": {
+                "method": "swww"
             }
         },
     },
@@ -122,6 +128,7 @@ KEYBINDINGS = {
     "date_notification": (kb_prefix, "D", kb_di_open.format(module="date_notification")),
     "bluetooth": (kb_prefix, "B", kb_di_open.format(module="bluetooth")),
     "app_launcher": (kb_prefix, "A", kb_di_open.format(module="app_launcher")),
+    "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers"))
 }
 
 
