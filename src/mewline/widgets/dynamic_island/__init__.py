@@ -20,7 +20,7 @@ class DynamicIsland(Window):
     def __init__(self):
         super().__init__(
             name="dynamic_island",
-            layer="overlay",
+            layer="top",
             anchor="top",
             margin="-41px 10px 10px 41px",
             keyboard_mode="none",
