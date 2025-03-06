@@ -159,6 +159,9 @@ class AppLauncher(BaseDiWidget, Box):
                 orientation="h",
                 spacing=10,
                 children=[
+                    Image(
+                        pixbuf=app.get_icon_pixbuf(size=24)
+                    ),
                     Label(
                         name="app-label",
                         label=app.display_name or "Unknown",
