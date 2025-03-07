@@ -50,12 +50,28 @@ class ActionButton(Button):
 
 class NotificationBox(Box):
     def __init__(self, notification: Notification, timeout_ms=5000, **kwargs):
+        urgency_class = {0: ("low-urgency", False), 1: ("normal-urgency", False), 2: ("critical-urgency", True)}
+
         super().__init__(
             name="notification-box",
             orientation="v",
+            spacing=10,
             children=[
                 self.create_content(notification),
-                self.create_action_buttons(notification),
+                Box(
+                    spacing=10,
+                    orientation="vertical",
+                    children=[
+                        self.create_action_buttons(notification),
+                        Box(
+                            name="notification-urgency-line",
+                            visible=urgency_class.get(notification.urgency, urgency_class[0])[1],
+                            h_expand=True,
+                            h_align="fill",
+                            style_classes=urgency_class.get(notification.urgency, urgency_class[0])[0],
+                        ),
+                    ],
+                ),
             ],
         )
         self.notification = notification
@@ -234,7 +250,7 @@ class NotificationContainer(BaseDiWidget, Box):
         for child in self.get_children():
             child.destroy()
 
-        notification = fabric_notif.get_notification_from_id(id)
+        notification: Notification = fabric_notif.get_notification_from_id(id)
         cache_notification_service.cache_notification(notification)
 
         if not cache_notification_service.dont_disturb:
