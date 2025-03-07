@@ -1,0 +1,27 @@
+@use "sass:color";
+@use "theme.scss";
+@use "variable.scss";
+
+#ocr-menu {
+    background: theme.$background-dark;
+    border-radius: variable.$radius;
+    padding: 0.45em;
+
+    menuitem {
+        padding: 0.25em 1em;
+        border-radius: variable.$radius;
+
+        &:hover {
+            background-color: theme.$ocr-hover-bg;
+        }
+
+        #ocr-menu-item {
+            color: theme.$ocr-text-color;
+
+            &.selected {
+                font-weight: bold;
+                color: theme.$ocr-active-text-color;
+            }
+        }
+    }
+}

@@ -14,6 +14,9 @@ depends=(
   'dart-sass'
   'gray-git'
   'fabric-cli-git'
+  'tesseract'
+  'tesseract-data-eng'
+  'tesseract-data-rus'
 )
 makedepends=('python-uv')
 source=("git+https://github.com/meowrch/mewline.git")
