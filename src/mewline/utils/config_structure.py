@@ -78,6 +78,13 @@ class BrightnessModule(BaseModel):
     step_size: int
 
 
+class OcrModule(BaseModel):
+    icon: str
+    icon_size: str
+    tooltip: bool
+    default_lang: str
+
+
 class WindowTitlesModule(BaseModel):
     enable_icon: bool
     truncation: bool
@@ -120,6 +127,7 @@ class Modules(BaseModel):
     volume: VolumeModule
     battery: BatteryModule
     brightness: BrightnessModule
+    ocr: OcrModule
 
 
 class Config(BaseModel):

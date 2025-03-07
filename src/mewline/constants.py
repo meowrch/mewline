@@ -84,6 +84,12 @@ DEFAULT_CONFIG = {
             "tooltip": True,
             "step_size": 5,
         },
+        "ocr": {
+            "icon": "󰴑",
+            "icon_size": "20px",
+            "tooltip": True,
+            "default_lang": "eng",
+        },
         "dynamic_island": {
             "power_menu": {
                 "lock_icon": "",

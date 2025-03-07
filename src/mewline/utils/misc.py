@@ -3,6 +3,8 @@ import os
 import shlex
 import shutil
 import subprocess
+import time
+from functools import lru_cache
 from typing import Literal
 
 import gi
@@ -130,7 +132,7 @@ def send_notification(
         "--app-name",
         shlex.quote(app_name),
         shlex.quote(title),
-        shlex.quote(body)
+        shlex.quote(body),
     ]
 
     # Add icon if provided
@@ -208,3 +210,20 @@ def disable_logging():
         "fabric.bluetooth.service",
     ]:
         logger.disable(log)
+
+
+def ttl_lru_cache(seconds_to_live: int, maxsize: int = 128):
+    def wrapper(func):
+        @lru_cache(maxsize)
+        def inner(__ttl, *args, **kwargs):
+            return func(*args, **kwargs)
+
+        return lambda *args, **kwargs: inner(
+            time.time() // seconds_to_live, *args, **kwargs
+        )
+
+    return wrapper
+
+
+def check_tools_available(tools: list[str]):
+    return all(shutil.which(tool) is not None for tool in tools)
