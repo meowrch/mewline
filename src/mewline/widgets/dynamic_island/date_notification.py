@@ -29,6 +29,8 @@ gi.require_version("Gtk", "3.0")
 
 class NotificationHistoryEl(Box):
     def __init__(self, id: int, notification: Notification):
+        urgency_class = {0: "low-urgency", 1: "normal-urgency", 2: "critical-urgency"}
+
         Box.__init__(
             self,
             name="notification-history-el",
@@ -37,7 +39,7 @@ class NotificationHistoryEl(Box):
             v_expand=True,
             h_expand=True,
             pass_through=True,
-            style_classes="notification-history-el",
+            style_classes=urgency_class.get(notification.urgency, "low-urgency"),
         )
 
         self._notification = notification

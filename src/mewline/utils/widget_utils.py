@@ -80,6 +80,7 @@ def create_scale(
     value=70,
     min_value=0,
     max_value=100,
+    duration=0.8,
     increments=(1, 1),
     orientation="h",
     h_expand=True,
@@ -92,6 +93,7 @@ def create_scale(
     return AnimatedScale(
         marks=marks,
         value=value,
+        duration=duration,
         min_value=min_value,
         max_value=max_value,
         increments=increments,

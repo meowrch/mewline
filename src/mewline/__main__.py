@@ -31,7 +31,7 @@ def main():
         ScreenCorners(),
         StatusBar(),
         DynamicIsland(),
-        OSDContainer(),
+        OSDContainer()
     )
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)

@@ -40,6 +40,25 @@
     }
 }
 
+#notification-urgency-line {
+  background-color: theme.$notify-low-urgency-color;
+  border-radius: 2px;
+  min-height: 4px;
+  margin: 0 2rem 0px 2rem;
+
+  &.low-urgency {
+    background: theme.$notify-low-urgency-color;
+  }
+
+  &.normal-urgency {
+    background: theme.$notify-normal-urgency-color;
+  }
+
+  &.critical-urgency {
+    background: theme.$notify-critical-urgency-color;
+  }
+}
+
 #close-label {
   color: theme.$notify-close-btn-label-color
 }

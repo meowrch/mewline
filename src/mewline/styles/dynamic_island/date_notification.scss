@@ -9,7 +9,6 @@
   padding: 0.9rem;
   border-radius: 1rem;
   background-color: theme.$dnm-notify-history-element-bg;
-  border: variable.$border-width solid theme.$surface-disabled;
   transition: border 100ms ease-in-out;
 
   .text {
@@ -47,6 +46,18 @@
   .image {
     -gtk-icon-effect: none;
     border-radius: functions.toEm(15);
+  }
+
+  &.low-urgency {
+    border: variable.$border-width solid theme.$dnm-notify-low-urgency-border-color;
+  }
+
+  &.normal-urgency {
+    border: variable.$border-width solid theme.$dnm-notify-normal-urgency-border-color;
+  }
+
+  &.critical-urgency {
+    border: variable.$border-width solid theme.$dnm-notify-critical-urgency-border-color;
   }
 }
 

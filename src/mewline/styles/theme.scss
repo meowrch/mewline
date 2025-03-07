@@ -64,7 +64,11 @@ $notify-action-btn-label-color: $background-dark;
 $notify-close-btn-label-color: $text-main;
 $notify-close-btn-color-hover: $surface-disabled;
 
-/* ------------------ Date Notification ---------------------- */
+$notify-low-urgency-color: $surface-disabled;
+$notify-normal-urgency-color: $surface-disabled;
+$notify-critical-urgency-color: $accent-orange;
+
+/* ------------------ Date Notification Menu ---------------------- */
 $dnm-dnd-switch: lighten($background, 10%);
 $dnm-dnd-switch-circle: $text-main;
 $dnm-dnd-switch-active: $accent-lavender;
@@ -95,6 +99,10 @@ $dnm-notify-history-element-bg: $background-alt;
 $dnm-notify-history-summury-color: $text-main;
 $dnm-notify-history-text-color: $text-main;
 $dnm-notify-history-close-btn-hover-color: $surface-disabled;
+
+$dnm-notify-low-urgency-border-color: $surface-disabled;
+$dnm-notify-normal-urgency-border-color: $surface-disabled;
+$dnm-notify-critical-urgency-border-color: $accent-orange;
 
 
 /* ------------------ Bluetooth Menu ---------------------- */
