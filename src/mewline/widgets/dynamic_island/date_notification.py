@@ -142,6 +142,7 @@ class DateNotificationMenu(BaseDiWidget, Box):
             NotificationHistoryEl(notification=val, id=val["id"])
             for val in self.notifications
         ]
+        self.notifications_list.reverse()
 
         self.notification_list_box = Box(
             orientation="v",
@@ -290,12 +291,12 @@ class DateNotificationMenu(BaseDiWidget, Box):
 
         count = len(self.notification_list_box.children)
 
-        self.notification_list_box.add(
+        self.notification_list_box.children = [
             NotificationHistoryEl(
-                notification=notification,
-                id=count + 1 if count > 0 else 1,
-            )
-        )
+                notification=notification, id=count + 1 if count > 0 else 1
+            ),
+            *self.notification_list_box.children,
+        ]
         self.placeholder.set_visible(False)
         self.notification_list_box.set_visible(True)
 
