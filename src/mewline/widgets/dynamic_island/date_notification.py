@@ -17,7 +17,6 @@ import mewline.constants as cnst
 from mewline.services import cache_notification_service
 from mewline.services import notification_service
 from mewline.shared.rounded_image import CustomImage
-from mewline.shared.separator import Separator
 from mewline.utils.misc import check_icon_exists
 from mewline.utils.misc import parse_markup
 from mewline.utils.misc import uptime
@@ -266,7 +265,6 @@ class DateNotificationMenu(BaseDiWidget, Box):
 
         self.children = (
             notification_column,
-            Separator(),
             date_column,
         )
 
