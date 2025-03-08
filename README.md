@@ -111,7 +111,7 @@ uv run mewline
 Динамическим островом можно управлять с помощью сочетаний клавиш.
 Если вы еще не сгенерировали конфигурацию для hyprland, то выполните:
 ```bash
-mewline --generate-keybindings
+mewline --create-keybindings
 ```
 
 | Сочетание клавиш   | Описание                                 |
