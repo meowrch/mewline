@@ -134,7 +134,8 @@ KEYBINDINGS = {
     "date_notification": (kb_prefix, "D", kb_di_open.format(module="date_notification")),
     "bluetooth": (kb_prefix, "B", kb_di_open.format(module="bluetooth")),
     "app_launcher": (kb_prefix, "A", kb_di_open.format(module="app_launcher")),
-    "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers"))
+    "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers")),
+    "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji"))
 }
 
 

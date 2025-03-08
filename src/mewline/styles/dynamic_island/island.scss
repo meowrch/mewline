@@ -7,6 +7,7 @@
 @use "./bluetooth.scss";
 @use "./app_launcher.scss";
 @use "./wallpapers.scss";
+@use "./emoji.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -64,6 +65,13 @@
     border-radius: 0 0 36px 36px;
   }
 
+  &.emoji {
+    padding: 16px;
+    min-height: 238px;
+    min-width: 574px;
+    border-radius: 0 0 36px 36px;
+  }
+
   #launcher-box {
     padding: 16px;
     min-height: 220px;
@@ -72,12 +80,12 @@
   }
 }
 
-
 #power-menu,
 #notification,
 #date-notification,
 #bluetooth,
 #wallpapers,
+#emoji,
 #app-launcher {
   opacity: 1;
   margin: -800px;
@@ -87,6 +95,12 @@
     opacity: 1;
     margin: 0px;
   }
+}
+
+#dynamic-island-compact {
+  font-weight: bold;
+  border-radius: 0 0 20px 20px;
+  transition: all 0.1s ease;
 }
 
 #di-compact-main-container {
