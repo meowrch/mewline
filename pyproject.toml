@@ -8,7 +8,9 @@ authors = [
   {name = "dimflix", email = "dimflix.official@gmail.com"},
 ]
 dependencies = [
+    "emoji>=2.14.1",
     "fabric",
+    "ijson>=3.3.0",
     "loguru>=0.7.3",
     "pillow>=11.1.0",
     "psutil>=6.1.1",

@@ -23,7 +23,6 @@ def create_keybindings():
 
 def main():
     disable_logging()
-
     ##==> Creating App
     ##############################
     app = Application(
@@ -77,4 +76,3 @@ if __name__ == "__main__":
         sys.exit(0)
     else:
         main()
-
