@@ -10,6 +10,7 @@ from mewline.widgets.dynamic_island.bluetooth import BluetoothConnections
 from mewline.widgets.dynamic_island.compact import Compact
 from mewline.widgets.dynamic_island.date_notification import DateNotificationMenu
 from mewline.widgets.dynamic_island.emoji import EmojiPicker
+from mewline.widgets.dynamic_island.network import NetworkConnections
 from mewline.widgets.dynamic_island.notifications import NotificationContainer
 from mewline.widgets.dynamic_island.power import PowerMenu
 from mewline.widgets.dynamic_island.wallpapers import WallpaperSelector
@@ -43,6 +44,7 @@ class DynamicIsland(Window):
         self.app_launcher = AppLauncher(self)
         self.wallpapers = WallpaperSelector()
         self.emoji = EmojiPicker(self)
+        self.network = NetworkConnections()
 
         self.widgets: dict[str, type[BaseDiWidget]] = {
             "compact": self.compact,
@@ -53,6 +55,7 @@ class DynamicIsland(Window):
             "app_launcher": self.app_launcher,
             "wallpapers": self.wallpapers,
             "emoji": self.emoji,
+            "network": self.network,
         }
 
         self.stack = Stack(

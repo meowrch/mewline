@@ -135,7 +135,8 @@ KEYBINDINGS = {
     "bluetooth": (kb_prefix, "B", kb_di_open.format(module="bluetooth")),
     "app_launcher": (kb_prefix, "A", kb_di_open.format(module="app_launcher")),
     "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers")),
-    "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji"))
+    "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji")),
+    "network": (kb_prefix, "N", kb_di_open.format(module="network")),
 }
 
 
