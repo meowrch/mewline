@@ -8,6 +8,7 @@
 @use "./app_launcher.scss";
 @use "./wallpapers.scss";
 @use "./emoji.scss";
+@use "./wifi.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -51,6 +52,13 @@
     border-radius: 0 0 36px 36px;
   }
 
+  &.network {
+    padding: 16px;
+    min-height: 300px;
+    min-width: 500px;
+    border-radius: 0 0 36px 36px;
+  }
+
   &.date-notification {
     padding: 16px;
     min-height: 45px;
@@ -86,6 +94,7 @@
 #bluetooth,
 #wallpapers,
 #emoji,
+#network,
 #app-launcher {
   opacity: 1;
   margin: -800px;
