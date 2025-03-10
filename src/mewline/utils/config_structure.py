@@ -60,7 +60,12 @@ class DatetimeModule(BaseModel):
 
 class VolumeModule(BaseModel):
     icon_size: str
-    label: bool
+    tooltip: bool
+    step_size: int
+
+
+class MicrophoneModule(BaseModel):
+    icon_size: str
     tooltip: bool
     step_size: int
 
@@ -125,6 +130,7 @@ class Modules(BaseModel):
     dynamic_island: DynamicIsland
     datetime: DatetimeModule
     volume: VolumeModule
+    microphone: MicrophoneModule
     battery: BatteryModule
     brightness: BrightnessModule
     ocr: OcrModule
