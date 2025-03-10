@@ -68,8 +68,12 @@ DEFAULT_CONFIG = {
         "power": {"icon": "", "icon_size": "16px", "tooltip": True},
         "datetime": {"format": "%d-%m-%y %H:%M"},
         "volume": {
-            "icon_size": "14px",
-            "label": True,
+            "icon_size": "16px",
+            "tooltip": True,
+            "step_size": 5,
+        },
+        "microphone": {
+            "icon_size": "16px",
             "tooltip": True,
             "step_size": 5,
         },
@@ -168,6 +172,10 @@ icons = {
         "medium": "󰖀",
         "low": "󰕿",
         "muted": "󰝟",
+    },
+    "microphone": {
+        "active": "",
+        "muted": ""
     },
     "brightness": {
         "symbolic": "display-brightness-symbolic",
