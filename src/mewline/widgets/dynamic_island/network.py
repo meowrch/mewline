@@ -146,6 +146,8 @@ class WifiNetworkSlot(CenterBox):
             visibility=False,
             name="wifi-password-entry",
             margin_start=32,
+            h_align="fill",
+            h_expand=True,
         )
         confirm_button = Button(
             label="Confirm",
@@ -155,8 +157,7 @@ class WifiNetworkSlot(CenterBox):
         setup_cursor_hover(confirm_button)
 
         self.controls_box = Box(
-            spacing=8,
-            children=[self.password_entry, confirm_button],
+            spacing=8, children=[self.password_entry, confirm_button]
         )
         self.add(self.controls_box)
 

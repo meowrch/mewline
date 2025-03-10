@@ -1,0 +1,109 @@
+@use "sass:color";
+@use "../theme.scss";
+
+// Основные переменные
+$padding: 8px;
+$border-radius: 8px;
+$spacing: 4px;
+$icon-size: 24px;
+$hover-opacity: 0.8;
+
+// Цвета
+$bg-color: rgba(white, 0.1);
+$hover-bg: rgba(white, 0.15);
+$active-bg: rgba(white, 0.2);
+$success-color: #4caf50;
+$error-color: #f44336;
+
+// Стили для всего виджета
+#network {
+  background: theme.$background-dark;
+
+  // Заголовок
+  .title {
+    color: theme.$text-main;
+    font-weight: bold;
+  }
+
+  #controls {
+    padding-bottom: 8px;
+  }
+
+  &-scan-btn,
+  &-toggle-btn {
+    background-color: theme.$bluetooth-scan-background;
+    color: theme.$bluetooth-scan-text-color;
+    border-radius: 16px;
+    padding: 8px 16px;
+    min-width: 96px;
+
+    label {
+      font-weight: bold;
+    }
+  }
+
+  &-toggle-btn {
+    &.enabled {
+      color: theme.$bluetooth-toggle-active-text-color;
+      background-color: theme.$bluetooth-toggle-active-background;
+    }
+    &.disabled {
+      color: theme.$bluetooth-toggle-text-color;
+      background-color: theme.$bluetooth-toggle-background;
+    }
+  }
+}
+
+// Слот сети Wi-Fi
+#network-slot {
+  background-color: theme.$background;
+  border-radius: 16px;
+  padding: 8px 16px;
+  margin-bottom: 4px;
+
+  // Кнопка "Забыть"
+  #network-forget-btn {
+    background-color: theme.$background-alt;
+    font-size: 20px;
+    border-radius: 10px;
+    padding: 4px 12px;
+
+    &:hover {
+      color: $error-color;
+    }
+  }
+
+  // кнопка подключиться / отключиться
+  #network-connection-toggle-btn {
+    background-color: theme.$background-alt;
+    font-size: 20px;
+    border-radius: 10px;
+    padding: 4px 8px;
+
+    &.connect {
+      &:hover {
+        color: $error-color;
+      }
+    }
+    &.disconnect {
+      &:hover {
+        color: $success-color;
+      }
+    }
+  }
+
+  // Поле ввода пароля
+  #wifi-password-entry {
+    padding: 4px 8px;
+    border-radius: 10px;
+    background-color: theme.$surface-disabled;
+  }
+
+  // Кнопка подтверждения
+  #wifi-confirm-btn {
+    background-color: theme.$background-alt;
+    font-size: 20px;
+    border-radius: 10px;
+    padding: 4px 8px;
+  }
+}
