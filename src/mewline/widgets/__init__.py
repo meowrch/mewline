@@ -3,16 +3,16 @@ from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.wayland import WaylandWindow
 
 from mewline.utils.hyprland_monitors import HyprlandMonitors
+from mewline.widgets.audio_controls import MicrophoneControlWidget
+from mewline.widgets.audio_controls import SpeakersControlWidget
 from mewline.widgets.battery import Battery
 from mewline.widgets.bluetooth import Bluetooth
 from mewline.widgets.brightness import BrightnessWidget
 from mewline.widgets.datetime import DateTimeWidget
 from mewline.widgets.language import LanguageWidget
-from mewline.widgets.microphone import MicrophoneWidget
 from mewline.widgets.ocr import OCRWidget
 from mewline.widgets.power import PowerButton
 from mewline.widgets.system_tray import SystemTray
-from mewline.widgets.volume import VolumeWidget
 from mewline.widgets.workspaces import HyprlandWorkSpacesWidget
 
 
@@ -41,8 +41,8 @@ class StatusBar(WaylandWindow):
                     OCRWidget(),
                     BrightnessWidget(),
                     Battery(),
-                    VolumeWidget(),
-                    MicrophoneWidget(),
+                    SpeakersControlWidget(),
+                    MicrophoneControlWidget(),
                     LanguageWidget(),
                     DateTimeWidget(),
                     Bluetooth(),

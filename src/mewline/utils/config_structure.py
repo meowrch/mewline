@@ -58,7 +58,7 @@ class DatetimeModule(BaseModel):
     format: str
 
 
-class VolumeModule(BaseModel):
+class SpeakersModule(BaseModel):
     icon_size: str
     tooltip: bool
     step_size: int
@@ -129,7 +129,7 @@ class Modules(BaseModel):
     power: PowerModule
     dynamic_island: DynamicIsland
     datetime: DatetimeModule
-    volume: VolumeModule
+    speakers: SpeakersModule
     microphone: MicrophoneModule
     battery: BatteryModule
     brightness: BrightnessModule

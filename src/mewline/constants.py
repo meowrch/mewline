@@ -67,7 +67,7 @@ DEFAULT_CONFIG = {
         "system_tray": {"icon_size": 16, "ignore": []},
         "power": {"icon": "", "icon_size": "16px", "tooltip": True},
         "datetime": {"format": "%d-%m-%y %H:%M"},
-        "volume": {
+        "speakers": {
             "icon_size": "16px",
             "tooltip": True,
             "step_size": 5,
@@ -175,7 +175,7 @@ icons = {
     },
     "microphone": {
         "active": "",
-        "muted": ""
+        "muted": ""
     },
     "brightness": {
         "symbolic": "display-brightness-symbolic",
