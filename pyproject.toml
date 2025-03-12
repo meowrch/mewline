@@ -8,6 +8,7 @@ authors = [
   {name = "dimflix", email = "dimflix.official@gmail.com"},
 ]
 dependencies = [
+    "dbus-python>=1.3.2",
     "emoji>=2.14.1",
     "fabric",
     "ijson>=3.3.0",

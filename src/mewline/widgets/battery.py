@@ -1,94 +1,105 @@
-import math
-
 from fabric.widgets.box import Box
 from fabric.widgets.image import Image
 from fabric.widgets.label import Label
+from fabric.widgets.revealer import Revealer
+from gi.repository import GLib
 
 from mewline.config import cfg
+from mewline.services import battery_service
 from mewline.shared.widget_container import ButtonWidget
 from mewline.utils.misc import format_time
-from mewline.utils.psutil import psutil_fabricator
 
 
 class Battery(ButtonWidget):
     """A widget to display the current battery status."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self):
         # Initialize the Box with specific name and style
-        super().__init__(
-            name="battery",
-            **kwargs,
-        )
+        super().__init__(name="battery")
+
+        self.client = battery_service
+        self.client.connect("changed", lambda *_: self.update_ui())
         self.config = cfg.modules.battery
         self.full_battery_level = 100
 
-        self.box = Box()
-        self.children = self.box
+        # for revealer
+        self.hide_timer = None
+        self.hover_counter = 0
 
-        # Set up a repeater to call the update_battery_status method
-        psutil_fabricator.connect("changed", self.update_ui)
-
-    def update_ui(self, _, value):
-        """Update the battery status by fetching the current battery information.
-
-        This method updates the widget based on the current battery information.
-        It hides the widget if the battery status is not available, updates the
-        battery percentage label, and sets the appropriate icon and tooltip based
-        on the battery status and configuration.
-        """
-        battery = value.get("battery")  # Get the battery status
-
-        if battery is None:
-            self.hide()
-            return None
-
-        battery_percent = round(battery.percent) if battery else 0
-
-        self.battery_label = Label(
-            label=f"{battery_percent}%", style_classes="panel-text", visible=False
-        )
-
-        is_charging = battery.power_plugged if battery else False
-
-        self.battery_icon = Image(
-            icon_name=self.get_icon_name(
-                battery_percent=battery_percent,
-                is_charging=is_charging,
-            ),
+        self.icon = Image(
+            icon_name=self.client.get_property("IconName"),
             icon_size=14,
         )
 
-        self.box.children = (self.battery_icon, self.battery_label)
+        is_present = self.client.get_property("IsPresent")
+        battery_percent = (
+            round(self.client.get_property("Percentage")) if is_present else 0
+        )
+        self.label = Label(label=f"{battery_percent}%", style_classes="panel-text")
+        self.revealer = Revealer(
+            name="battery-label-revealer",
+            transition_duration=250,
+            transition_type="slide-left",
+            child=self.label,
+            child_revealed=False,
+        )
 
-        # Update the label with the battery percentage if enabled
-        if self.config.label:
-            self.battery_label.show()
+        self.box = Box(children=[self.icon, self.revealer])
+        self.connect("enter-notify-event", self.on_mouse_enter)
+        self.connect("leave-notify-event", self.on_mouse_leave)
+        self.add(self.box)
+        self.update_ui()
 
-            ## Hide the label when the battery is full
-            if (
-                self.config.hide_label_when_full
-                and battery_percent == self.full_battery_level
-            ):
-                self.battery_label.hide()
+    def on_mouse_enter(self, *_):
+        self.hover_counter += 1
+        if self.hide_timer:
+            GLib.source_remove(self.hide_timer)
+            self.hide_timer = None
+        self.revealer.set_reveal_child(True)
+        return False
 
-        # Update the tooltip with the battery status details if enabled
+    def on_mouse_leave(self, *_):
+        self.hover_counter = max(0, self.hover_counter - 1)
+        if self.hover_counter == 0:
+            if self.hide_timer:
+                GLib.source_remove(self.hide_timer)
+            self.hide_timer = GLib.timeout_add(
+                500, lambda: self.revealer.set_reveal_child(False)
+            )
+        return False
+
+    def update_ui(self):
+        """Update the battery status."""
+        is_present = self.client.get_property("IsPresent")
+        battery_percent = (
+            round(self.client.get_property("Percentage")) if is_present else 0
+        )
+        self.label.set_text(f"{battery_percent}%")
+        self.icon.set_from_icon_name(
+            icon_name=self.client.get_property("IconName"), icon_size=14
+        )
+
         if self.config.tooltip:
+            battery_state = self.client.get_property("State")
+            is_charging = battery_state == 1 if is_present else False
+            temperature = self.client.get_property("Temperature")
+            capacity = self.client.get_property("Capacity")
+            time_remaining = (
+                self.client.get_property("TimeToFull")
+                if is_charging
+                else self.client.get_property("TimeToEmpty")
+            )
+
+            tool_tip_text = f"󱐋 Capacity : {capacity}\n Temperature: {temperature}°C"
             if battery_percent == self.full_battery_level:
-                self.set_tooltip_text("Full")
+                self.set_tooltip_text(f"Full\n{tool_tip_text}")
             elif is_charging and battery_percent < self.full_battery_level:
-                self.set_tooltip_text(f"Time to full: {format_time(battery.secsleft)}")
+                self.set_tooltip_text(
+                    f"󰄉 Time to full: {format_time(time_remaining)}\n{tool_tip_text}"
+                )
             else:
-                self.set_tooltip_text(f"Time to empty: {format_time(battery.secsleft)}")
+                self.set_tooltip_text(
+                    f"󰄉 Time to empty: {format_time(time_remaining)}\n{tool_tip_text}"
+                )
 
         return True
-
-    def get_icon_name(self, battery_percent: int, is_charging: bool):
-        """Determine the icon name based on the percentage and charging status."""
-        if battery_percent == self.full_battery_level:
-            return "battery-level-100-charged-symbolic"
-
-        icon_level = math.floor(battery_percent / 10) * 10
-
-        return (
-            f"battery-level-{icon_level}{'-charging' if is_charging else ''}-symbolic"
-        )
