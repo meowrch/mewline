@@ -14,8 +14,8 @@ from mewline.utils.misc import executable_exists
 
 def get_device(path: Path):
     for item in path.iterdir():
-        if item.is_file():
-            return item.stem
+        if item.is_dir():
+            return item.name
 
     return ""
 
@@ -28,7 +28,6 @@ class BrightnessService(Service):
 
         self.base_blacklight_path = Path("/sys/class/backlight")
         self.screen_device = get_device(self.base_blacklight_path)
-
         self.screen_backlight_path = self.base_blacklight_path / self.screen_device
         self.max_brightness_level = self.do_read_max_brightness(
             self.screen_backlight_path
