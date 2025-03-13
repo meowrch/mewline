@@ -11,7 +11,7 @@ from gi.repository import GObject
 
 from mewline import constants as cnst
 from mewline.services import audio_service
-from mewline.services.brightness import Brightness
+from mewline.services import brightness_service
 from mewline.utils.hyprland_monitors import HyprlandMonitors
 from mewline.utils.misc import convert_to_percent
 from mewline.utils.widget_utils import create_scale
@@ -50,7 +50,7 @@ class BrightnessOSDContainer(GenericOSDContainer):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.brightness_service = Brightness().get_initial()
+        self.brightness_service = brightness_service
         self.update_brightness()
 
         self.scale.connect("value-changed", lambda *_: self.update_brightness())
@@ -59,7 +59,7 @@ class BrightnessOSDContainer(GenericOSDContainer):
     def update_brightness(self):
         normalized_brightness = convert_to_percent(
             self.brightness_service.screen_brightness,
-            self.brightness_service.max_screen,
+            self.brightness_service.max_brightness_level,
         )
         self.scale.animate_value(normalized_brightness)
         self.update_icon(int(normalized_brightness))
@@ -70,7 +70,7 @@ class BrightnessOSDContainer(GenericOSDContainer):
         self.icon.set_label(icon)
 
     def on_brightness_changed(self, sender, value, *args):
-        normalized_brightness = (value / self.brightness_service.max_screen) * 101
+        normalized_brightness = (value / self.brightness_service.max_brightness_level) * 101
         self.scale.animate_value(normalized_brightness)
 
 

@@ -3,12 +3,14 @@ from fabric.bluetooth import BluetoothClient
 from fabric.notifications import Notifications
 
 from mewline.services.battery import BatteryService
+from mewline.services.brightness import BrightnessService
 from mewline.services.cache_notification import NotificationCacheService
 
 audio_service = Audio()
 
 notification_service = Notifications()
-cache_notification_service = NotificationCacheService().get_initial()
+cache_notification_service = NotificationCacheService()
+brightness_service = BrightnessService()
 battery_service = BatteryService()
 
 bluetooth_client = BluetoothClient()
