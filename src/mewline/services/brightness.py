@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from fabric.core.service import Property
 from fabric.core.service import Service
@@ -11,54 +12,35 @@ from loguru import logger
 from mewline.utils.misc import executable_exists
 
 
-def exec_brightnessctl_async(args: str):
-    if not executable_exists("brightnessctl"):
-        logger.error("Command brightnessctl not found")
+def get_device(path: Path):
+    for item in path.iterdir():
+        if item.is_file():
+            return item.stem
 
-    exec_shell_command_async(f"brightnessctl {args}", lambda _: None)
-
-
-# Discover screen backlight device
-try:
-    screen_device = os.listdir("/sys/class/backlight")
-    screen_device = screen_device[0] if screen_device else ""
-except FileNotFoundError:
-    logger.error("No backlight devices found, brightness control disabled")
-    screen_device = ""
+    return ""
 
 
-class Brightness(Service):
+class BrightnessService(Service):
     """Service to manage screen brightness levels."""
-
-    instance = None
-
-    @staticmethod
-    def get_initial():
-        if Brightness.instance is None:
-            Brightness.instance = Brightness()
-
-        return Brightness.instance
-
-    @Signal
-    def screen(self, value: int) -> None:
-        """Signal emitted when screen brightness changes."""
-        # Implement as needed for your application
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # Path for screen backlight control
-        self.screen_backlight_path = f"/sys/class/backlight/{screen_device}"
+        self.base_blacklight_path = Path("/sys/class/backlight")
+        self.screen_device = get_device(self.base_blacklight_path)
 
-        # Initialize maximum brightness level
-        self.max_screen = self.do_read_max_brightness(self.screen_backlight_path)
+        self.screen_backlight_path = self.base_blacklight_path / self.screen_device
+        self.max_brightness_level = self.do_read_max_brightness(
+            self.screen_backlight_path
+        )
 
-        if screen_device == "":
+        if self.screen_device == "":
+            logger.warning("No backlight devices found!")
             return
 
-        # Monitor screen brightness file
-        self.screen_monitor = monitor_file(f"{self.screen_backlight_path}/brightness")
-
+        self.screen_monitor = monitor_file(
+            str(self.screen_backlight_path / "brightness")
+        )
         self.screen_monitor.connect(
             "changed",
             lambda _, file, *args: self.emit(
@@ -67,11 +49,10 @@ class Brightness(Service):
             ),
         )
 
-        # Log the initialization of the service
-        logger.info(f"Brightness service initialized for device: {screen_device}")
+        logger.info(f"Brightness service initialized for device: {self.screen_device}")
 
     def do_read_max_brightness(self, path: str) -> int:
-        # Reads the maximum brightness value from the specified path.
+        """Reads the maximum brightness value from the specified path."""
         max_brightness_path = os.path.join(path, "max_brightness")
         if os.path.exists(max_brightness_path):
             with open(max_brightness_path) as f:
@@ -80,9 +61,9 @@ class Brightness(Service):
 
     @Property(int, "read-write")
     def screen_brightness(self) -> int:
-        # Property to get or set the screen brightness.
-        brightness_path = os.path.join(self.screen_backlight_path, "brightness")
-        if os.path.exists(brightness_path):
+        """Property to get or set the screen brightness."""
+        brightness_path = self.screen_backlight_path / "brightness"
+        if brightness_path.exists():
             with open(brightness_path) as f:
                 return int(f.readline())
         logger.warning(f"Brightness file does not exist: {brightness_path}")
@@ -90,17 +71,28 @@ class Brightness(Service):
 
     @screen_brightness.setter
     def screen_brightness(self, value: int):
-        # Setter for screen brightness property.
-        if not (0 <= value <= self.max_screen):
-            value = max(0, min(value, self.max_screen))
+        """Setter for screen brightness property."""
+        if not (0 <= value <= self.max_brightness_level):
+            value = max(0, min(value, self.max_brightness_level))
 
         try:
-            exec_brightnessctl_async(f"--device '{screen_device}' set {value}")
-            self.emit("screen", int((value / self.max_screen) * 100))
+            if not executable_exists("brightnessctl"):
+                logger.error("Command brightnessctl not found")
+
+            exec_shell_command_async(
+                f"brightnessctl --device '{self.screen_device}' set {value}"
+            )
+
+            self.emit("screen", int((value / self.max_brightness_level) * 100))
             logger.info(
-                f"Set screen brightness to {value} " f"(out of {self.max_screen})"
+                f"Set screen brightness to {value} (out of {self.max_brightness_level})"
             )
         except GLib.Error as e:
             logger.error(f"Error setting screen brightness: {e.message}")
         except Exception as e:
             logger.exception(f"Unexpected error setting screen brightness: {e}")
+
+    @Signal
+    def screen(self, value: int) -> None:
+        """Signal emitted when screen brightness changes."""
+        ...

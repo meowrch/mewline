@@ -12,15 +12,6 @@ import mewline.constants as cnst
 class NotificationCacheService(Service):
     """A service to manage the notifications."""
 
-    instance = None
-
-    @staticmethod
-    def get_initial():
-        if NotificationCacheService.instance is None:
-            NotificationCacheService.instance = NotificationCacheService()
-
-        return NotificationCacheService.instance
-
     @property
     def count(self) -> int:
         """Return the count of notifications."""
