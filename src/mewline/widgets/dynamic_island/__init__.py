@@ -7,6 +7,7 @@ from fabric.widgets.wayland import WaylandWindow as Window
 from mewline.widgets.dynamic_island.app_launcher import AppLauncher
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 from mewline.widgets.dynamic_island.bluetooth import BluetoothConnections
+from mewline.widgets.dynamic_island.clipboard import Clipboard
 from mewline.widgets.dynamic_island.compact import Compact
 from mewline.widgets.dynamic_island.date_notification import DateNotificationMenu
 from mewline.widgets.dynamic_island.emoji import EmojiPicker
@@ -43,6 +44,7 @@ class DynamicIsland(Window):
         self.app_launcher = AppLauncher(self)
         self.wallpapers = WallpaperSelector()
         self.emoji = EmojiPicker(self)
+        self.clip_history = Clipboard(self)
 
         self.widgets: dict[str, type[BaseDiWidget]] = {
             "compact": self.compact,
@@ -53,6 +55,7 @@ class DynamicIsland(Window):
             "app_launcher": self.app_launcher,
             "wallpapers": self.wallpapers,
             "emoji": self.emoji,
+            "clip_history": self.clip_history,
         }
         self.current_widget: str | None = None
 
