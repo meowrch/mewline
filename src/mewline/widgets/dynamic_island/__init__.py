@@ -54,6 +54,7 @@ class DynamicIsland(Window):
             "wallpapers": self.wallpapers,
             "emoji": self.emoji,
         }
+        self.current_widget: str | None = None
 
         self.stack = Stack(
             name="dynamic-island-content",
@@ -106,8 +107,23 @@ class DynamicIsland(Window):
         ######################################
         self.add(self.di_box)
 
+    def call_module_method_if_exists(
+        self, module: BaseDiWidget, method_name: str, **kwargs
+    ) -> bool:
+        if hasattr(module, method_name) and callable(getattr(module, method_name)):
+            method = getattr(module, method_name)
+            method(**kwargs)
+            return True
+
+        return False
+
     def close(self):
         self.set_keyboard_mode("none")
+
+        if self.current_widget is not None:
+            self.call_module_method_if_exists(
+                self.widgets[self.current_widget], "close_widget_from_di"
+            )
 
         if self.hidden:
             self.di_box.remove_style_class("hideshow")
@@ -119,10 +135,12 @@ class DynamicIsland(Window):
         for style in self.widgets:
             self.stack.remove_style_class(style)
 
+        self.current_widget = None
         self.stack.set_visible_child(self.compact)
 
-    def open(self, widget: str = "date_notification"):
+    def open(self, widget: str = "date_notification") -> None:
         if widget == "compact":
+            self.current_widget = None
             return
 
         if self.hidden:
@@ -133,6 +151,7 @@ class DynamicIsland(Window):
             self.stack.remove_style_class(style)
             w.remove_style_class("open")
 
+        self.current_widget = widget
         if widget in self.widgets:
             if self.widgets[widget].focuse_kb:
                 self.set_keyboard_mode("exclusive")
@@ -140,6 +159,9 @@ class DynamicIsland(Window):
             self.stack.add_style_class(widget)
             self.stack.set_visible_child(self.widgets[widget])
             self.widgets[widget].add_style_class("open")
+            self.call_module_method_if_exists(
+                self.widgets[self.current_widget], "open_widget_from_di"
+            )
 
             if widget == "notification":
                 self.set_keyboard_mode("none")
