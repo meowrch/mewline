@@ -1,4 +1,7 @@
 import subprocess
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
@@ -9,42 +12,62 @@ from fabric.widgets.label import Label
 from fabric.widgets.scrolledwindow import ScrolledWindow
 from loguru import logger
 
-from mewline.services import network_client
-from mewline.services.network import NetworkClient
 from mewline.utils.widget_utils import setup_cursor_hover
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 
 class WifiNetworkSlot(CenterBox):
-    def __init__(self, ap_info: dict, client: NetworkClient, **kwargs):
+    SIGNAL_ICONS = ["󰤟", "󰤢", "󰤥", "󰤨"]
+    SECURED_SIGNAL_ICONS = ["󰤡", "󰤤", "󰤧", "󰤪"]
+    WIFI_CONNECTED_ICON = ""
+
+    def __init__(self, ap_info: Dict, **kwargs):
         super().__init__(
             orientation="horizontal", spacing=8, name="network-slot", **kwargs
         )
         self.ap_info = ap_info
-        self.client = client
         self.is_expanded = False
         self.password_entry = None
-        self.is_saved = ap_info["ssid"] in self.client.get_saved_connections()
+        self.is_saved = self._is_saved_connection()
 
         self.start_children = Box(
             orientation="horizontal",
             spacing=8,
             children=[
-                Image(icon_name=ap_info["icon-name"], size=24),
+                Image(icon_name=self._get_icon_name(), size=24),
                 Label(label=ap_info["ssid"], h_expand=True),
             ],
         )
         self.end_children = self._create_buttons()
 
+    def _is_saved_connection(self) -> bool:
+        try:
+            result = subprocess.run(
+                ["nmcli", "-g", "NAME", "connection", "show"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return self.ap_info["ssid"] in result.stdout.splitlines()
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to check saved connections: {e.stderr}")
+            return False
+
+    def _get_icon_name(self) -> str:
+        if self.ap_info.get("in_use"):
+            return self.WIFI_CONNECTED_ICON
+
+        signal_level = min(int(self.ap_info["signal"]) // 25, 3)
+        if self.ap_info.get("security"):
+            return self.SECURED_SIGNAL_ICONS[signal_level]
+        return self.SIGNAL_ICONS[signal_level]
+
     def _create_buttons(self):
-        # Удаляем старые кнопки
         if hasattr(self, "buttons_box"):
             self.end_children.remove(self.buttons_box)
 
-        # Группировка для кнопок
         self.buttons_box = Box(spacing=4, h_align="end")
 
-        # Кнопка "Забыть" для сохраненных сетей
         if self.is_saved:
             self.forget_button = Button(
                 label="󰧧",
@@ -55,17 +78,35 @@ class WifiNetworkSlot(CenterBox):
             self.forget_button.connect("clicked", self._forget_network)
             self.buttons_box.add(self.forget_button)
 
-        # Кнопка подключения/отключения
         self.connect_button = self._create_connect_button()
         self.buttons_box.add(self.connect_button)
 
         return self.buttons_box
 
     def is_connected(self) -> bool:
-        return (
-            self.client.wifi_device
-            and self.client.wifi_device.ssid == self.ap_info["ssid"]
-        )
+        try:
+            # Получаем активные соединения
+            result = subprocess.run(
+                ["nmcli", "-t", "-f", "NAME,DEVICE,TYPE", "connection", "show", "--active"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            
+            # Проверяем, есть ли активное соединение с текущим SSID
+            active_connections = result.stdout.splitlines()
+            for conn in active_connections:
+                if not conn:
+                    continue
+                name, device, conn_type = conn.split(":", 2)
+                if conn_type == "802-11-wireless" and name == self.ap_info["ssid"]:
+                    return True
+                    
+            return False
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to check active connections: {e.stderr}")
+            return False
+
 
     def _create_connect_button(self):
         is_connected = self.is_connected()
@@ -82,54 +123,78 @@ class WifiNetworkSlot(CenterBox):
         return button
 
     def _forget_network(self, button):
-        self.client.forget_network(self.ap_info["ssid"])
-        self.is_saved = False
-        self._create_buttons()
-        self.show_all()
+        try:
+            subprocess.run(
+                ["nmcli", "connection", "delete", "id", self.ap_info["ssid"]],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.is_saved = False
+            self._create_buttons()
+            self.show_all()
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to forget network: {e.stderr}")
 
     def on_connect_clicked(self, button):
-        # Если сеть сохранена - подключаемся без пароля
-        is_connected = self.is_connected()
-        if self.is_saved and not is_connected:
-            logger.info("Connect to saved device...")
-            self._connect()
-            return
-
-        # Остальная логика подключения
-        if is_connected:
-            logger.info("Disconnecting device...")
+        if self.is_connected():
             self._disconnect()
-        elif self.ap_info["wpa_flags"] > 0:
-            logger.info("Connect to secure device... Input the password...")
+        elif self.is_saved:
+            self._connect()
+        elif self.ap_info.get("security"):
             self.toggle_password_field()
         else:
-            logger.info("Connect to not secure device...")
             self._connect()
 
-    def _connect(self):
-        # Если сеть сохранена - используем автоматическое подключение
-        if self.is_saved:
-            self.client.connect_wifi_bssid(self.ap_info["bssid"])
-            # self.client.connect_wifi(self.ap_info["ssid"]) # работает очень медленно
-        else:
-            # Логика с вводом пароля  # noqa: RUF003
-            password = self.password_entry.get_text() if self.password_entry else None
-            self.client.connect_wifi(self.ap_info["ssid"], password)
+    def _connect(self, password: Optional[str] = None):
+        try:
+            if self.is_saved:
+                subprocess.run(
+                    ["nmcli", "connection", "up", "id", self.ap_info["ssid"]],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+            elif password:
+                subprocess.run(
+                    [
+                        "nmcli",
+                        "device",
+                        "wifi",
+                        "connect",
+                        self.ap_info["ssid"],
+                        "password",
+                        password,
+                    ],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                self.is_saved = True
+            else:
+                subprocess.run(
+                    ["nmcli", "device", "wifi", "connect", self.ap_info["ssid"]],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                self.is_saved = True
 
-        self._update_ui()
+            self._update_ui()
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to connect: {e.stderr}")
 
     def _disconnect(self):
         try:
-            # Используем nmcli для отключения
-            subprocess.run(  # noqa: S603
-                ["nmcli", "device", "disconnect", "wlan0"],  # noqa: S607
+            subprocess.run(
+                ["nmcli", "device", "disconnect", "wlan0"],
                 check=True,
                 capture_output=True,
                 text=True,
             )
             self._update_ui()
         except subprocess.CalledProcessError as e:
-            logger.error(f"Disconnect failed: {e.stderr}")
+            logger.error(f"Failed to disconnect: {e.stderr}")
 
     def toggle_password_field(self):
         if self.password_entry is None:
@@ -152,7 +217,7 @@ class WifiNetworkSlot(CenterBox):
         confirm_button = Button(
             label="Confirm",
             name="wifi-confirm-btn",
-            on_clicked=lambda _: self._connect(),
+            on_clicked=lambda _: self._connect(self.password_entry.get_text()),
         )
         setup_cursor_hover(confirm_button)
 
@@ -184,25 +249,20 @@ class NetworkConnections(BaseDiWidget, Box):
             name="network",
             **kwargs,
         )
-        self.client = network_client
 
-        ##==> Инициализация UI
-        ##############################################
         self.scan_button = Button(
             name="network-scan-btn",
             label="Scan",
-            sensitive=False,  # выключаем до инициализации network девайса
+            sensitive=self._is_wifi_enabled(),
         )
         setup_cursor_hover(self.scan_button)
+
         self.toggle_button = Button(
             name="network-toggle-btn",
-            label="Disabled",
+            label="Enabled" if self._is_wifi_enabled() else "Disabled",
         )
         setup_cursor_hover(self.toggle_button)
-        if self.client.wifi_device:  # Обновляем toggle кнопку
-            self.update_toggle_button(self.client.wifi_device.enabled)
-        else:
-            self.update_toggle_button(False)
+        self._update_toggle_button_style()
 
         self.networks_box = Box(orientation="vertical", spacing=4)
         self.scrolled_window = ScrolledWindow(
@@ -211,9 +271,6 @@ class NetworkConnections(BaseDiWidget, Box):
             propagate_natural_height=True,
         )
 
-        ##==> Подписки на сигналы
-        ################################################
-        self.client.connect("device-ready", self.on_device_ready)
         self.scan_button.connect("clicked", self.start_scan)
         self.toggle_button.connect("clicked", self.toggle_wifi)
 
@@ -227,71 +284,131 @@ class NetworkConnections(BaseDiWidget, Box):
             self.scrolled_window,
         ]
 
-    def update_toggle_button(self, wifi_status: bool) -> None:
-        if wifi_status:
+        self.update_networks()
+
+    def _is_wifi_enabled(self) -> bool:
+        try:
+            result = subprocess.run(
+                ["nmcli", "-f", "WIFI", "radio"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            return "enabled" in result.stdout
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to check WiFi status: {e.stderr}")
+            return False
+
+    def _update_toggle_button_style(self):
+        if self._is_wifi_enabled():
             self.toggle_button.set_label("Enabled")
             self.toggle_button.add_style_class("enabled")
             self.toggle_button.remove_style_class("disabled")
+            self.scan_button.set_sensitive(True)
         else:
             self.toggle_button.set_label("Disabled")
             self.toggle_button.add_style_class("disabled")
             self.toggle_button.remove_style_class("enabled")
-
-    def on_device_ready(self, client: NetworkClient):
-        wifi = client.wifi_device
-        if not wifi:
-            logger.warning("No WiFi device found")
-            return
-
-        # Обновляем состояние кнопок
-        self.update_toggle_button(wifi.enabled)
-        if not wifi.enabled:
             self.scan_button.set_sensitive(False)
-        else:
-            self.scan_button.set_sensitive(True)
 
-        # Подписываемся на изменения
-        wifi.connect("changed", self.update_networks)
-        wifi.connect(
-            "notify::enabled",
-            lambda *args: self.update_toggle_button(wifi.get_property("enabled")),
-        )
+    def _get_wifi_networks(self) -> List[Dict]:
+        try:
+            result = subprocess.run(
+                ["nmcli", "--terse", "--fields", "IN-USE,SSID,SIGNAL,SECURITY", "device", "wifi", "list"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            
+            networks = []
+            for line in result.stdout.splitlines():
+                if not line.strip():
+                    continue
+                    
+                parts = line.split(":")
+                if len(parts) < 4:
+                    continue
+                    
+                in_use, ssid, signal, security = parts[0], parts[1], parts[2], parts[3]
+                if not ssid or ssid == "--":
+                    continue
+                    
+                networks.append({
+                    "ssid": ssid,
+                    "signal": signal,
+                    "security": security,
+                    "in_use": in_use == "*",
+                    "icon-name": self._get_network_icon(in_use, signal, security)
+                })
+                
+            return networks
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to get WiFi networks: {e.stderr}")
+            return []
 
-        self.update_networks()
+
+    def _get_network_icon(self, in_use: str, signal: str, security: str) -> str:
+        if in_use == "*":
+            return "network-wireless-connected-symbolic"
+
+        signal_level = min(int(signal) // 25, 3)
+        if security and security != "none":
+            return "network-wireless-encrypted-symbolic"
+        return "network-wireless-signal-good-symbolic"
 
     def start_scan(self, btn):
         logger.info("Starting scan")
-        if self.client.wifi_device:
-            self.client.wifi_device.scan()
+        btn.set_label("Scanning...")
+
+        try:
+            subprocess.run(
+                ["nmcli", "device", "wifi", "rescan"],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
             self.update_networks()
-            btn.set_label("Scanning...")
+            btn.set_label("Scan")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to scan networks: {e.stderr}")
+            btn.set_label("Scan Failed")
 
     def toggle_wifi(self, btn):
-        if self.client.wifi_device:
-            self.client.wifi_device.toggle_wifi()
-            logger.info("Wifi toggled successfully!")
-        else:
-            logger.warning("Failed to toggle wifi. Wifi device is missing!")
+        try:
+            if self._is_wifi_enabled():
+                subprocess.run(
+                    ["nmcli", "radio", "wifi", "off"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+            else:
+                subprocess.run(
+                    ["nmcli", "radio", "wifi", "on"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+            self._update_toggle_button_style()
+            self.update_networks()
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to toggle WiFi: {e.stderr}")
 
     def update_networks(self, *_):
-        # Очищаем текущие элементы
         for child in self.networks_box.get_children():
             child.destroy()
 
-        # Скрываем вывод wifi сетей, если девайс не доступен
-        if not self.client.wifi_device or not self.client.wifi_device.enabled:
+        if not self._is_wifi_enabled():
             self.scrolled_window.hide()
             return
 
-        aps = self.client.wifi_device.access_points
-        if not aps:
+        networks = self._get_wifi_networks()
+        if not networks:
             self.scrolled_window.hide()
             return
 
         self.scrolled_window.show()
-        for ap in aps:
-            if ap["ssid"] == "Unknown":
-                continue
-            self.networks_box.add(WifiNetworkSlot(ap, self.client))
+        for network in networks:
+            self.networks_box.add(WifiNetworkSlot(network))
 
         self.show_all()
