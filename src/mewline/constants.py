@@ -17,18 +17,17 @@ WALLPAPERS_THUMBS_DIR = APP_CACHE_DIRECTORY / "thumbs"
 
 STYLES_FOLDER = APP_FOLDER / "styles"
 DIST_FOLDER = APP_CACHE_DIRECTORY / "dist"
-
-HYPRLAND_CONFIG_FOLDER = Path.home() / ".config" / "hypr"
-HYPRLAND_CONFIG_FILE = HYPRLAND_CONFIG_FOLDER / "hyprland.conf"
-
-SYSTEM_CACHE_DIR = Path(GLib.get_user_cache_dir())
-APP_CACHE_DIRECTORY = SYSTEM_CACHE_DIR / APPLICATION_NAME
-NOTIFICATION_CACHE_FILE = APP_CACHE_DIRECTORY / "notifications.json"
-
 MAIN_STYLE = STYLES_FOLDER / "main.scss"
 THEME_STYLE = STYLES_FOLDER / "theme.scss"
 DEFAULT_THEME_STYLE = STYLES_FOLDER / "default_theme.scss"
 COMPILED_STYLE = DIST_FOLDER / "main.css"
+
+NOTIFICATION_CACHE_FILE = APP_CACHE_DIRECTORY / "notifications.json"
+
+CLIPBOARD_THUMBS_DIR = APP_CACHE_DIRECTORY / "clipboard_thumbs"
+
+HYPRLAND_CONFIG_FOLDER = Path.home() / ".config" / "hypr"
+HYPRLAND_CONFIG_FILE = HYPRLAND_CONFIG_FOLDER / "hyprland.conf"
 
 MEWLINE_SETTINGS_FOLDER = Path.home() / ".config" / "mewline"
 MEWLINE_CONFIG_PATH = MEWLINE_SETTINGS_FOLDER / "config.json"
@@ -139,7 +138,8 @@ KEYBINDINGS = {
     "bluetooth": (kb_prefix, "B", kb_di_open.format(module="bluetooth")),
     "app_launcher": (kb_prefix, "A", kb_di_open.format(module="app_launcher")),
     "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers")),
-    "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji"))
+    "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji")),
+    "clip_history": (kb_prefix, "V", kb_di_open.format(module="clip_history"))
 }
 
 

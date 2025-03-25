@@ -12,6 +12,7 @@ import psutil
 from fabric.utils import exec_shell_command
 from fabric.utils import exec_shell_command_async
 from gi.repository import Gdk
+from gi.repository import GdkPixbuf
 from gi.repository import Gtk
 from loguru import logger
 
@@ -227,3 +228,27 @@ def ttl_lru_cache(seconds_to_live: int, maxsize: int = 128):
 
 def check_tools_available(tools: list[str]):
     return all(shutil.which(tool) is not None for tool in tools)
+
+
+def copy_text(text: str) -> bool:
+    try:
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        clipboard.set_text(text, -1)
+        clipboard.store()
+        logger.info("Text successfully copied to clipboard")
+        return True
+    except Exception as e:
+        logger.error(f"Clipboard error: {e}")
+        return False
+
+def copy_image(image_path: str) -> bool:
+    try:
+        clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+        image = GdkPixbuf.Pixbuf.new_from_file(image_path)
+        clipboard.set_image(image)
+        clipboard.store()
+        logger.info("Image successfully copied to clipboard")
+        return True
+    except Exception as e:
+        logger.error(f"Clipboard error: {e}")
+        return False

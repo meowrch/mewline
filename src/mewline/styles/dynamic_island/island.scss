@@ -8,6 +8,7 @@
 @use "./app_launcher.scss";
 @use "./wallpapers.scss";
 @use "./emoji.scss";
+@use "./clipboard.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -78,6 +79,13 @@
     min-width: 480px;
     border-radius: 0 0 36px 36px;
   }
+
+  #clipboard {
+    padding: 16px;
+    min-height: 220px;
+    min-width: 480px;
+    border-radius: 0 0 36px 36px;
+  }
 }
 
 #power-menu,
@@ -86,6 +94,7 @@
 #bluetooth,
 #wallpapers,
 #emoji,
+#clipboard,
 #app-launcher {
   opacity: 1;
   margin: -800px;
