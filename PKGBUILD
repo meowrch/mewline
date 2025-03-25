@@ -17,6 +17,7 @@ depends=(
   'tesseract'
   'tesseract-data-eng'
   'tesseract-data-rus'
+  'cliphist'
 )
 makedepends=('python-uv')
 source=("git+https://github.com/meowrch/mewline.git")

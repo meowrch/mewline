@@ -29,7 +29,7 @@
 
 ## 🧩 Установка зависимостей
 ```bash
-sudo pacman -S dart-sass tesseract tesseract-data-eng tesseract-data-rus slurp grim
+sudo pacman -S dart-sass tesseract tesseract-data-eng tesseract-data-rus slurp grim cliphist
 yay -S gnome-bluetooth-3.0 gray-git fabric-cli-git
 ```
 
