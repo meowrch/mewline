@@ -74,7 +74,7 @@ $error-color: #f44336;
   margin-bottom: 4px;
 
   &.connected {
-    border-bottom: 2px solid theme.$accent-lavender;
+    border-left: 3px solid theme.$accent-lavender;
   }
 
   // Кнопка "Забыть"
