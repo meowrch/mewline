@@ -144,7 +144,7 @@ class BaseNetworkSlot(CenterBox):
             name="network-connection-toggle-btn",
             h_align="end",
         )
-        button.add_style_class("connect" if is_connected else "disconnect")
+        button.add_style_class("disconnect" if is_connected else "connect")
         setup_cursor_hover(button)
         button.connect("clicked", self.on_connect_clicked)
         return button
@@ -424,7 +424,7 @@ class NetworkConnections(BaseDiWidget, Box):
         self.view_toggle_button.connect("clicked", self._toggle_view)
 
         self.refresh_button = Button(
-            name="network-scan-btn",
+            name="network-refresh-btn",
             child=text_icon("󰑓"),
             sensitive=self._is_wifi_enabled(),
         )
@@ -826,7 +826,3 @@ class NetworkConnections(BaseDiWidget, Box):
             error_msg="Failed to toggle WiFi",
             success_callback=if_success,
         )
-
-    def refresh_all_networks(self):
-        """Триггерит обновление списка сетей."""
-        self.queue_refresh()

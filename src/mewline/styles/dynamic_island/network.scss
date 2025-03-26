@@ -1,12 +1,6 @@
 @use "sass:color";
 @use "../theme.scss";
 
-// Основные переменные
-$padding: 8px;
-$border-radius: 8px;
-$spacing: 4px;
-$icon-size: 24px;
-$hover-opacity: 0.8;
 
 // Цвета
 $bg-color: rgba(white, 0.1);
@@ -21,7 +15,7 @@ $error-color: #f44336;
 
   // Заголовок
   .title {
-    color: theme.$text-main;
+    color: theme.$network-title;
     font-weight: bold;
   }
 
@@ -29,22 +23,8 @@ $error-color: #f44336;
     padding-bottom: 8px;
   }
 
-  &-toggle-btn {
-    background-color: theme.$bluetooth-scan-background;
-    color: theme.$bluetooth-scan-text-color;
-    border-radius: 16px;
-    padding: 8px 16px;
-    min-width: 96px;
-
-    label {
-      font-weight: bold;
-    }
-  }
-
-  &-scan-btn,
+  &-refresh-btn,
   &-view-toggle-btn {
-    background-color: theme.$bluetooth-scan-background;
-    color: theme.$bluetooth-scan-text-color;
     border-radius: 16px;
     padding: 8px 16px;
     min-width: 15px;
@@ -53,57 +33,79 @@ $error-color: #f44336;
       font-weight: bold;
     }
   }
+  &-view-toggle-btn {
+    background-color: theme.$network-toggle-view-btn-bg;
+    color: theme.$network-toggle-view-btn-label;
+  }
+  &-refresh-btn {
+    background-color: theme.$network-refresh-btn-bg;
+    color: theme.$network-refresh-btn-label;
+  }
 
   &-toggle-btn {
+    border-radius: 16px;
+    padding: 8px 16px;
+    min-width: 96px;
+
+    label {
+      font-weight: bold;
+    }
+    
     &.enabled {
-      color: theme.$bluetooth-toggle-active-text-color;
-      background-color: theme.$bluetooth-toggle-active-background;
+      color: theme.$network-toggle-btn-active-label;
+      background-color: theme.$network-toggle-btn-active-bg;
     }
     &.disabled {
-      color: theme.$bluetooth-toggle-text-color;
-      background-color: theme.$bluetooth-toggle-background;
+      color: theme.$network-toggle-btn-label;
+      background-color: theme.$network-toggle-btn-bg;
     }
   }
 }
 
 // Слот сети Wi-Fi
 #network-slot {
-  background-color: theme.$background;
+  background-color: theme.$network-slot-bg;
   border-radius: 16px;
   padding: 8px 16px;
   margin-bottom: 4px;
 
   &.connected {
-    border-left: 3px solid theme.$accent-lavender;
+    border-left: 3px solid theme.$network-slot-connected;
   }
 
   // Кнопка "Забыть"
   #network-forget-btn {
-    background-color: theme.$background-alt;
+    background-color: theme.$network-slot-forget-btn-bg;
+    color: theme.$network-slot-forget-btn-label;
     font-size: 20px;
     border-radius: 10px;
     padding: 4px 12px;
 
     &:hover {
-      color: $error-color;
+      color: theme.$network-slot-forget-btn-label-hover;
     }
   }
 
   // кнопка подключиться / отключиться
   #network-connection-toggle-btn {
-    background-color: theme.$background-alt;
     font-size: 20px;
     border-radius: 10px;
     padding: 4px 8px;
 
     &.connect {
+      background-color: theme.$network-slot-connect-btn-bg;
+      color: theme.$network-slot-connect-btn-label;
+      
       &:hover {
-        color: $error-color;
+        color: theme.$network-slot-connect-btn-label-hover;
       }
     }
     &.disconnect {
+      background-color: theme.$network-slot-disconnect-btn-bg;
+      color: theme.$network-slot-disconnect-btn-label;
+      
       &:hover {
-        color: $success-color;
+        color: theme.$network-slot-disconnect-btn-label-hover;
       }
     }
   }
@@ -112,12 +114,12 @@ $error-color: #f44336;
   #wifi-password-entry {
     padding: 4px 8px;
     border-radius: 10px;
-    background-color: theme.$surface-disabled;
+    background-color: theme.$network-slot-password-entry-bg;
   }
 
   // Кнопка подтверждения
   #wifi-confirm-btn {
-    background-color: theme.$background-alt;
+    background-color: theme.$network-slot-confirm-btn-bg;
     font-size: 20px;
     border-radius: 10px;
     padding: 4px 8px;
