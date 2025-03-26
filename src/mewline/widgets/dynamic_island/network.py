@@ -553,8 +553,16 @@ class NetworkConnections(BaseDiWidget, Box):
         if current_child:
             self.scrolled_window.remove(current_child)
 
-        self.scrolled_window.add(new_child)
-        self.scrolled_window.show_all()
+        if self._is_wifi_enabled():
+            self.scrolled_window.add(new_child)
+            self.scrolled_window.show_all()
+
+    def _clear_wifi_cache(self):
+        """Очищает кэш Wi-Fi сетей и обновляет отображение."""
+        with self._slots_lock:
+            self._cached_wifi_slots = Box(orientation="vertical", spacing=4)
+            if self._current_view == "wifi":
+                GLib.idle_add(self._switch_cached_slots)
 
     def queue_refresh(self, callback: Callable | None = None):
         """Ставит в очередь обновление сетей."""
@@ -717,7 +725,9 @@ class NetworkConnections(BaseDiWidget, Box):
 
     def _update_toggle_button_style(self, status: bool | None = None):
         """Обновляет стиль кнопки переключения WiFi."""
-        if self._is_wifi_enabled() or status:
+        wifi_enabled = self._is_wifi_enabled() if status is None else status
+
+        if wifi_enabled:
             self.toggle_button.set_label("Enabled")
             self.toggle_button.add_style_class("enabled")
             self.toggle_button.remove_style_class("disabled")
@@ -727,9 +737,14 @@ class NetworkConnections(BaseDiWidget, Box):
             self.toggle_button.add_style_class("disabled")
             self.toggle_button.remove_style_class("enabled")
             self.refresh_button.set_sensitive(False)
+            self._clear_wifi_cache()
+
 
     def _get_wifi_networks(self) -> list[dict]:
         """Получает список WiFi сетей."""
+        if not self._is_wifi_enabled():
+            return []
+
         try:
             result = subprocess.run(
                 [
@@ -817,8 +832,11 @@ class NetworkConnections(BaseDiWidget, Box):
         action = "off" if self._is_wifi_enabled() else "on"
 
         def if_success():
-            nonlocal action
+            # Обновляем интерфейс после успешного переключения
             GLib.idle_add(lambda: self._update_toggle_button_style(action == "on"))
+            # Если Wi-Fi был выключен, показываем сообщение
+            if action == "off":
+                GLib.idle_add(lambda: self._show_temporary_status("Wi-Fi disabled"))
 
         self._execute_network_command(
             command=f"nmcli radio wifi {action}",
@@ -826,3 +844,4 @@ class NetworkConnections(BaseDiWidget, Box):
             error_msg="Failed to toggle WiFi",
             success_callback=if_success,
         )
+
