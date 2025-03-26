@@ -3,7 +3,6 @@ from fabric.bluetooth import BluetoothClient
 from fabric.notifications import Notifications
 
 from mewline.services.cache_notification import NotificationCacheService
-from mewline.services.network import NetworkClient
 
 audio_service = Audio()
 
@@ -12,7 +11,6 @@ cache_notification_service = NotificationCacheService().get_initial()
 
 
 bluetooth_client = BluetoothClient()
-network_client = NetworkClient()
 # to run notify closures thus display the status
 # without having to wait until an actual change
 bluetooth_client.notify("scanning")
