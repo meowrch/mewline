@@ -1,4 +1,8 @@
 import subprocess
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
@@ -38,18 +42,17 @@ class WifiNetworkSlot(CenterBox):
         self.password_entry = None
         self.is_saved = self._is_saved_connection()
 
-        # Основные элементы интерфейса
+        # Основные элементы
         self.icon = text_icon(self._get_icon_name(), size="16px")
         self.ssid_label = Label(label=self.ap_info["ssid"], h_expand=True)
         self.connect_button = self._create_connect_button()
 
-        # Собираем основной интерфейс
-        self.start_box = Box(
-            orientation="horizontal",
-            spacing=10,
-            children=[self.icon, self.ssid_label],
+        # Главный контейнер
+        self.main_box = Box(
+            orientation="horizontal", spacing=10, children=[self.icon, self.ssid_label]
         )
 
+        # Контейнер для кнопок
         self.buttons_box = Box(spacing=4, h_align="end")
         if self.is_saved:
             self.forget_button = Button(
@@ -62,17 +65,13 @@ class WifiNetworkSlot(CenterBox):
             self.buttons_box.add(self.forget_button)
         self.buttons_box.add(self.connect_button)
 
-        self.add_start(self.start_box)
         self.add_end(self.buttons_box)
-
-        # Поле для пароля (создается при необходимости)
-        self.password_box = None
+        self.add_start(self.main_box)
 
         if self.is_connected():
             self.set_style_classes("connected")
 
     def _get_icon_name(self) -> str:
-        """Возвращает иконку в зависимости от состояния сети."""
         signal_level = min(int(self.ap_info["signal"]) // 25, 3)
         if self.ap_info.get("security") and self.ap_info["security"] not in [
             "",
@@ -83,8 +82,8 @@ class WifiNetworkSlot(CenterBox):
 
     def _is_saved_connection(self) -> bool:
         try:
-            result = subprocess.run(  # noqa: S603
-                ["nmcli", "-g", "NAME", "connection", "show"],  # noqa: S607
+            result = subprocess.run(
+                ["nmcli", "-g", "NAME", "connection", "show"],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -96,18 +95,16 @@ class WifiNetworkSlot(CenterBox):
 
     def is_connected(self) -> bool:
         try:
-            result = subprocess.run(  # noqa: S603
-                ["nmcli", "-t", "-f", "GENERAL.CONNECTION", "device", "show", "wlan0"],  # noqa: S607
+            result = subprocess.run(
+                ["nmcli", "-t", "-f", "GENERAL.CONNECTION", "device", "show", "wlan0"],
                 capture_output=True,
                 text=True,
                 check=True,
             )
-            current_connection = None
             for line in result.stdout.splitlines():
                 if line.startswith("GENERAL.CONNECTION:"):
-                    current_connection = line.split(":", 1)[1].strip()
-                    break
-            return current_connection == self.ap_info["ssid"]
+                    return line.split(":", 1)[1].strip() == self.ap_info["ssid"]
+            return False
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to check active connections: {e.stderr}")
             return False
@@ -135,12 +132,15 @@ class WifiNetworkSlot(CenterBox):
             "",
             "none",
         ]:
-            self._show_password_field()
+            if self.password_entry:
+                self._hide_password_field()
+            else:
+                self._show_password_field()
         else:
             self._connect()
 
     def _show_password_field(self):
-        if self.password_box is not None:
+        if hasattr(self, "password_box") and self.password_box is not None:
             return
 
         self.password_entry = Entry(
@@ -167,36 +167,24 @@ class WifiNetworkSlot(CenterBox):
             children=[self.password_entry, confirm_button],
         )
 
-        # Добавляем поле пароля под основным блоком
-        parent = self.get_parent()
-        if parent:
-            index = parent.get_children().index(self)
-            parent.add(self.password_box, index + 1)
-            parent.show_all()
+        self.add(self.password_box)
+        self.show_all()
 
     def _hide_password_field(self):
-        if self.password_box is None:
-            return
-
-        parent = self.password_box.get_parent()
-        if parent:
-            parent.remove(self.password_box)
-
-        self.password_box = None
-        self.password_entry = None
+        if hasattr(self, "password_box") and self.password_box.get_parent():
+            self.remove(self.password_box)
+            del self.password_box
+            self.password_entry = None
 
     def _connect(self, password: str | None = None):
-        try:
-            if self.is_saved:
-                subprocess.run(  # noqa: S603
-                    ["nmcli", "connection", "up", "id", self.ap_info["ssid"]],  # noqa: S607
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-            elif password:
-                subprocess.run(  # noqa: S603
-                    [  # noqa: S607
+        self.parent._show_status("Connecting...")
+
+        def run_connect():
+            try:
+                if self.is_saved:
+                    cmd = ["nmcli", "connection", "up", "id", self.ap_info["ssid"]]
+                elif password:
+                    cmd = [
                         "nmcli",
                         "device",
                         "wifi",
@@ -204,65 +192,88 @@ class WifiNetworkSlot(CenterBox):
                         self.ap_info["ssid"],
                         "password",
                         password,
-                    ],
+                    ]
+                else:
+                    cmd = ["nmcli", "device", "wifi", "connect", self.ap_info["ssid"]]
+
+                subprocess.run(
+                    cmd,
                     check=True,
                     capture_output=True,
                     text=True,
                 )
-                self.is_saved = True
-            else:
-                subprocess.run(  # noqa: S603
-                    ["nmcli", "device", "wifi", "connect", self.ap_info["ssid"]],  # noqa: S607
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                self.is_saved = True
+                GLib.idle_add(self._on_connect_success)
+            except subprocess.CalledProcessError as e:
+                GLib.idle_add(self._on_connect_error, e)
 
-            self._hide_password_field()
-            GLib.timeout_add(1000, self.parent.refresh_all_networks)
+        GLib.Thread.new(None, run_connect)
 
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to connect: {e.stderr}")
-            subprocess.run(  # noqa: S603
-                [  # noqa: S607
-                    "notify-send",
-                    "Connection Failed",
-                    f"Failed to connect to {self.ap_info['ssid']}",
-                ]
-            )
+    def _on_connect_success(self):
+        self._hide_password_field()
+        self.parent._show_status("Connected!", 2000)
+        self.parent.queue_refresh()
+
+    def _on_connect_error(self, error):
+        logger.error(f"Failed to connect: {error.stderr}")
+        self.parent._show_status("Connection failed!", 2000)
+        subprocess.run(
+            [
+                "notify-send",
+                "Connection Failed",
+                f"Failed to connect to {self.ap_info['ssid']}",
+            ]
+        )
 
     def _disconnect(self):
-        try:
-            subprocess.run(  # noqa: S603
-                ["nmcli", "device", "disconnect", "wlan0"],  # noqa: S607
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            GLib.timeout_add(1000, self.parent.refresh_all_networks)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to disconnect: {e.stderr}")
-            subprocess.run(  # noqa: S603
-                [  # noqa: S607
-                    "notify-send",
-                    "Disconnect Failed",
-                    "Failed to disconnect from current network",
-                ]
-            )
+        self.parent._show_status("Disconnecting...")
+
+        def run_disconnect():
+            try:
+                subprocess.run(
+                    ["nmcli", "device", "disconnect", "wlan0"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                GLib.idle_add(self._on_disconnect_success)
+            except subprocess.CalledProcessError as e:
+                GLib.idle_add(self._on_disconnect_error, e)
+
+        GLib.Thread.new(None, run_disconnect)
+
+    def _on_disconnect_success(self):
+        self.parent._show_status("Disconnected", 2000)
+        self.parent.queue_refresh()
+
+    def _on_disconnect_error(self, error):
+        logger.error(f"Failed to disconnect: {error.stderr}")
+        self.parent._show_status("Disconnect failed!", 2000)
 
     def _forget_network(self, _):
-        try:
-            subprocess.run(  # noqa: S603
-                ["nmcli", "connection", "delete", "id", self.ap_info["ssid"]],  # noqa: S607
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            self.is_saved = False
-            self.parent.refresh_all_networks()
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to forget network: {e.stderr}")
+        self.parent._show_status("Forgetting...")
+
+        def run_forget():
+            try:
+                subprocess.run(
+                    ["nmcli", "connection", "delete", "id", self.ap_info["ssid"]],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                GLib.idle_add(self._on_forget_success)
+            except subprocess.CalledProcessError as e:
+                GLib.idle_add(self._on_forget_error, e)
+
+        GLib.Thread.new(None, run_forget)
+
+    def _on_forget_success(self):
+        self.parent._show_status("Network forgotten", 2000)
+        self.is_saved = False
+        self.parent.queue_refresh()
+
+    def _on_forget_error(self, error):
+        logger.error(f"Failed to forget network: {error.stderr}")
+        self.parent._show_status("Failed to forget!", 2000)
 
 
 class NetworkConnections(BaseDiWidget, Box):
@@ -277,32 +288,32 @@ class NetworkConnections(BaseDiWidget, Box):
             **kwargs,
         )
 
-        self.title_label = Label(style_classes="title", label="Wi-Fi")
+        self._pending_refresh = False
+        self._initialize_ui()
+        self.start_refresh(self.refresh_button)
 
-        # Кнопки управления
-        self.scan_button = Button(
+    def _initialize_ui(self):
+        self.title_label = Label(style_classes="title", label="Wi-Fi")
+        self.refresh_button = Button(
             name="network-scan-btn",
-            label="Scan",
+            label="Refresh",
             sensitive=self._is_wifi_enabled(),
         )
-        setup_cursor_hover(self.scan_button)
-
         self.toggle_button = Button(
             name="network-toggle-btn",
             label="Enabled" if self._is_wifi_enabled() else "Disabled",
         )
+        setup_cursor_hover(self.refresh_button)
         setup_cursor_hover(self.toggle_button)
         self._update_toggle_button_style()
 
-        # Контейнер для заголовка
         self.header_box = CenterBox(
             name="controls",
-            start_children=self.scan_button,
+            start_children=self.refresh_button,
             center_children=self.title_label,
             end_children=self.toggle_button,
         )
 
-        # Контейнер для списка сетей
         self.networks_box = Box(orientation="vertical", spacing=4)
         self.scrolled_window = ScrolledWindow(
             child=self.networks_box,
@@ -310,16 +321,52 @@ class NetworkConnections(BaseDiWidget, Box):
             propagate_natural_height=True,
         )
 
-        # Подключаем обработчики
-        self.scan_button.connect("clicked", self.start_scan)
+        self.refresh_button.connect("clicked", self.start_refresh)
         self.toggle_button.connect("clicked", self.toggle_wifi)
 
-        # Собираем основной интерфейс
         self.add(self.header_box)
         self.add(self.scrolled_window)
 
-        # Первоначальное обновление списка сетей
-        self.update_networks()
+    def queue_refresh(self, callback: Callable | None = None):
+        if self._pending_refresh:
+            if callback:
+                GLib.idle_add(callback)
+            return
+
+        self._pending_refresh = True
+        GLib.Thread.new(None, self._perform_refresh, callback)
+
+    def _perform_refresh(self, callback: Callable | None = None):
+        try:
+            networks = self._get_wifi_networks()
+            GLib.idle_add(self._update_ui, networks, callback)
+        except Exception as e:
+            logger.error(f"Refresh failed: {e!s}")
+            GLib.idle_add(self._show_status, "Refresh failed!", 2000)
+            GLib.idle_add(self._finish_refresh, callback)
+
+    def _update_ui(self, networks: list[dict], callback: Callable | None):
+        new_networks_box = Box(orientation="vertical", spacing=4)
+
+        if not self._is_wifi_enabled() or not networks:
+            self.scrolled_window.hide()
+        else:
+            self.scrolled_window.show()
+            connected = [n for n in networks if n.get("in_use")]
+            others = sorted(
+                [n for n in networks if not n.get("in_use")],
+                key=lambda x: int(x["signal"]),
+                reverse=True,
+            )
+
+            for network in connected + others:
+                slot = WifiNetworkSlot(network, self)
+                new_networks_box.add(slot)
+
+        self.scrolled_window.children = new_networks_box
+        self.networks_box = new_networks_box
+        self.show_all()
+        self._finish_refresh(callback)
 
     def _show_status(self, message: str, timeout: int = 3000):
         """Показывает временный статус в заголовке."""
@@ -337,8 +384,8 @@ class NetworkConnections(BaseDiWidget, Box):
 
     def _is_wifi_enabled(self) -> bool:
         try:
-            result = subprocess.run(  # noqa: S603
-                ["nmcli", "-f", "WIFI", "radio"],  # noqa: S607
+            result = subprocess.run(
+                ["nmcli", "-f", "WIFI", "radio"],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -353,17 +400,17 @@ class NetworkConnections(BaseDiWidget, Box):
             self.toggle_button.set_label("Enabled")
             self.toggle_button.add_style_class("enabled")
             self.toggle_button.remove_style_class("disabled")
-            self.scan_button.set_sensitive(True)
+            self.refresh_button.set_sensitive(True)
         else:
             self.toggle_button.set_label("Disabled")
             self.toggle_button.add_style_class("disabled")
             self.toggle_button.remove_style_class("enabled")
-            self.scan_button.set_sensitive(False)
+            self.refresh_button.set_sensitive(False)
 
     def _get_wifi_networks(self) -> list[dict]:
         try:
-            result = subprocess.run(  # noqa: S603
-                [  # noqa: S607
+            result = subprocess.run(
+                [
                     "nmcli",
                     "--terse",
                     "--fields",
@@ -404,36 +451,45 @@ class NetworkConnections(BaseDiWidget, Box):
             logger.error(f"Failed to get WiFi networks: {e.stderr}")
             return []
 
-    def start_scan(self, btn):
-        """Запускает сканирование сетей с отображением статуса."""
-        self._show_status("Scanning networks...")
-        btn.set_label("Scanning...")
+    def _finish_refresh(self, callback: Callable | None):
+        self._pending_refresh = False
+        if callback:
+            callback()
+
+    def start_refresh(self, btn):
+        self._show_status("Refreshing networks...")
         btn.set_sensitive(False)
+        btn.set_label("Refreshing..")
 
-        try:
-            subprocess.run(  # noqa: S603
-                ["nmcli", "device", "wifi", "rescan"],  # noqa: S607
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            GLib.timeout_add(2000, self._complete_scan, btn)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to scan networks: {e.stderr}")
-            self._show_status("Scan failed!", 2000)
-            btn.set_label("Scan")
-            btn.set_sensitive(True)
+        def run_scan():
+            try:
+                subprocess.run(
+                    ["nmcli", "device", "wifi", "rescan"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                GLib.idle_add(
+                    lambda: self.queue_refresh(lambda: self._on_refresh_success(btn))
+                )
+            except subprocess.CalledProcessError as e:
+                GLib.idle_add(self._on_refresh_error, btn, e)
 
-    def _complete_scan(self, btn):
-        """Завершает процесс сканирования."""
-        self.update_networks()
-        self._show_status("Scan completed", 2000)
-        btn.set_label("Scan")
+        GLib.Thread.new(None, run_scan)
+
+    def _on_refresh_success(self, btn):
+        btn.set_label("Refresh")
         btn.set_sensitive(True)
-        return False
+        self._show_status("Refresh completed", 2000)
+
+    def _on_refresh_error(self, btn, error):
+        logger.error(f"Scan failed: {error.stderr}")
+        btn.set_label("Refresh")
+        btn.set_sensitive(True)
+        self._show_status("Scan failed!", 2000)
 
     def toggle_wifi(self, btn):
-        """Переключает состояние WiFi с отображением статуса."""
+        """Переключает состояние WiFi."""
         if self._is_wifi_enabled():
             self._show_status("Disabling Wi-Fi...")
             action = "off"
@@ -443,64 +499,31 @@ class NetworkConnections(BaseDiWidget, Box):
             action = "on"
             success_msg = "Wi-Fi enabled"
 
-        try:
-            subprocess.run(  # noqa: S603
-                ["nmcli", "radio", "wifi", action],  # noqa: S607
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            self._show_status(success_msg, 2000)
-            GLib.timeout_add(1000, self._after_toggle)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to toggle WiFi: {e.stderr}")
-            self._show_status("Operation failed!", 2000)
+        def run_toggle():
+            try:
+                subprocess.run(
+                    ["nmcli", "radio", "wifi", action],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                GLib.idle_add(self._on_toggle_success, success_msg)
+            except subprocess.CalledProcessError as e:
+                GLib.idle_add(self._on_toggle_error, e)
 
-    def _after_toggle(self):
+        GLib.Thread.new(None, run_toggle)
+
+    def _on_toggle_success(self, message):
+        """Обработчик успешного переключения WiFi."""
+        self._show_status(message, 2000)
         self._update_toggle_button_style()
-        self.update_networks()
-        return False
+        self.queue_refresh()
+
+    def _on_toggle_error(self, error):
+        """Обработчик ошибки переключения WiFi."""
+        logger.error(f"Failed to toggle WiFi: {error.stderr}")
+        self._show_status("Operation failed!", 2000)
 
     def refresh_all_networks(self):
-        """Полностью перезагружает список сетей."""
-        self.update_networks()
-
-    def update_networks(self, *_):
-        """Обновляет список сетей с сортировкой и разделителем."""
-        # Очищаем текущие элементы
-        for child in self.networks_box.get_children():
-            child.destroy()
-
-        if not self._is_wifi_enabled():
-            self.scrolled_window.hide()
-            return
-
-        networks = self._get_wifi_networks()
-        if not networks:
-            self.scrolled_window.hide()
-            return
-
-        self.scrolled_window.show()
-
-        # Сортируем сети: подключенная - первая, затем по силе сигнала
-        connected_network = None
-        other_networks = []
-
-        for network in networks:
-            if network.get("in_use"):
-                connected_network = network
-            else:
-                other_networks.append(network)
-
-        # Сортируем по силе сигнала (от сильного к слабому)
-        other_networks.sort(key=lambda x: int(x["signal"]), reverse=True)
-
-        # Добавляем подключенную сеть (если есть)
-        if connected_network:
-            self.networks_box.add(WifiNetworkSlot(connected_network, self))
-
-        # Добавляем остальные сети
-        for network in other_networks:
-            self.networks_box.add(WifiNetworkSlot(network, self))
-
-        self.show_all()
+        """Триггерит обновление списка сетей."""
+        self.queue_refresh()
