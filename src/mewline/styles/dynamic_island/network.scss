@@ -29,13 +29,25 @@ $error-color: #f44336;
     padding-bottom: 8px;
   }
 
-  &-scan-btn,
   &-toggle-btn {
     background-color: theme.$bluetooth-scan-background;
     color: theme.$bluetooth-scan-text-color;
     border-radius: 16px;
     padding: 8px 16px;
     min-width: 96px;
+
+    label {
+      font-weight: bold;
+    }
+  }
+
+  &-scan-btn,
+  &-view-toggle-btn {
+    background-color: theme.$bluetooth-scan-background;
+    color: theme.$bluetooth-scan-text-color;
+    border-radius: 16px;
+    padding: 8px 16px;
+    min-width: 15px;
 
     label {
       font-weight: bold;

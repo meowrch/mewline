@@ -2,6 +2,7 @@ import subprocess
 from typing import Callable
 from typing import Dict
 from typing import List
+from typing import Literal
 from typing import Optional
 
 from fabric.widgets.box import Box
@@ -38,6 +39,7 @@ class WifiNetworkSlot(CenterBox):
         )
         self.ap_info = ap_info
         self.parent = parent
+        self.interface = self._get_wifi_interface()
         self.is_expanded = False
         self.password_entry = None
         self.is_saved = self._is_saved_connection()
@@ -71,6 +73,25 @@ class WifiNetworkSlot(CenterBox):
         if self.is_connected():
             self.set_style_classes("connected")
 
+    def _get_wifi_interface(self) -> str:
+        """Определяет имя wifi интерфейса"""
+        try:
+            result = subprocess.run(
+                ["nmcli", "-t", "-f", "DEVICE,TYPE", "device", "status"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            for line in result.stdout.splitlines():
+                if not line.strip():
+                    continue
+                device, dev_type = line.split(":", 1)
+                if dev_type.lower() == "wifi":
+                    return device
+            return "wlan0"  # fallback
+        except subprocess.CalledProcessError:
+            return "wlan0"  # fallback
+
     def _get_icon_name(self) -> str:
         signal_level = min(int(self.ap_info["signal"]) // 25, 3)
         if self.ap_info.get("security") and self.ap_info["security"] not in [
@@ -94,9 +115,20 @@ class WifiNetworkSlot(CenterBox):
             return False
 
     def is_connected(self) -> bool:
+        if not self.interface:
+            return False
+
         try:
             result = subprocess.run(
-                ["nmcli", "-t", "-f", "GENERAL.CONNECTION", "device", "show", "wlan0"],
+                [
+                    "nmcli",
+                    "-t",
+                    "-f",
+                    "GENERAL.CONNECTION",
+                    "device",
+                    "show",
+                    self.interface,
+                ],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -276,6 +308,152 @@ class WifiNetworkSlot(CenterBox):
         self.parent._show_status("Failed to forget!", 2000)
 
 
+class EthernetNetworkSlot(CenterBox):
+    def __init__(self, conn_info: dict, parent, **kwargs):
+        super().__init__(
+            orientation="horizontal", spacing=8, name="network-slot", **kwargs
+        )
+        self.conn_info = conn_info
+        self.parent = parent
+        self.interface = self._get_ethernet_interface()
+
+        # Основные элементы
+        self.icon = text_icon("󰈁", size="16px")
+        self.name_label = Label(label=self.conn_info["name"], h_expand=True)
+        self.connect_button = self._create_connect_button()
+
+        # Главный контейнер
+        self.main_box = Box(
+            orientation="horizontal", spacing=10, children=[self.icon, self.name_label]
+        )
+
+        # Контейнер для кнопок
+        self.buttons_box = Box(spacing=4, h_align="end")
+        self.buttons_box.add(self.connect_button)
+
+        self.add_end(self.buttons_box)
+        self.add_start(self.main_box)
+
+        if self.is_connected():
+            self.set_style_classes("connected")
+
+    def _get_ethernet_interface(self) -> str:
+        """Определяет имя ethernet интерфейса."""
+        try:
+            result = subprocess.run(
+                ["nmcli", "-t", "-f", "DEVICE,TYPE", "device", "status"],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            for line in result.stdout.splitlines():
+                if not line.strip():
+                    continue
+                device, dev_type = line.split(":", 1)
+                if dev_type.lower() == "ethernet":
+                    return device
+            return "eth0"
+        except subprocess.CalledProcessError:
+            return "eth0"
+
+    def is_connected(self) -> bool:
+        if not self.interface:
+            return False
+
+        try:
+            result = subprocess.run(
+                [
+                    "nmcli",
+                    "-t",
+                    "-f",
+                    "GENERAL.CONNECTION",
+                    "device",
+                    "show",
+                    self.interface,
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            for line in result.stdout.splitlines():
+                if line.startswith("GENERAL.CONNECTION:"):
+                    return line.split(":", 1)[1].strip() == self.conn_info["name"]
+            return False
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to check active connections: {e.stderr}")
+            return False
+
+    def _create_connect_button(self) -> Button:
+        is_connected = self.is_connected()
+        label = "󰌙" if is_connected else "󱘖"
+
+        button = Button(
+            label=label,
+            name="network-connection-toggle-btn",
+            h_align="end",
+        )
+        button.add_style_class("connect" if is_connected else "disconnect")
+        setup_cursor_hover(button)
+        button.connect("clicked", self.on_connect_clicked)
+        return button
+
+    def on_connect_clicked(self, button):
+        if self.is_connected():
+            self._disconnect()
+        else:
+            self._connect()
+
+    def _connect(self):
+        self.parent._show_status("Connecting...")
+
+        def run_connect():
+            try:
+                subprocess.run(
+                    ["nmcli", "connection", "up", "id", self.conn_info["name"]],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                GLib.idle_add(self._on_connect_success)
+            except subprocess.CalledProcessError as e:
+                GLib.idle_add(self._on_connect_error, e)
+
+        GLib.Thread.new(None, run_connect)
+
+    def _on_connect_success(self):
+        self.parent._show_status("Connected!", 2000)
+        self.parent.queue_refresh()
+
+    def _on_connect_error(self, error):
+        logger.error(f"Failed to connect: {error.stderr}")
+        self.parent._show_status("Connection failed!", 2000)
+
+    def _disconnect(self):
+        self.parent._show_status("Disconnecting...")
+
+        def run_disconnect():
+            try:
+                subprocess.run(
+                    ["nmcli", "device", "disconnect", self.interface],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                GLib.idle_add(self._on_disconnect_success)
+            except subprocess.CalledProcessError as e:
+                GLib.idle_add(self._on_disconnect_error, e)
+
+        GLib.Thread.new(None, run_disconnect)
+
+    def _on_disconnect_success(self):
+        self.parent._show_status("Disconnected", 2000)
+        self.parent.queue_refresh()
+
+    def _on_disconnect_error(self, error):
+        logger.error(f"Failed to disconnect: {error.stderr}")
+        self.parent._show_status("Disconnect failed!", 2000)
+
+
 class NetworkConnections(BaseDiWidget, Box):
     focuse_kb = True
 
@@ -289,14 +467,24 @@ class NetworkConnections(BaseDiWidget, Box):
         )
 
         self._pending_refresh = False
+        self._current_view: Literal["wifi", "ethernet"] = "wifi"
         self._initialize_ui()
         self.start_refresh(self.refresh_button)
 
     def _initialize_ui(self):
         self.title_label = Label(style_classes="title", label="Wi-Fi")
+
+        self.view_toggle_button = Button(
+            name="network-view-toggle-btn",
+            label="󰈁",  # Ethernet icon
+            tooltip_text="Switch to Ethernet",
+        )
+        setup_cursor_hover(self.view_toggle_button)
+        self.view_toggle_button.connect("clicked", self._toggle_view)
+
         self.refresh_button = Button(
             name="network-scan-btn",
-            label="Refresh",
+            child=text_icon("󰑓"),
             sensitive=self._is_wifi_enabled(),
         )
         self.toggle_button = Button(
@@ -309,7 +497,10 @@ class NetworkConnections(BaseDiWidget, Box):
 
         self.header_box = CenterBox(
             name="controls",
-            start_children=self.refresh_button,
+            start_children=Box(
+                spacing=10,
+                children=[self.view_toggle_button, self.refresh_button],
+            ),
             center_children=self.title_label,
             end_children=self.toggle_button,
         )
@@ -327,6 +518,21 @@ class NetworkConnections(BaseDiWidget, Box):
         self.add(self.header_box)
         self.add(self.scrolled_window)
 
+    def _toggle_view(self, button):
+        """Switch between WiFi and Ethernet views."""
+        if self._current_view == "wifi":
+            self._current_view = "ethernet"
+            button.set_label("󰖩")  # WiFi icon
+            button.set_tooltip_text("Switch to Wi-Fi")
+            self.title_label.set_label("Ethernet")
+        else:
+            self._current_view = "wifi"
+            button.set_label("󰈁")  # Ethernet icon
+            button.set_tooltip_text("Switch to Ethernet")
+            self.title_label.set_label("Wi-Fi")
+
+        self.queue_refresh()
+
     def queue_refresh(self, callback: Callable | None = None):
         if self._pending_refresh:
             if callback:
@@ -338,7 +544,10 @@ class NetworkConnections(BaseDiWidget, Box):
 
     def _perform_refresh(self, callback: Callable | None = None):
         try:
-            networks = self._get_wifi_networks()
+            if self._current_view == "wifi":
+                networks = self._get_wifi_networks()
+            else:
+                networks = self._get_ethernet_connections()
             GLib.idle_add(self._update_ui, networks, callback)
         except Exception as e:
             logger.error(f"Refresh failed: {e!s}")
@@ -348,25 +557,96 @@ class NetworkConnections(BaseDiWidget, Box):
     def _update_ui(self, networks: list[dict], callback: Callable | None):
         new_networks_box = Box(orientation="vertical", spacing=4)
 
-        if not self._is_wifi_enabled() or not networks:
+        if not networks:
             self.scrolled_window.hide()
         else:
             self.scrolled_window.show()
             connected = [n for n in networks if n.get("in_use")]
-            others = sorted(
-                [n for n in networks if not n.get("in_use")],
-                key=lambda x: int(x["signal"]),
-                reverse=True,
-            )
+            others = [n for n in networks if not n.get("in_use")]
 
             for network in connected + others:
-                slot = WifiNetworkSlot(network, self)
+                if self._current_view == "wifi":
+                    slot = WifiNetworkSlot(network, self)
+                else:
+                    slot = EthernetNetworkSlot(network, self)
                 new_networks_box.add(slot)
 
         self.scrolled_window.children = new_networks_box
         self.networks_box = new_networks_box
         self.show_all()
         self._finish_refresh(callback)
+
+    def _get_ethernet_connections(self) -> list[dict]:
+        try:
+            # Получаем все Ethernet коннекты.
+            result = subprocess.run(
+                [
+                    "nmcli",
+                    "-t",
+                    "-f",
+                    "NAME,DEVICE,TYPE",
+                    "connection",
+                    "show",
+                    "--active",
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+
+            connections = []
+            for line in result.stdout.splitlines():
+                if not line.strip():
+                    continue
+
+                name, device, conn_type = line.split(":", 2)
+                if conn_type.lower() == "802-3-ethernet":
+                    connections.append(
+                        {
+                            "name": name,
+                            "device": device,
+                            "in_use": bool(
+                                device
+                            ),  # Если устройство не пусто, - оно активно
+                        }
+                    )
+
+            # Также получаем доступные, но неактивные Ethernet-соединения
+            result = subprocess.run(
+                [
+                    "nmcli",
+                    "-t",
+                    "-f",
+                    "NAME,TYPE",
+                    "connection",
+                    "show",
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+
+            # Добавляем только те Ethernet-соединения, которых еще нет в списке.
+            for line in result.stdout.splitlines():
+                if not line.strip():
+                    continue
+
+                name, conn_type = line.split(":", 1)
+                if conn_type.lower() == "802-3-ethernet" and not any(
+                    c["name"] == name for c in connections
+                ):
+                    connections.append(
+                        {
+                            "name": name,
+                            "device": "",
+                            "in_use": False,
+                        }
+                    )
+
+            return connections
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to get Ethernet connections: {e.stderr}")
+            return []
 
     def _show_status(self, message: str, timeout: int = 3000):
         """Показывает временный статус в заголовке."""
@@ -379,7 +659,10 @@ class NetworkConnections(BaseDiWidget, Box):
 
     def _hide_status(self):
         """Скрывает статус в заголовке."""
-        self.title_label.set_label("Wi-Fi")
+        if self._current_view == "wifi":
+            self.title_label.set_label("Wi-Fi")
+        else:
+            self.title_label.set_label("Ethernet")
         return False
 
     def _is_wifi_enabled(self) -> bool:
@@ -457,39 +740,47 @@ class NetworkConnections(BaseDiWidget, Box):
             callback()
 
     def start_refresh(self, btn):
-        self._show_status("Refreshing networks...")
-        btn.set_sensitive(False)
-        btn.set_label("Refreshing..")
+        if self._current_view == "wifi":
+            self._show_status("Refreshing networks...")
+            btn.set_sensitive(False)
 
-        def run_scan():
-            try:
-                subprocess.run(
-                    ["nmcli", "device", "wifi", "rescan"],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                GLib.idle_add(
-                    lambda: self.queue_refresh(lambda: self._on_refresh_success(btn))
-                )
-            except subprocess.CalledProcessError as e:
-                GLib.idle_add(self._on_refresh_error, btn, e)
+            def run_scan():
+                try:
+                    subprocess.run(
+                        ["nmcli", "device", "wifi", "rescan"],
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+                    GLib.idle_add(
+                        lambda: self.queue_refresh(
+                            lambda: self._on_refresh_success(btn)
+                        )
+                    )
+                except subprocess.CalledProcessError as e:
+                    GLib.idle_add(self._on_refresh_error, btn, e)
 
-        GLib.Thread.new(None, run_scan)
+            GLib.Thread.new(None, run_scan)
+        else:
+            self._show_status("Refreshing...")
+            btn.set_sensitive(False)
+            self.queue_refresh(lambda: self._on_refresh_success(btn))
 
     def _on_refresh_success(self, btn):
-        btn.set_label("Refresh")
         btn.set_sensitive(True)
         self._show_status("Refresh completed", 2000)
 
     def _on_refresh_error(self, btn, error):
         logger.error(f"Scan failed: {error.stderr}")
-        btn.set_label("Refresh")
         btn.set_sensitive(True)
         self._show_status("Scan failed!", 2000)
 
     def toggle_wifi(self, btn):
         """Переключает состояние WiFi."""
+        if self._current_view != "wifi":
+            self._show_status("Not aviable", 2000)
+            return
+
         if self._is_wifi_enabled():
             self._show_status("Disabling Wi-Fi...")
             action = "off"
