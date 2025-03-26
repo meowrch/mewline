@@ -468,8 +468,66 @@ class NetworkConnections(BaseDiWidget, Box):
 
         self._pending_refresh = False
         self._current_view: Literal["wifi", "ethernet"] = "wifi"
+        # Инициализируем кэши с пустыми контейнерами
+        self._cached_wifi_slots = Box(orientation="vertical", spacing=4)
+        self._cached_ethernet_slots = Box(orientation="vertical", spacing=4)
+
         self._initialize_ui()
-        self.start_refresh(self.refresh_button)
+        self._load_both_networks()
+
+    def _show_persistent_status(self, message: str):
+        """Показывает статус, который не исчезнет автоматически."""
+        self.title_label.set_label(message)
+        if hasattr(self, "_status_timeout"):
+            GLib.source_remove(self._status_timeout)
+            del self._status_timeout
+
+    def _show_temporary_status(self, message: str, timeout: int = 2000):
+        """Показывает временный статус с таймаутом."""
+        self._show_persistent_status(message)
+        self._status_timeout = GLib.timeout_add(timeout, self._hide_status)
+
+    def _hide_status(self):
+        """Скрывает статус, восстанавливая заголовок по умолчанию."""
+        default_title = "Wi-Fi" if self._current_view == "wifi" else "Ethernet"
+        self.title_label.set_label(default_title)
+        return False
+
+    def _execute_network_command(self, command: str, success_msg: str, error_msg: str):
+        """Общий метод для выполнения сетевых команд с обработкой статусов."""
+        self._show_persistent_status(f"Executing {command}...")
+
+        def run_command():
+            try:
+                subprocess.run(
+                    command.split(), check=True, capture_output=True, text=True
+                )
+                GLib.idle_add(self._show_temporary_status, success_msg)
+            except subprocess.CalledProcessError as e:
+                logger.error(f"{error_msg}: {e.stderr}")
+                GLib.idle_add(self._show_temporary_status, f"{error_msg}!", 2000)
+            finally:
+                GLib.idle_add(self.queue_refresh)
+
+        GLib.Thread.new(None, run_command)
+
+    def _load_both_networks(self):
+        """Загружает WiFi и Ethernet сети при инициализации."""
+        self._show_persistent_status("Loading networks...")
+
+        def load_networks():
+            try:
+                wifi_networks = self._get_wifi_networks()
+                ethernet_networks = self._get_ethernet_connections()
+
+                GLib.idle_add(self._update_slots_cache, wifi_networks, True)
+                GLib.idle_add(self._update_slots_cache, ethernet_networks, False)
+                GLib.idle_add(self._show_temporary_status, "Networks loaded!", 2000)
+            except Exception as e:
+                logger.error(f"Initial load failed: {e}")
+                GLib.idle_add(self._show_temporary_status, "Load failed!", 2000)
+
+        GLib.Thread.new(None, load_networks)
 
     def _initialize_ui(self):
         self.title_label = Label(style_classes="title", label="Wi-Fi")
@@ -505,9 +563,8 @@ class NetworkConnections(BaseDiWidget, Box):
             end_children=self.toggle_button,
         )
 
-        self.networks_box = Box(orientation="vertical", spacing=4)
         self.scrolled_window = ScrolledWindow(
-            child=self.networks_box,
+            child=self._cached_wifi_slots,  # По умолчанию показываем WiFi
             min_content_height=200,
             propagate_natural_height=True,
         )
@@ -531,7 +588,38 @@ class NetworkConnections(BaseDiWidget, Box):
             button.set_tooltip_text("Switch to Ethernet")
             self.title_label.set_label("Wi-Fi")
 
-        self.queue_refresh()
+        # Мгновенное переключение между кэшированными слотами
+        self._switch_cached_slots()
+
+    def _switch_cached_slots(self):
+        """Переключает между кэшированными слотами."""
+        current_child = self.scrolled_window.get_child()
+        new_child = (
+            self._cached_wifi_slots
+            if self._current_view == "wifi"
+            else self._cached_ethernet_slots
+        )
+
+        # Если пытаемся установить тот же child - ничего не делаем
+        if current_child == new_child:
+            return
+
+        # Удаляем текущий child если он есть
+        if current_child:
+            self.scrolled_window.remove(current_child)
+
+        # Добавляем новый child
+        self.scrolled_window.add(new_child)
+        self.scrolled_window.show_all()
+
+    def _update_ui_from_cache(self):
+        """Обновляет UI из кэшированных данных без нового запроса."""
+        networks = (
+            self._cached_ethernet_connections
+            if self._current_view == "ethernet"
+            else self._cached_wifi_networks
+        )
+        self._update_ui(networks, None)
 
     def queue_refresh(self, callback: Callable | None = None):
         if self._pending_refresh:
@@ -546,13 +634,47 @@ class NetworkConnections(BaseDiWidget, Box):
         try:
             if self._current_view == "wifi":
                 networks = self._get_wifi_networks()
+                self._update_slots_cache(networks, is_wifi=True)
             else:
                 networks = self._get_ethernet_connections()
-            GLib.idle_add(self._update_ui, networks, callback)
+                self._update_slots_cache(networks, is_wifi=False)
+
+            GLib.idle_add(self._switch_cached_slots)
+            if callback:
+                GLib.idle_add(callback)
         except Exception as e:
             logger.error(f"Refresh failed: {e!s}")
             GLib.idle_add(self._show_status, "Refresh failed!", 2000)
+        finally:
             GLib.idle_add(self._finish_refresh, callback)
+
+    def _update_slots_cache(self, networks: list[dict], is_wifi: bool):
+        """Обновляет кэш слотов для указанного типа сетей."""
+        new_cache = Box(orientation="vertical", spacing=4)
+
+        if networks:
+            connected = [n for n in networks if n.get("in_use")]
+            others = [n for n in networks if not n.get("in_use")]
+
+            for network in connected + others:
+                slot = (
+                    WifiNetworkSlot(network, self)
+                    if is_wifi
+                    else EthernetNetworkSlot(network, self)
+                )
+                new_cache.add(slot)
+
+        # Заменяем старый кэш новым
+        if is_wifi:
+            self._cached_wifi_slots = new_cache
+        else:
+            self._cached_ethernet_slots = new_cache
+
+        # Если это текущий вид - обновляем отображение
+        if (is_wifi and self._current_view == "wifi") or (
+            not is_wifi and self._current_view == "ethernet"
+        ):
+            GLib.idle_add(self._switch_cached_slots)
 
     def _update_ui(self, networks: list[dict], callback: Callable | None):
         new_networks_box = Box(orientation="vertical", spacing=4)
@@ -740,69 +862,55 @@ class NetworkConnections(BaseDiWidget, Box):
             callback()
 
     def start_refresh(self, btn):
-        if self._current_view == "wifi":
-            self._show_status("Refreshing networks...")
-            btn.set_sensitive(False)
+        """Обновляет список сетей"""
+        self._show_persistent_status("Loading networks...")
+        btn.set_sensitive(False)
 
-            def run_scan():
-                try:
+        def run_scan():
+            try:
+                if self._current_view == "wifi":
                     subprocess.run(
                         ["nmcli", "device", "wifi", "rescan"],
                         check=True,
                         capture_output=True,
                         text=True,
                     )
-                    GLib.idle_add(
-                        lambda: self.queue_refresh(
-                            lambda: self._on_refresh_success(btn)
-                        )
-                    )
-                except subprocess.CalledProcessError as e:
-                    GLib.idle_add(self._on_refresh_error, btn, e)
 
-            GLib.Thread.new(None, run_scan)
-        else:
-            self._show_status("Refreshing...")
-            btn.set_sensitive(False)
-            self.queue_refresh(lambda: self._on_refresh_success(btn))
+                wifi_networks = self._get_wifi_networks()
+                ethernet_networks = self._get_ethernet_connections()
+
+                GLib.idle_add(self._update_slots_cache, wifi_networks, True)
+                GLib.idle_add(self._update_slots_cache, ethernet_networks, False)
+                GLib.idle_add(lambda: self._show_temporary_status("Networks loaded!"))
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Load failed: {e.stderr}")
+                GLib.idle_add(lambda: self._show_temporary_status("Load failed!"))
+            finally:
+                GLib.idle_add(lambda: btn.set_sensitive(True))
+
+        GLib.Thread.new(None, run_scan)
 
     def _on_refresh_success(self, btn):
         btn.set_sensitive(True)
-        self._show_status("Refresh completed", 2000)
+        self._show_status("Networks loaded!!", 2000)
 
     def _on_refresh_error(self, btn, error):
-        logger.error(f"Scan failed: {error.stderr}")
+        logger.error(f"Refresh failed: {error.stderr}")
         btn.set_sensitive(True)
-        self._show_status("Scan failed!", 2000)
+        self._show_status("Load failed!", 2000)
 
     def toggle_wifi(self, btn):
-        """Переключает состояние WiFi."""
+        """Переключает состояние WiFi"""
         if self._current_view != "wifi":
-            self._show_status("Not aviable", 2000)
+            self._show_temporary_status("Not available in this view")
             return
 
-        if self._is_wifi_enabled():
-            self._show_status("Disabling Wi-Fi...")
-            action = "off"
-            success_msg = "Wi-Fi disabled"
-        else:
-            self._show_status("Enabling Wi-Fi...")
-            action = "on"
-            success_msg = "Wi-Fi enabled"
-
-        def run_toggle():
-            try:
-                subprocess.run(
-                    ["nmcli", "radio", "wifi", action],
-                    check=True,
-                    capture_output=True,
-                    text=True,
-                )
-                GLib.idle_add(self._on_toggle_success, success_msg)
-            except subprocess.CalledProcessError as e:
-                GLib.idle_add(self._on_toggle_error, e)
-
-        GLib.Thread.new(None, run_toggle)
+        action = "off" if self._is_wifi_enabled() else "on"
+        self._execute_network_command(
+            command=f"nmcli radio wifi {action}",
+            success_msg=f"Wi-Fi {action}",
+            error_msg="Failed to toggle WiFi",
+        )
 
     def _on_toggle_success(self, message):
         """Обработчик успешного переключения WiFi."""
