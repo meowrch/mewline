@@ -10,6 +10,7 @@ from mewline.widgets.bluetooth import Bluetooth
 from mewline.widgets.brightness import BrightnessWidget
 from mewline.widgets.datetime import DateTimeWidget
 from mewline.widgets.language import LanguageWidget
+from mewline.widgets.network_status import NetworkStatus
 from mewline.widgets.ocr import OCRWidget
 from mewline.widgets.power import PowerButton
 from mewline.widgets.system_tray import SystemTray
@@ -46,6 +47,7 @@ class StatusBar(WaylandWindow):
                     LanguageWidget(),
                     DateTimeWidget(),
                     Bluetooth(),
+                    NetworkStatus(),
                     PowerButton(),
                 ],
             ),
