@@ -11,6 +11,7 @@ from mewline.widgets.dynamic_island.clipboard import Clipboard
 from mewline.widgets.dynamic_island.compact import Compact
 from mewline.widgets.dynamic_island.date_notification import DateNotificationMenu
 from mewline.widgets.dynamic_island.emoji import EmojiPicker
+from mewline.widgets.dynamic_island.network import NetworkConnections
 from mewline.widgets.dynamic_island.notifications import NotificationContainer
 from mewline.widgets.dynamic_island.power import PowerMenu
 from mewline.widgets.dynamic_island.wallpapers import WallpaperSelector
@@ -45,6 +46,7 @@ class DynamicIsland(Window):
         self.wallpapers = WallpaperSelector()
         self.emoji = EmojiPicker(self)
         self.clip_history = Clipboard(self)
+        self.network = NetworkConnections()
 
         self.widgets: dict[str, type[BaseDiWidget]] = {
             "compact": self.compact,
@@ -56,6 +58,7 @@ class DynamicIsland(Window):
             "wallpapers": self.wallpapers,
             "emoji": self.emoji,
             "clip_history": self.clip_history,
+            "network": self.network,
         }
         self.current_widget: str | None = None
 

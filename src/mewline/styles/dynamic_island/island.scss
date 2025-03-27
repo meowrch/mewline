@@ -9,6 +9,7 @@
 @use "./wallpapers.scss";
 @use "./emoji.scss";
 @use "./clipboard.scss";
+@use "./network.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -46,6 +47,13 @@
   }
 
   &.bluetooth {
+    padding: 16px;
+    min-height: 300px;
+    min-width: 500px;
+    border-radius: 0 0 36px 36px;
+  }
+
+  &.network {
     padding: 16px;
     min-height: 300px;
     min-width: 500px;
@@ -95,6 +103,7 @@
 #wallpapers,
 #emoji,
 #clipboard,
+#network,
 #app-launcher {
   opacity: 1;
   margin: -800px;
