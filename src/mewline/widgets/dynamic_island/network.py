@@ -516,7 +516,6 @@ class NetworkConnections(BaseDiWidget, Box):
 
                 GLib.idle_add(self._update_slots_cache, wifi_networks, True)
                 GLib.idle_add(self._update_slots_cache, ethernet_networks, False)
-                GLib.idle_add(self._show_temporary_status, "Networks loaded!", 2000)
             except Exception as e:
                 logger.error(f"Initial load failed: {e}")
                 GLib.idle_add(self._show_temporary_status, "Load failed!", 2000)
@@ -594,50 +593,88 @@ class NetworkConnections(BaseDiWidget, Box):
             GLib.idle_add(self._finish_refresh, callback)
 
     def _update_slots_cache(self, networks: list[dict], is_wifi: bool):
-        """Асинхронное обновление кэша слотов."""
+        """Асинхронное обновление кэша слотов с пошаговым добавлением."""
 
         def create_slots():
             with self._slots_lock:
+                # Создаем новый пустой контейнер
                 new_cache = Box(orientation="vertical", spacing=4)
 
-                if networks:
-                    connected = [n for n in networks if n.get("in_use")]
-                    others = [n for n in networks if not n.get("in_use")]
+                if is_wifi:
+                    self._cached_wifi_slots = new_cache
+                else:
+                    self._cached_ethernet_slots = new_cache
 
-                    slots = []
-                    for network in connected + others:
-                        slot = (
-                            WifiNetworkSlot(network, self)
-                            if is_wifi
-                            else EthernetNetworkSlot(network, self)
-                        )
-                        slots.append(slot)
+                # Сразу показываем пустой контейнер
+                if (is_wifi and self._current_view == "wifi") or (
+                    not is_wifi and self._current_view == "ethernet"
+                ):
+                    GLib.idle_add(self._switch_cached_slots)
 
-                    # Добавляем слоты в основной поток порциями
-                    def add_batch(start, end):
-                        for i in range(start, min(end, len(slots))):
-                            new_cache.add(slots[i])
+                if not networks:
+                    GLib.idle_add(self._hide_status)
+                    return
 
-                        if end >= len(slots):
-                            # Все слоты добавлены, обновляем кэш
-                            if is_wifi:
-                                self._cached_wifi_slots = new_cache
-                            else:
-                                self._cached_ethernet_slots = new_cache
+                # Сортируем сети: сначала подключенные, затем остальные
+                connected = [n for n in networks if n.get("in_use")]
+                others = [n for n in networks if not n.get("in_use")]
+                all_networks = connected + others
+                slots = []
 
-                            if (is_wifi and self._current_view == "wifi") or (
-                                not is_wifi and self._current_view == "ethernet"
-                            ):
-                                GLib.idle_add(self._switch_cached_slots)
-                        else:
-                            # Продолжаем добавлять следующую порцию
-                            GLib.timeout_add(50, add_batch, end, end + 5)
+                # Создаем все слоты заранее
+                for network in all_networks:
+                    slot = (
+                        WifiNetworkSlot(network, self)
+                        if is_wifi
+                        else EthernetNetworkSlot(network, self)
+                    )
+                    slots.append(slot)
 
-                    # Начинаем добавлять слоты порциями по 5
-                    GLib.idle_add(add_batch, 0, 5)
+                def add_slot_step(index: int):
+                    if index < len(slots):
+                        new_cache.add(slots[index])
+                        new_cache.show_all()
 
-        # Запускаем создание слотов в отдельном потоке
+                        GLib.timeout_add(50, add_slot_step, index + 1)
+                    else:
+                        if (is_wifi and self._current_view == "wifi") or (
+                            not is_wifi and self._current_view == "ethernet"
+                        ):
+                            GLib.idle_add(
+                                self._show_temporary_status, "Networks loaded!", 2000
+                            )
+
+                GLib.idle_add(add_slot_step, 0)
+
         GLib.Thread.new(None, create_slots)
+
+    def start_refresh(self, btn):
+        """Запускает обновление списка сетей."""
+        self._show_persistent_status("Loading networks...")
+        btn.set_sensitive(False)
+
+        def run_scan():
+            try:
+                if self._current_view == "wifi":
+                    subprocess.run(
+                        ["nmcli", "device", "wifi", "rescan"],
+                        check=True,
+                        capture_output=True,
+                        text=True,
+                    )
+
+                wifi_networks = self._get_wifi_networks()
+                ethernet_networks = self._get_ethernet_connections()
+
+                GLib.idle_add(self._update_slots_cache, wifi_networks, True)
+                GLib.idle_add(self._update_slots_cache, ethernet_networks, False)
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Load failed: {e.stderr}")
+                GLib.idle_add(lambda: self._show_temporary_status("Load failed!"))
+            finally:
+                GLib.idle_add(lambda: btn.set_sensitive(True))
+
+        GLib.Thread.new(None, run_scan)
 
     def _get_ethernet_connections(self) -> list[dict]:
         """Получает список Ethernet соединений."""
@@ -739,7 +776,6 @@ class NetworkConnections(BaseDiWidget, Box):
             self.refresh_button.set_sensitive(False)
             self._clear_wifi_cache()
 
-
     def _get_wifi_networks(self) -> list[dict]:
         """Получает список WiFi сетей."""
         if not self._is_wifi_enabled():
@@ -794,35 +830,6 @@ class NetworkConnections(BaseDiWidget, Box):
         if callback:
             callback()
 
-    def start_refresh(self, btn):
-        """Запускает обновление списка сетей."""
-        self._show_persistent_status("Loading networks...")
-        btn.set_sensitive(False)
-
-        def run_scan():
-            try:
-                if self._current_view == "wifi":
-                    subprocess.run(
-                        ["nmcli", "device", "wifi", "rescan"],
-                        check=True,
-                        capture_output=True,
-                        text=True,
-                    )
-
-                wifi_networks = self._get_wifi_networks()
-                ethernet_networks = self._get_ethernet_connections()
-
-                GLib.idle_add(self._update_slots_cache, wifi_networks, True)
-                GLib.idle_add(self._update_slots_cache, ethernet_networks, False)
-                GLib.idle_add(lambda: self._show_temporary_status("Networks loaded!"))
-            except subprocess.CalledProcessError as e:
-                logger.error(f"Load failed: {e.stderr}")
-                GLib.idle_add(lambda: self._show_temporary_status("Load failed!"))
-            finally:
-                GLib.idle_add(lambda: btn.set_sensitive(True))
-
-        GLib.Thread.new(None, run_scan)
-
     def toggle_wifi(self, btn):
         """Переключает состояние WiFi."""
         if self._current_view != "wifi":
@@ -844,4 +851,3 @@ class NetworkConnections(BaseDiWidget, Box):
             error_msg="Failed to toggle WiFi",
             success_callback=if_success,
         )
-
