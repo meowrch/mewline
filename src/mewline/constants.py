@@ -139,7 +139,8 @@ KEYBINDINGS = {
     "app_launcher": (kb_prefix, "A", kb_di_open.format(module="app_launcher")),
     "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers")),
     "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji")),
-    "clip_history": (kb_prefix, "V", kb_di_open.format(module="clip_history"))
+    "clip_history": (kb_prefix, "V", kb_di_open.format(module="clip_history")),
+    "network": (kb_prefix, "N", kb_di_open.format(module="network")),
 }
 
 

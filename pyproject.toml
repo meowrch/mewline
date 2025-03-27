@@ -75,6 +75,10 @@ ignore = [
   "E501",
   # Docstrings not required
   "D1",
+  "S607",
+  "S603",
+  "RUF003",
+  "RUF002"
 ]
 
 [tool.ruff.lint.per-file-ignores]
