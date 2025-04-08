@@ -3,7 +3,7 @@
 @use "variable.scss";
 
 #ocr-menu {
-    background: theme.$background-dark;
+    background: theme.$background-base;
     border-radius: variable.$radius;
     padding: 0.45em;
 
@@ -12,15 +12,16 @@
         border-radius: variable.$radius;
 
         &:hover {
-            background-color: theme.$ocr-hover-bg;
+            background-color: theme.$background-highlight;
         }
 
         #ocr-menu-item {
-            color: theme.$ocr-text-color;
+            color: theme.$text-color;
 
             &.selected {
                 font-weight: bold;
-                color: theme.$ocr-active-text-color;
+                color: theme.$text-on-accent;
+                background-color: theme.$accent-color;
             }
         }
     }

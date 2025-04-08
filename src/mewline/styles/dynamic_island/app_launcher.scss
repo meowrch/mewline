@@ -1,60 +1,43 @@
 @use "sass:color";
 @use "../theme.scss";
-@use "../common/mixins.scss";
-@use "../variable.scss";
-@use "../common/functions.scss";
 
 #app-launcher-search-entry {
   font-weight: bold;
-  background-color: theme.$background;
-  color: theme.$text-main;
+  background-color: theme.$background-highlight;
+  color: theme.$text-color;
   border-radius: 15px;
   padding: 10px;
 
   selection {
-    color: theme.$background;
-    background-color: theme.$accent-lavender;
+    color: theme.$background-highlight;
+    background-color: theme.$accent-color;
   }
 }
 
 #app-launcher-close-button {
-  background-color: theme.$background;
+  background-color: theme.$background-highlight;
   border-radius: 15px;
   padding: 10px 13px;
 
   &:hover,
   &:focus {
-    background-color: theme.$accent-red;
+    background-color: theme.$accent-error;
   }
 
   &:active {
-    background-color: theme.$accent-red;
+    background-color: theme.$accent-error;
   }
 }
 
 #app-launcher-close-label {
-  color: var(--shadow);
-  background-color: theme.$accent-teal;
-  font-size: 16px;
-  padding: 4px;
-  border-radius: 999px;
+  color: theme.$text-color;
 }
 
 #app-launcher-scrolled-window {
   border-radius: 16px;
 
-  scrollbar {
-    border-radius: 10px;
-    background-color: theme.$background-dark;
-    padding: 4px;
-    margin-left: 6px;
-  }
-
   slider {
-    border-radius: 8px;
-    min-width: 8px;
     min-height: 48px;
-    background-color: theme.$accent-lavender;
   }
 }
 
@@ -78,11 +61,11 @@
   &:selected,
   &.selected,
   &:active {
-    background-color: theme.$app-l-item-focus;
+    background-color: theme.$accent-color;
     padding-left: 24px;
 
     #app-label {
-      color: theme.$app-l-item-focus-label;
+      color: theme.$background-base;
     }
   }
 }
@@ -92,6 +75,6 @@
 }
 
 #app-launcher-app-label {
-  color: theme.$app-l-item-label;
+  color: theme.$text-color;
   font-weight: bold;
 }

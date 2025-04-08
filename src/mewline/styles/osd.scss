@@ -1,26 +1,45 @@
 @use "sass:color";
 @use "theme.scss";
-@use "common/mixins.scss";
 @use "common/functions.scss";
 @use "variable.scss";
 
-/* OSD widget*/
-
 #osd-container {
-  background-color: theme.$background-dark;
+  background-color: theme.$background-base;
   padding: functions.toEm(12) functions.toEm(20);
   border-radius: variable.$radius-large;
   min-width: 200px;
   margin-bottom: 100px;
-  color: theme.$text-main;
+  color: theme.$text-color;
 
   #osd-icon {
-    color: theme.$text-main;
+    color: theme.$text-color;
   }
   #osd-level {
     font-weight: 600;
     min-width: 35px;
   }
 
-  @include mixins.slider;
+  slider {
+    min-height: 8px;
+    border-radius: variable.$radius;
+    background-color: transparent;
+    border: none;
+  }
+
+  scale {
+    min-width: 150px;
+  }
+
+  trough {
+    min-height: inherit;
+    border-radius: variable.$radius;
+    border: none;
+    background-color: theme.$background-base;
+  }
+
+  highlight,
+  progress {
+    background-color: white;
+    border-radius: variable.$radius;
+  }
 }

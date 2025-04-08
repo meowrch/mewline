@@ -13,39 +13,8 @@
 }
 
 %widget_hover {
-  background-color: theme.$background;
+  background-color: theme.$background-highlight;
   transition: border-color 400ms ease-in-out;
-}
-
-/* General Typography */
-%large_title {
-  font-weight: 300;
-  font-size: 32px;
-}
-
-%title_1 {
-  font-weight: 800;
-  font-size: 27px;
-}
-
-%title_2 {
-  font-weight: 800;
-  font-size: 20px;
-}
-
-%title_3 {
-  font-weight: 700;
-  font-size: 20px;
-}
-
-%title_5 {
-  font-weight: 700;
-  font-size: 16px;
-}
-
-%title_4 {
-  font-weight: 700;
-  font-size: 18px;
 }
 
 %heading {
@@ -53,26 +22,11 @@
   font-size: 14.6px;
 }
 
-%caption_heading {
-  font-weight: 700;
-  font-size: 13px;
-}
-
-%caption {
-  font-weight: 400;
-  font-size: 12px;
-}
-
-%smaller {
-  font-weight: 400;
-  font-size: 12px;
-}
-
 %widget {
   transition: 200ms;
   border-radius: variable.$radius;
-  color: theme.$text-main;
-  background-color: theme.$background-alt;
+  color: theme.$text-color;
+  background-color: theme.$background-element;
   border: variable.$border;
 }
 
@@ -80,7 +34,7 @@
   $radius: variable.$radius,
   $highlight-color: white,
   $length: 150px,
-  $slider-color: theme.$background-dark
+  $slider-color: theme.$background-base
 ) {
   slider {
     min-height: 8px;
@@ -112,23 +66,10 @@
   box-shadow: 0 0 1px 0 theme.$shadow-color;
   margin: max(variable.$spacing, 8px);
   border: variable.$border-width solid variable.$popover-border-color;
-  background-color: theme.$background-dark;
-  color: theme.$text-main;
+  background-color: theme.$background-base;
+  color: theme.$text-color;
   border-radius: $radius;
   padding: variable.$popover-padding;
-}
-
-@mixin switch {
-  slider {
-    background-color: theme.$background-dark;
-    border-radius: variable.$radius-large;
-    min-width: 24px;
-    min-height: 24px;
-  }
-
-  image {
-    color: transparent;
-  }
 }
 
 @mixin spacing($multiplier: 1, $spacing: variable.$spacing, $rec: false) {

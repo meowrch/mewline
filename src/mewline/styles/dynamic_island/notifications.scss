@@ -6,61 +6,59 @@
 
 #notification-action-buttons {
   button {
-    background-color: theme.$notify-action-btn-color;
+    background-color: theme.$accent-color;
     padding: 8px;
     margin-top: 8px;
 
-    &:hover {
-      background-color: theme.$notify-action-btn-hover-color;
-    }
-
+    &:hover,
     &:active {
-      background-color: theme.$notify-action-btn-active-color;
+      background-color: theme.$accent-color;
     }
 
     &.action {
-      border-radius: 10px;
+      border-radius: variable.$radius;
     }
   }
 }
 
 #notify-close-button {
   border-radius: variable.$radius-large;
-    padding: 3px;
+  padding: 3px;
 
-    &:hover {
-      box-shadow: none;
-      border: none;
-      background-color: theme.$notify-close-btn-color-hover;
-      transition: background 0.15s ease-in-out;
+  &:hover {
+    box-shadow: none;
+    border: none;
+    background-color: theme.$accent-color;
+    transition: background 0.15s ease-in-out;
 
-      .close-icon {
-        @extend %clear_icon;
-      }
+    .close-icon {
+      @extend %clear_icon;
+      color: theme.$text-on-accent;
     }
+  }
 }
 
 #notification-urgency-line {
-  background-color: theme.$notify-low-urgency-color;
+  background-color: theme.$accent-success;
   border-radius: 2px;
   min-height: 4px;
   margin: 0 2rem 0px 2rem;
 
   &.low-urgency {
-    background: theme.$notify-low-urgency-color;
+    background: theme.$accent-success;
   }
 
   &.normal-urgency {
-    background: theme.$notify-normal-urgency-color;
+    background: theme.$accent-success;
   }
 
   &.critical-urgency {
-    background: theme.$notify-critical-urgency-color;
+    background: theme.$accent-warning;
   }
 }
 
 #close-label {
-  color: theme.$notify-close-btn-label-color
+  color: theme.$text-color;
 }
 
 
@@ -77,13 +75,13 @@
 
 #notification-title {
   font-weight: bold;
-  color: theme.$notify-title-color;
+  color: theme.$text-color;
 }
 
 #notification-app-name {
-  color: theme.$notify-app-name-color;
+  color: theme.$text-color;
 }
 
 #notification-text {
-  color: theme.$notify-text-color;
+  color: theme.$text-color;
 }

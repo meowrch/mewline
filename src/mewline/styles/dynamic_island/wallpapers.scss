@@ -16,21 +16,21 @@
 }
 
 #wallpaper-icons:selected {
-  background-color: theme.$wallpapers-item-focus;
+  background-color: theme.$accent-color;
   border-radius: 15px;
 }
 
 #search-entry-walls {
   min-width: 560px;
   font-weight: bold;
-  background-color: theme.$wallpapers-search-bg;
-  color: theme.$wallpapers-search-label;
+  background-color: theme.$background-highlight;
+  color: theme.$text-color;
   border-radius: 15px;
   padding: 10px;
 
   selection {
-    color: theme.$wallpapers-search-label-focus;
-    background-color: theme.$wallpapers-search-focus;
+    color: theme.$background-base;
+    background-color: theme.$accent-color;
   }
 }
 
