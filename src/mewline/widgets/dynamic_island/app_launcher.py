@@ -53,6 +53,7 @@ class AppLauncher(BaseDiWidget, Box):
             min_content_size=(450, 105),
             max_content_size=(450, 105),
             child=self.viewport,
+            v_expand=True
         )
 
         self.header_box = Box(

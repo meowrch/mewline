@@ -28,7 +28,7 @@ class Clipboard(BaseDiWidget, Box):
     focuse_kb = True
 
     def __init__(self, dynamic_island: "DynamicIsland") -> None:
-        Box.__init__(self, name="clipboard")
+        Box.__init__(self, h_expand=True, name="clipboard")
 
         self.di = dynamic_island
         self.selected_index = -1
@@ -40,9 +40,10 @@ class Clipboard(BaseDiWidget, Box):
         self.viewport = Box(orientation="v", spacing=10)
         self.scrolled_window = ScrolledWindow(
             name="clipboard-scrolled-window",
-            min_content_size=(450, 200),
-            max_content_size=(450, 600),
+            min_content_size=(480, 200),
+            max_content_size=(480, 600),
             child=self.viewport,
+            v_expand=True
         )
 
         self.search_entry = Entry(

@@ -27,7 +27,7 @@
 }
 
 #dynamic-island-content {
-  background-color: theme.$background-dark;
+  background-color: theme.$background-base;
   min-height: 40px;
   min-width: 256px;
   border-radius: 0 0 20px 20px;
@@ -140,6 +140,6 @@
 #dynamic-island-corner-left,
 #dynamic-island-corner-right {
   #corner {
-    background-color: theme.$background-dark;
+    background-color: theme.$background-base;
   }
 }

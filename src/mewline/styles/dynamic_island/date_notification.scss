@@ -8,11 +8,11 @@
 #notification-history-el {
   padding: 0.9rem;
   border-radius: 1rem;
-  background-color: theme.$dnm-notify-history-element-bg;
+  background-color: theme.$background-highlight;
   transition: border 100ms ease-in-out;
 
   .text {
-    color: theme.$dnm-notify-history-text-color;
+    color: theme.$text-color;
     font-size: 13px;
   }
 
@@ -28,18 +28,19 @@
     &:hover {
       box-shadow: none;
       border: none;
-      background-color: theme.$dnm-notify-history-close-btn-hover-color;
+      background-color: theme.$accent-color;
       transition: background 0.15s ease-in-out;
 
       .close-icon {
         @extend %clear_icon;
+        color: theme.$text-on-accent;
       }
     }
   }
 
   .summary {
     @extend %heading;
-    color: theme.$dnm-notify-history-summury-color;
+    color: theme.$text-color;
     text-shadow: none;
   }
 
@@ -49,15 +50,15 @@
   }
 
   &.low-urgency {
-    border: variable.$border-width solid theme.$dnm-notify-low-urgency-border-color;
+    border: variable.$border-width solid theme.$background-element;
   }
 
   &.normal-urgency {
-    border: variable.$border-width solid theme.$dnm-notify-normal-urgency-border-color;
+    border: variable.$border-width solid theme.$background-element;
   }
 
   &.critical-urgency {
-    border: variable.$border-width solid theme.$dnm-notify-critical-urgency-border-color;
+    border: variable.$border-width solid theme.$accent-warning;
   }
 }
 
@@ -75,7 +76,8 @@
       margin-right: variable.$spacing;
 
       label {
-        @extend %smaller;
+        font-weight: 400;
+        font-size: 12px;
         padding-left: 1.5 * variable.$padding;
         padding-right: 1 * variable.$padding;
       }
@@ -84,7 +86,7 @@
         transition: all 75ms cubic-bezier(0, 0, 0.2, 1);
         margin: 4px 0;
         border-radius: 9999px;
-        background-color: theme.$dnm-dnd-switch;
+        background-color: theme.$background-element;
         background-clip: padding-box;
         font-size: 0;
         color: transparent;
@@ -96,16 +98,16 @@
           margin: 2px;
           border-radius: 9999px;
           outline: none;
-          background-color: theme.$dnm-dnd-switch-circle;
+          background-color: theme.$text-color;
           border: none;
           color: transparent;
         }
 
         &:checked {
-          background-color: theme.$dnm-dnd-switch-active;
+          background-color: theme.$accent-color;
 
           slider {
-            background-color: theme.$dnm-dnd-switch-circle-active;
+            background-color: theme.$background-highlight;
           }
         }
 
@@ -118,7 +120,7 @@
         padding: variable.$padding * 0.5 variable.$padding;
         border: variable.$border;
         border-radius: variable.$radius;
-        background-color: theme.$dnm-clear-btn;
+        background-color: theme.$background-highlight;
         margin-right: 5px;
         border-width: 2px;
 
@@ -127,7 +129,7 @@
         }
 
         &:hover {
-          background-color: theme.$dnm-clear-btn-hover;
+          background-color: theme.$background-element;
 
           #clear-icon {
             @extend %clear_icon;
@@ -155,7 +157,7 @@
   }
 
   separator {
-    background-color: theme.$dnm-separator-color;
+    background-color: theme.$accent-color;
     border-radius: variable.$radius;
     margin-right: variable.$spacing;
   }
@@ -165,18 +167,18 @@
       padding: variable.$padding;
 
       .clock {
-        color: theme.$dnm-clock-color;
+        color: theme.$text-color;
         font-size: 4.5em;
       }
 
       .uptime {
-        color: theme.$dnm-uptime-color;
+        color: theme.$text-muted;
       }
     }
 
     .calendar {
       @extend %widget;
-      background-color: theme.$dnm-calendar-background;
+      background-color: theme.$background-highlight;
 
       padding: variable.$padding * 2 variable.$padding * 2 0;
 
@@ -186,34 +188,34 @@
         &.button {
           transition: 200ms;
           border-radius: variable.$radius;
-          color: theme.$dnm-arrow-button-color;
+          color: theme.$text-color;
         }
 
         &:hover {
-          color: theme.$dnm-arrow-button-hover-color;
+          color: theme.$accent-color;
         }
 
         &:selected {
-          color: theme.$dnm-selected-color;
+          color: theme.$text-color;
           box-shadow:
-            inset 0 -5px 0 0 theme.$dnm-selected-highlight-color,
-            inset 0 0 0 1px theme.$dnm-selected-highlight-color;
+            inset 0 -5px 0 0 theme.$accent-color,
+            inset 0 0 0 1px theme.$accent-color;
           border-radius: variable.$radius * 0.6;
         }
 
         &.header {
           background-color: transparent;
           border: none;
-          color: theme.$dnm-month-year-color;
+          color: theme.$accent-color;
         }
 
         &.highlight {
           background-color: transparent;
-          color: theme.$dnm-weekdays-color;
+          color: theme.$accent-color;
         }
 
         &:indeterminate {
-          color: theme.$dnm-indeterminate-color;
+          color: theme.$text-secondary;
         }
 
         font-size: 0.98em;

@@ -29,29 +29,29 @@
 #emoji {
   #search-entry {
     font-weight: bold;
-    background-color: theme.$background;
-    color: theme.$text-main;
+    background-color: theme.$background-highlight;
+    color: theme.$text-color;
     border-radius: 15px;
     padding: 10px;
 
     selection {
-        color: theme.$background;
-        background-color: theme.$accent-lavender;
+        color: theme.$background-highlight;
+        background-color: theme.$accent-color;
     }
   }
 
   #close-button {
-    background-color: theme.$background;
+    background-color: theme.$background-highlight;
     border-radius: 15px;
     padding: 10px 13px;
 
     &:hover,
     &:focus {
-        background-color: theme.$accent-red;
+        background-color: theme.$accent-error;
     }
 
     &:active {
-        background-color: theme.$accent-red;
+        background-color: theme.$accent-error;
     }
   }
 
@@ -64,30 +64,19 @@
     &:focus,
     &:selected,
     &.selected {
-      background-color: theme.$accent-lavender;
+      background-color: theme.$accent-color;
       text-shadow: 0 0 4px theme.$shadow-color;
       animation: highlightEmojiSlot 0.25s cubic-bezier(0, 0, 0.5, 1);
     }
 
     &:active {
-      background-color: theme.$accent-lavender;
+      background-color: theme.$accent-color;
     }
   }
 
   #emoji-name-label {
-    color: var(--foreground);
+    color: theme.$text-on-accent;
     font-weight: bold;
-
-    #emoji-slot-button:hover &,
-    #emoji-slot-button:focus &,
-    #emoji-slot-button:selected &,
-    #emoji-slot-button.selected & {
-      color: theme.$accent-lavender;
-    }
-
-    #emoji-slot-button:active & {
-      color: theme.$shadow-color;
-    }
   }
 
   #emoji-char-label {

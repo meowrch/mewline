@@ -7,23 +7,16 @@
 
   label {
     font-size: 24px;
-    color: theme.$power-menu-icon-color;
+    color: theme.$text-color;
   }
 
   &:hover,
-  &:focus {
-    background-color: theme.$power-menu-btn-hover;
-
-    label {
-      color: theme.$power-menu-btn-icon-hover;
-    }
-  }
-
+  &:focus,
   &:active {
-    background-color: theme.$power-menu-btn-active;
+    background-color: theme.$accent-color;
 
     label {
-      color: theme.$power-menu-btn-icon-active;
+      color: theme.$text-on-accent;
     }
   }
 }

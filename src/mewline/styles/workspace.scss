@@ -4,8 +4,6 @@
 
 $workspace-transition: all 0.4s cubic-bezier(0.55, -0.68, 0.48, 1.682);
 
-/** workspace switcher widget */
-
 #workspaces {
   padding: 0.19em 1em;
   font-weight: 700;
@@ -16,11 +14,11 @@ $workspace-transition: all 0.4s cubic-bezier(0.55, -0.68, 0.48, 1.682);
     border-radius: variable.$radius-large;
 
     &:hover {
-      background-color: theme.$ws-hover;
+      background-color: theme.$accent-color;
       transition: $workspace-transition;
 
       label {
-        color: theme.$background-dark;
+        color: theme.$background-base;
       }
     }
 
@@ -28,12 +26,12 @@ $workspace-transition: all 0.4s cubic-bezier(0.55, -0.68, 0.48, 1.682);
       font-weight: 600;
       padding-left: functions.toEm(14);
       padding-right: functions.toEm(14);
-      background-color: theme.$ws-active;
+      background-color: theme.$accent-color;
       min-width: 1.4rem;
       transition: $workspace-transition;
 
       & > label {
-        color: theme.$background-dark;
+        color: theme.$background-base;
       }
     }
   }

@@ -1,56 +1,45 @@
 @use "sass:color";
 @use "../theme.scss";
-@use "../common/mixins.scss";
 
 #clipboard-history {
-  background-color: theme.$background-dark;
+  background-color: theme.$background-base;
   border-radius: 16px;
   padding: 12px;
 }
 
 #clipboard-search-entry {
   font-weight: 500;
-  background-color: theme.$background;
-  color: theme.$text-main;
+  background-color: theme.$background-highlight;
+  color: theme.$text-color;
   border-radius: 15px;
   padding: 10px;
   
   selection {
-    color: theme.$background;
-    background-color: theme.$accent-lavender;
+    color: theme.$background-highlight;
+    background-color: theme.$accent-color;
   }
 }
 
 #clipboard-close-button {
-  background-color: theme.$background;
+  background-color: theme.$background-highlight;
   border-radius: 15px;
   padding: 10px 13px;
 
   &:hover,
   &:focus {
-    background-color: theme.$accent-red;
+    background-color: theme.$accent-error;
   }
 
   &:active {
-    background-color: theme.$accent-red;
+    background-color: theme.$accent-error;
   }
 }
 
 #clipboard-scrolled-window {
   border-radius: 16px;
 
-  scrollbar {
-    border-radius: 10px;
-    background-color: theme.$background-dark;
-    padding: 4px;
-    margin-left: 6px;
-  }
-
   slider {
-    border-radius: 8px;
-    min-width: 8px;
     min-height: 48px;
-    background-color: theme.$accent-lavender;
   }
 }
 
@@ -58,7 +47,7 @@
   border-radius: 10px;
   transition: padding 0.25s cubic-bezier(0.5, 0.25, 0, 1);
   animation: loadSlot 0.5s ease;
-  background-color: theme.$background;
+  background-color: theme.$background-highlight;
   padding: 10px;
 
   @keyframes loadSlot {
@@ -75,11 +64,11 @@
   &:selected,
   &.selected,
   &:active {
-    background-color: theme.$app-l-item-focus;
+    background-color: theme.$accent-color;
     padding-left: 24px;
 
     #clipboard-item-label {
-      color: theme.$app-l-item-focus-label;
+      color: theme.$text-on-accent;
     }
   }
 }

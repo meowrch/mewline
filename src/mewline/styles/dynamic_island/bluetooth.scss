@@ -8,7 +8,7 @@
     }
 
     &-device {
-      background-color: theme.$bluetooth-device-color;
+      background-color: theme.$background-highlight;
       border-radius: 16px;
       padding: 4px;
       margin-bottom: 4px;
@@ -16,8 +16,8 @@
 
     &-scan,
     &-toggle {
-      background-color: theme.$bluetooth-scan-background;
-      color: theme.$bluetooth-scan-text-color;
+      background-color: theme.$background-highlight;
+      color: theme.$text-color;
       border-radius: 16px;
       padding: 8px 16px;
       min-width: 96px;
@@ -29,18 +29,18 @@
 
     &-toggle {
       &.enabled {
-        color: theme.$bluetooth-toggle-active-text-color;
-        background-color: theme.$bluetooth-toggle-active-background;
+        color: theme.$background-base;
+        background-color: theme.$accent-success;
       }
       &.disabled {
-        color: theme.$bluetooth-toggle-text-color;
-        background-color: theme.$bluetooth-toggle-background;
+        color: theme.$background-base;
+        background-color: theme.$accent-error;
       }
     }
 
     &-text {
       font-weight: bold;
-      color: theme.$bluetooth-title;
+      color: theme.$text-color;
     }
 
     &-connection {
@@ -48,8 +48,8 @@
     }
 
     &-connect {
-      background-color: theme.$bluetooth-connect-background;
-      color: theme.$bluetooth-connect-text-color;
+      background-color: theme.$background-element;
+      color: theme.$text-color;
       border-radius: 16px;
       padding: 8px 16px;
     }
