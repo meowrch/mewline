@@ -1,0 +1,26 @@
+name: Update AUR with KSXGitHub Action
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Publish to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@master
+        with:
+          pkgname: mewline-git
+          pkgbuild: ./PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
+          commit_message: "Update PKGBUILD from GitHub"
+          ssh_keyscan_types: "rsa,ecdsa,ed25519"
+          allow_empty_commits: "true"  # Разрешить пустые коммиты
