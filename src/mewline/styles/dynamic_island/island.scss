@@ -33,7 +33,7 @@
   border-radius: 0 0 20px 20px;
   transition: all 0.5s cubic-bezier(0.5, 0.25, 0, 1.25);
 
-  &.power_menu {
+  &.power-menu {
     min-height: 80px;
     min-width: 320px;
     border-radius: 0 0 36px 36px;
@@ -61,9 +61,8 @@
   }
 
   &.date-notification {
-    padding: 16px;
-    min-height: 45px;
-    min-width: 360px;
+    min-height: 300px;
+    min-width: 500px;
     border-radius: 0 0 36px 36px;
   }
 
@@ -81,30 +80,30 @@
     border-radius: 0 0 36px 36px;
   }
 
-  #launcher-box {
+  &.app-launcher {
     padding: 16px;
     min-height: 220px;
     min-width: 480px;
     border-radius: 0 0 36px 36px;
   }
 
-  #clipboard {
+  &.clipboard {
     padding: 16px;
-    min-height: 220px;
-    min-width: 480px;
+    min-height: 300px;
+    min-width: 500px;
     border-radius: 0 0 36px 36px;
   }
 }
 
 #power-menu,
 #notification,
-#date-notification,
 #bluetooth,
+#network,
+#date-notification,
 #wallpapers,
 #emoji,
-#clipboard,
-#network,
-#app-launcher {
+#app-launcher,
+#clipboard {
   opacity: 1;
   margin: -800px;
   transition: all 0.25s cubic-bezier(0.5, 0.25, 0, 1);

@@ -133,13 +133,13 @@ DEFAULT_CONFIG = {
 kb_prefix = "Super+Alt"
 kb_di_open = "fabric-cli invoke-action mewline dynamic-island-open \"{module}\""
 KEYBINDINGS = {
-    "power_menu": (kb_prefix, "P", kb_di_open.format(module="power_menu")),
-    "date_notification": (kb_prefix, "D", kb_di_open.format(module="date_notification")),
+    "power-menu": (kb_prefix, "P", kb_di_open.format(module="power-menu")),
+    "date-notification": (kb_prefix, "D", kb_di_open.format(module="date-notification")),
     "bluetooth": (kb_prefix, "B", kb_di_open.format(module="bluetooth")),
-    "app_launcher": (kb_prefix, "A", kb_di_open.format(module="app_launcher")),
+    "app-launcher": (kb_prefix, "A", kb_di_open.format(module="app-launcher")),
     "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers")),
     "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji")),
-    "clip_history": (kb_prefix, "V", kb_di_open.format(module="clip_history")),
+    "clipboard": (kb_prefix, "V", kb_di_open.format(module="clipboard")),
     "network": (kb_prefix, "N", kb_di_open.format(module="network")),
 }
 
