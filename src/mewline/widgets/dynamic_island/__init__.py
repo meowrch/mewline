@@ -45,19 +45,19 @@ class DynamicIsland(Window):
         self.app_launcher = AppLauncher(self)
         self.wallpapers = WallpaperSelector()
         self.emoji = EmojiPicker(self)
-        self.clip_history = Clipboard(self)
+        self.clipboard = Clipboard(self)
         self.network = NetworkConnections()
 
         self.widgets: dict[str, type[BaseDiWidget]] = {
             "compact": self.compact,
             "notification": self.notification,
-            "date_notification": self.date_notification,
-            "power_menu": self.power_menu,
+            "date-notification": self.date_notification,
+            "power-menu": self.power_menu,
             "bluetooth": self.bluetooth,
-            "app_launcher": self.app_launcher,
+            "app-launcher": self.app_launcher,
             "wallpapers": self.wallpapers,
             "emoji": self.emoji,
-            "clip_history": self.clip_history,
+            "clipboard": self.clipboard,
             "network": self.network,
         }
         self.current_widget: str | None = None
