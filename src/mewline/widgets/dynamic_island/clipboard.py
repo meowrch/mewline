@@ -93,8 +93,8 @@ class Clipboard(BaseDiWidget, Box):
     def load_history(self) -> None:
         self.history.clear()
         try:
-            output = subprocess.check_output(  # noqa: S603
-                ["cliphist", "list"],  # noqa: S607
+            output = subprocess.check_output(
+                ["cliphist", "list"],
                 text=True,
                 stderr=subprocess.PIPE,
             )
@@ -122,8 +122,8 @@ class Clipboard(BaseDiWidget, Box):
 
     def cliphist_decode(self, raw: str) -> bytes | None:
         try:
-            proc = subprocess.run(  # noqa: S603
-                ["cliphist", "decode"],  # noqa: S607
+            proc = subprocess.run(
+                ["cliphist", "decode"],
                 input=raw.encode(),
                 capture_output=True,
                 check=True,

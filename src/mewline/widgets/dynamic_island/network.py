@@ -342,18 +342,18 @@ class BaseNetworkSlot(CenterBox):
 class WifiNetworkSlot(BaseNetworkSlot):
     """Слот для WiFi сети."""
 
-    SIGNAL_ICONS = [  # noqa: RUF012
+    SIGNAL_ICONS = (
         "󰤟",  # Уровень 0
         "󰤢",  # Уровень 1
         "󰤥",  # Уровень 2
         "󰤨",  # Уровень 3 (максимальный)
-    ]
-    SECURED_SIGNAL_ICONS = [  # noqa: RUF012
+    )
+    SECURED_SIGNAL_ICONS = (
         "󰤡",  # Уровень 0 с защитой
         "󰤤",  # Уровень 1 с защитой
         "󰤧",  # Уровень 2 с защитой
         "󰤪",  # Уровень 3 с защитой
-    ]
+    )
 
     def _get_display_name(self) -> str:
         return self.network_info["ssid"]

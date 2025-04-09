@@ -53,7 +53,7 @@ def change_hypr_config():
 
     # Reload Hyprland configuration
     try:
-        subprocess.run(["hyprctl", "reload"], check=True)  # noqa: S603, S607
+        subprocess.run(["hyprctl", "reload"], check=True)
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to send notification: {e}")
 

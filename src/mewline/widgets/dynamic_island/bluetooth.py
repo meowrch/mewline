@@ -77,7 +77,7 @@ class BluetoothDeviceSlot(CenterBox):
         try:
             command = shlex.split(f"bluetoothctl remove {shlex.quote(mac_address)}")
 
-            result = subprocess.run(  # noqa: S603
+            result = subprocess.run(
                 command,
                 capture_output=True,
                 text=True,

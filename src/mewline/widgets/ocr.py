@@ -75,8 +75,8 @@ class OCRWidget(ButtonWidget):
     def _get_selection_area(self, timeout=30):
         """Obtaining the selection area from the user."""
         try:
-            result = subprocess.run(  # noqa: S603
-                ["slurp"],  # noqa: S607
+            result = subprocess.run(
+                ["slurp"],
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -106,8 +106,8 @@ class OCRWidget(ButtonWidget):
         path_to_img = cnst.APP_CACHE_DIRECTORY / "ocr.png"
 
         try:
-            subprocess.run(  # noqa: S603
-                ["grim", "-g", selection, str(path_to_img)],  # noqa: S607
+            subprocess.run(
+                ["grim", "-g", selection, str(path_to_img)],
                 check=True,
                 timeout=timeout,
             )
