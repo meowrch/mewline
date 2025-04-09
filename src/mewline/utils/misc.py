@@ -153,7 +153,7 @@ def send_notification(
         raise ValueError("Timeout must be an integer")
 
     try:
-        subprocess.run(command, check=True)  # noqa: S603
+        subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
         logger.error(f"Failed to send notification: {e}")
 

@@ -223,10 +223,13 @@ class EmojiPicker(BaseDiWidget, Box):
     def get_all_emoji_buttons(self):
         buttons = []
         current_page = self.stack.get_visible_child()
-        if current_page and current_page.get_children():  # noqa: SIM102
-            if current_page.get_children()[0].get_children():
-                for row_box in current_page.get_children()[0].get_children():
-                    buttons.extend(row_box.get_children())
+        if (
+            current_page
+            and current_page.get_children()
+            and current_page.get_children()[0].get_children()
+        ):
+            for row_box in current_page.get_children()[0].get_children():
+                buttons.extend(row_box.get_children())
         return buttons
 
     def on_search_entry_activate(self, text):

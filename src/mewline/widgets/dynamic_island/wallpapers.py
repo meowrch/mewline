@@ -31,8 +31,8 @@ class WallpaperApply:
         cursor_pos = "0,0"
 
         try:
-            output = subprocess.check_output(  # noqa: S603
-                ["wlr-randr", "--json"],  # noqa: S607
+            output = subprocess.check_output(
+                ["wlr-randr", "--json"],
                 stderr=subprocess.DEVNULL,
                 text=True,
             )
@@ -50,8 +50,8 @@ class WallpaperApply:
             )
 
         try:
-            output = subprocess.check_output(  # noqa: S603
-                ["hyprctl", "cursorpos"],  # noqa: S607
+            output = subprocess.check_output(
+                ["hyprctl", "cursorpos"],
                 text=True,
             ).strip()
 
@@ -63,8 +63,8 @@ class WallpaperApply:
             )
 
         try:
-            subprocess.run(  # noqa: S603
-                [  # noqa: S607
+            subprocess.run(
+                [
                     "swww",
                     "img",
                     str(wallpaper),
@@ -110,20 +110,23 @@ class WallpaperSelector(BaseDiWidget, Box):
         # and with hyphens instead of spaces)
         with os.scandir(self.WALLPAPERS_DIR) as entries:
             for entry in entries:
-                if entry.is_file() and self._is_image(entry.name):  # noqa: SIM102
-                    # Check if the file needs renaming:
-                    # №file should be lowercase and have hyphens instead of spaces
-                    if entry.name != entry.name.lower() or " " in entry.name:
-                        new_name = entry.name.lower().replace(" ", "-")
-                        full_path = os.path.join(self.WALLPAPERS_DIR, entry.name)
-                        new_full_path = os.path.join(self.WALLPAPERS_DIR, new_name)
-                        try:
-                            os.rename(full_path, new_full_path)
-                            print(
-                                f"Renamed old wallpaper '{full_path}' to '{new_full_path}'"
-                            )
-                        except Exception as e:
-                            print(f"Error renaming file {full_path}: {e}")
+                # Check if the file needs renaming:
+                # №file should be lowercase and have hyphens instead of spaces
+                if (
+                    entry.is_file()
+                    and self._is_image(entry.name)
+                    and (entry.name != entry.name.lower() or " " in entry.name)
+                ):
+                    new_name = entry.name.lower().replace(" ", "-")
+                    full_path = os.path.join(self.WALLPAPERS_DIR, entry.name)
+                    new_full_path = os.path.join(self.WALLPAPERS_DIR, new_name)
+                    try:
+                        os.rename(full_path, new_full_path)
+                        print(
+                            f"Renamed old wallpaper '{full_path}' to '{new_full_path}'"
+                        )
+                    except Exception as e:
+                        print(f"Error renaming file {full_path}: {e}")
 
         # Refresh the file list after potential renaming
         self.files = sorted(
@@ -224,15 +227,18 @@ class WallpaperSelector(BaseDiWidget, Box):
                     self.files.append(file_name)
                     self.files.sort()
                     self.executor.submit(self._process_file, file_name)
-        elif event_type == Gio.FileMonitorEvent.CHANGED:  # noqa: SIM102
-            if self._is_image(file_name) and file_name in self.files:
-                cache_path = self._get_cache_path(file_name)
-                if os.path.exists(cache_path):
-                    try:
-                        os.remove(cache_path)
-                    except Exception as e:
-                        print(f"Error deleting cache for changed file {file_name}: {e}")
-                self.executor.submit(self._process_file, file_name)
+        elif (
+            event_type == Gio.FileMonitorEvent.CHANGED
+            and self._is_image(file_name)
+            and file_name in self.files
+        ):
+            cache_path = self._get_cache_path(file_name)
+            if os.path.exists(cache_path):
+                try:
+                    os.remove(cache_path)
+                except Exception as e:
+                    print(f"Error deleting cache for changed file {file_name}: {e}")
+            self.executor.submit(self._process_file, file_name)
 
     def arrange_viewport(self, query: str = ""):
         model = self.viewport.get_model()
@@ -263,8 +269,8 @@ class WallpaperSelector(BaseDiWidget, Box):
             WallpaperApply.apply_with_swww(full_path)
         else:
             logger.warning(
-                f"Installing wallpaper \"{full_path}\" using default method (swww)."
-                f"Because there is no implementation for method \"{self.config.method}\"."
+                f'Installing wallpaper "{full_path}" using default method (swww).'
+                f'Because there is no implementation for method "{self.config.method}".'
             )
 
     def on_search_entry_key_press(self, widget, event):
@@ -365,8 +371,9 @@ class WallpaperSelector(BaseDiWidget, Box):
         return False
 
     def _get_cache_path(self, file_name: str) -> str:
-        file_hash = hashlib.md5(  # noqa: S324
-            f"{file_name}".encode()
+        file_hash = hashlib.md5(
+            f"{file_name}".encode(),
+            usedforsecurity=False
         ).hexdigest()
         return os.path.join(self.CACHE_DIR, f"{file_hash}.png")
 

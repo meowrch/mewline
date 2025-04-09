@@ -128,13 +128,13 @@ class MprisPlayer(Service):
 
     @Property(str or None, "readable")
     def arturl(self) -> str | None:
-        if "mpris:artUrl" in self.metadata.keys():  # type: ignore  # noqa: SIM118
+        if "mpris:artUrl" in self.metadata:  # type: ignore
             return self.metadata["mpris:artUrl"]  # type: ignore
         return None
 
     @Property(str or None, "readable")
     def length(self) -> str | None:
-        if "mpris:length" in self.metadata.keys():  # type: ignore  # noqa: SIM118
+        if "mpris:length" in self.metadata:  # type: ignore
             return self.metadata["mpris:length"]  # type: ignore
         return None
 
