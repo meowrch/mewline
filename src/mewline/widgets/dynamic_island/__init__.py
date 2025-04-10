@@ -144,7 +144,7 @@ class DynamicIsland(Window):
         self.current_widget = None
         self.stack.set_visible_child(self.compact)
 
-    def open(self, widget: str = "date_notification") -> None:
+    def open(self, widget: str = "date-notification") -> None:
         if widget == "compact":
             self.current_widget = None
             return
@@ -157,22 +157,24 @@ class DynamicIsland(Window):
             self.stack.remove_style_class(style)
             w.remove_style_class("open")
 
+        if widget not in self.widgets:
+            widget = "date-notification"
+
         self.current_widget = widget
-        if widget in self.widgets:
-            if self.widgets[widget].focuse_kb:
-                self.set_keyboard_mode("exclusive")
 
-            self.stack.add_style_class(widget)
-            self.stack.set_visible_child(self.widgets[widget])
-            self.widgets[widget].add_style_class("open")
-            self.call_module_method_if_exists(
-                self.widgets[self.current_widget], "open_widget_from_di"
-            )
+        if self.widgets[widget].focuse_kb:
+            self.set_keyboard_mode("exclusive")
 
-            if widget == "notification":
-                self.set_keyboard_mode("none")
-        else:
-            self.stack.set_visible_child(self.dashboard)
+        self.stack.add_style_class(widget)
+        self.stack.set_visible_child(self.widgets[widget])
+        self.widgets[widget].add_style_class("open")
+        self.call_module_method_if_exists(
+            self.widgets[self.current_widget], "open_widget_from_di"
+        )
+
+        if widget == "notification":
+            self.set_keyboard_mode("none")
+
 
     def toggle_hidden(self):
         self.hidden = not self.hidden
