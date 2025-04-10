@@ -49,7 +49,7 @@ class Compact(BaseDiWidget, CenterBox):
         compact_button = Button(
             name="compact-label",
             child=self.main_container,
-            on_clicked=lambda *_: di.open("date_notification"),
+            on_clicked=lambda *_: di.open("date-notification"),
         )
         setup_cursor_hover(compact_button)
 
