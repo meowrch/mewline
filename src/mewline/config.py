@@ -1,5 +1,6 @@
 import json
 import subprocess
+import traceback
 from pathlib import Path
 
 from loguru import logger
@@ -71,6 +72,7 @@ def load_config(path: Path) -> Config:
             config = Config(**config_dict)
             return config
     except Exception:
+        print(traceback.format_exc())
         logger.warning(
             f"Warning: The config file '{path}' is invalid. Using default config."
         )
