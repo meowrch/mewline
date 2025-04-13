@@ -12,8 +12,11 @@ APP_FOLDER = Path(__file__).resolve().parent
 SYSTEM_CACHE_DIR = Path(GLib.get_user_cache_dir())
 APP_CACHE_DIRECTORY = SYSTEM_CACHE_DIR / APPLICATION_NAME
 
-WALLPAPERS_DIR = Path.home() / ".config" / "meowrch" / "wallpapers"
+DEFAULT_WALLPAPERS_DIRS = [
+    Path.home() / "wallpapers"
+]
 WALLPAPERS_THUMBS_DIR = APP_CACHE_DIRECTORY / "thumbs"
+CACHE_MAPPING_FILEPATH = WALLPAPERS_THUMBS_DIR / "cache_mapping.json"
 
 STYLES_FOLDER = APP_FOLDER / "styles"
 DIST_FOLDER = APP_CACHE_DIRECTORY / "dist"
@@ -121,7 +124,10 @@ DEFAULT_CONFIG = {
                 }
             },
             "wallpapers": {
-                "method": "swww"
+                "method": "swww",
+                "wallpapers_dirs": [
+                    *map(str, DEFAULT_WALLPAPERS_DIRS)
+                ],
             }
         },
     },

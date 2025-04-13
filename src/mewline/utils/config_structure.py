@@ -110,8 +110,8 @@ class Compact(BaseModel):
 
 
 class WallpapersMenu(BaseModel):
-    wallpapers_dir: str = Field(
-        default=cnst.WALLPAPERS_DIR, description="Directory containing wallpapers"
+    wallpapers_dirs: list[str] = Field(
+        default=cnst.DEFAULT_WALLPAPERS_DIRS, description="Directory containing wallpapers"
     )
     method: Literal["swww"]
 
