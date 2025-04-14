@@ -50,8 +50,6 @@ class AppLauncher(BaseDiWidget, Box):
         self.scrolled_window = ScrolledWindow(
             name="app-launcher-scrolled-window",
             spacing=10,
-            min_content_size=(450, 105),
-            max_content_size=(450, 105),
             child=self.viewport,
             v_expand=True,
         )
