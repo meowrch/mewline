@@ -29,8 +29,8 @@ class DynamicIsland(Window):
             margin="-41px 10px 10px 41px",
             keyboard_mode="none",
             exclusivity="normal",
-            visible=True,
-            all_visible=True,
+            visible=False,
+            all_visible=False
         )
 
         self.hidden = False
@@ -112,6 +112,7 @@ class DynamicIsland(Window):
         ##==> Show the dynamic island
         ######################################
         self.add(self.di_box)
+        self.show()
 
     def call_module_method_if_exists(
         self, module: BaseDiWidget, method_name: str, **kwargs
