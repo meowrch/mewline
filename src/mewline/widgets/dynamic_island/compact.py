@@ -43,8 +43,7 @@ class Compact(BaseDiWidget, CenterBox):
         )
 
         self.main_container = Box(
-            name="di-compact-main-container",
-            children=[self.window_title]
+            name="di-compact-main-container", children=[self.window_title]
         )
         compact_button = Button(
             name="compact-label",
@@ -92,7 +91,7 @@ class Compact(BaseDiWidget, CenterBox):
         if not matched:
             return f"󰣆 {win_class.lower()}"
 
-        if matched[0] == "^$":
+        if matched[0] == "^$" or win_class == "undefined":
             base = f"{os.getlogin()}@{os.uname().nodename}"
             return (
                 f"{matched[1]} {base}"
@@ -153,8 +152,7 @@ class Compact(BaseDiWidget, CenterBox):
 
         # Обновление обложки
         art_url = (
-            self.current_mpris_player.arturl
-            or self.config.music.default_album_logo
+            self.current_mpris_player.arturl or self.config.music.default_album_logo
         )
         self.cover.set_style(
             f"background-image: url('{art_url}'); background-size: cover;"
