@@ -9,7 +9,7 @@ from mewline import constants as cnst
 from mewline.config import cfg
 from mewline.config import change_hypr_config
 from mewline.config import generate_default_config
-from mewline.utils.misc import disable_logging
+from mewline.utils.setup_loguru import setup_loguru
 from mewline.utils.theming import copy_theme
 from mewline.utils.theming import process_and_apply_css
 from mewline.widgets import StatusBar
@@ -17,12 +17,16 @@ from mewline.widgets.dynamic_island import DynamicIsland
 from mewline.widgets.osd import OSDContainer
 from mewline.widgets.screen_corners import ScreenCorners
 
+##==> Настраиваем loguru
+################################
+setup_loguru()
+
 
 def create_keybindings():
     change_hypr_config()
 
+
 def main():
-    disable_logging()
     ##==> Creating App
     ##############################
     app = Application(
@@ -30,7 +34,7 @@ def main():
         ScreenCorners(),
         StatusBar(),
         DynamicIsland(),
-        OSDContainer()
+        OSDContainer(),
     )
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)
