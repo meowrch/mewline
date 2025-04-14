@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.11"
 
 [[package]]
@@ -81,7 +82,7 @@ name = "click"
 version = "8.1.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "platform_system == 'Windows'" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/b9/2e/0090cbf739cee7d23781ad4b89a9894a41538e4fcf4c31dcdd705b78eb8b/click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a", size = 226593 }
 wheels = [
@@ -95,6 +96,20 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335 },
+]
+
+[[package]]
+name = "cysystemd"
+version = "2.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d2/23/00950116890136fddd94fc6a176eb04f006e689bec4db5bf5727587ede09/cysystemd-2.0.1.tar.gz", hash = "sha256:632fe56264a18b7af3d1efd09125d6d5c1ec97d29ad6192c412ee43105821d61", size = 304093 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a5/b9/86c887ec4879edcba99e6db1bcddc9c35e989a489a4761a3987be82f3957/cysystemd-2.0.1-cp311-cp311-manylinux_2_34_aarch64.whl", hash = "sha256:8f50d7d4057406c4b30ae5604f061687fcaa7c5e541935c7b4817166c870fc11", size = 2326556 },
+    { url = "https://files.pythonhosted.org/packages/ac/05/699da6b7463c772312f6ef91784d199b65574a925019e18d7e56ba591858/cysystemd-2.0.1-cp311-cp311-manylinux_2_34_x86_64.whl", hash = "sha256:78dc5187193b2b959987e38c29d66e9fb625de5f93f2aec58eb7553aa504ed1d", size = 2455862 },
+    { url = "https://files.pythonhosted.org/packages/62/41/ced57b3e8f65840c7a793baf0c53715ded901458cb3ff5c56225d7c39b23/cysystemd-2.0.1-cp312-cp312-manylinux_2_34_aarch64.whl", hash = "sha256:cd5543e1b1d96c5f327203506a46df96235e8b984cf0cfb4b85f0348975b7957", size = 2319026 },
+    { url = "https://files.pythonhosted.org/packages/21/22/afd2153b4100c7a8849a0810932c0636143b226d9ee0d8a761e233f0f8ce/cysystemd-2.0.1-cp312-cp312-manylinux_2_34_x86_64.whl", hash = "sha256:39b03dcfced76957ede5f3f21956b5687a0511bdd1d0d41f2d3dffc9df32320d", size = 2454117 },
+    { url = "https://files.pythonhosted.org/packages/51/66/48174df96d46d426d6a3bf605df21b10aa98752bd98f32b7e8e1edaddb08/cysystemd-2.0.1-cp313-cp313-manylinux_2_34_aarch64.whl", hash = "sha256:017b924d42ee92f6736714b78d51f81aded6b5f34e44dc7e2e92cbe2598e3611", size = 2304347 },
+    { url = "https://files.pythonhosted.org/packages/c8/8a/c02db9ef01f0dc1dec06f0cbbe2e4132b119b6ae455a650d736b47fdd7a6/cysystemd-2.0.1-cp313-cp313-manylinux_2_34_x86_64.whl", hash = "sha256:d9d89125cafee3cc0a898faf9fe53f9166ea6625393b75d606eef2901a8c3023", size = 2438764 },
 ]
 
 [[package]]
@@ -230,6 +245,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pytesseract" },
     { name = "setproctitle" },
+    { name = "systemd" },
 ]
 
 [package.dev-dependencies]
@@ -254,6 +270,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.10.6" },
     { name = "pytesseract", specifier = ">=0.3.13" },
     { name = "setproctitle", specifier = ">=1.3.4" },
+    { name = "systemd", specifier = ">=0.17.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -598,6 +615,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/5f/ea/3ce61e70a6b898e95c0a1e393964c829103dc4ad4b0732cd70c8fc13e54c/setproctitle-1.3.4-cp313-cp313-win32.whl", hash = "sha256:091f682809a4d12291cf0205517619d2e7014986b7b00ebecfde3d76f8ae5a8f", size = 11349 },
     { url = "https://files.pythonhosted.org/packages/e7/1a/8149da1c19db6bd57164d62b1d91c188e7d77e695947cf1ac327c8aea513/setproctitle-1.3.4-cp313-cp313-win_amd64.whl", hash = "sha256:adcd6ba863a315702184d92d3d3bbff290514f24a14695d310f02ae5e28bd1f7", size = 12062 },
 ]
+
+[[package]]
+name = "systemd"
+version = "0.17.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cysystemd" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/22/c5/130c4c053315655308819fddc38e522640000ba32e2799512a15a4b2ea65/systemd-0.17.1.tar.gz", hash = "sha256:f502cca7306efcaa6bfd6a4c7d1117822e05e5abede5040d5866235c88ab7ccf", size = 1345 }
 
 [[package]]
 name = "typing-extensions"

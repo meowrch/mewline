@@ -203,16 +203,6 @@ def unique_list(lst) -> list:
 def is_app_running(app_name: str) -> bool:
     return len(exec_shell_command(f"pidof {app_name}")) != 0
 
-
-def disable_logging():
-    for log in [
-        "fabric.hyprland.widgets",
-        "fabric.audio.service",
-        "fabric.bluetooth.service",
-    ]:
-        logger.disable(log)
-
-
 def ttl_lru_cache(seconds_to_live: int, maxsize: int = 128):
     def wrapper(func):
         @lru_cache(maxsize)
