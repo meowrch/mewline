@@ -11,6 +11,11 @@ repos:
       - id: detect-private-key
       - id: debug-statements
 
+  - repo: https://github.com/jendrikseipp/vulture
+    rev: v2.14
+    hooks:
+      - id: vulture
+
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.19.1
     hooks:

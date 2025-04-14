@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 class ActionButton(Button):
     def __init__(
-        self, action: NotificationAction, index: int, total: int, notification_box
+        self, action: NotificationAction, _index: int, _total: int, notification_box
     ):
         super().__init__(
             name="action-button",
@@ -50,7 +50,11 @@ class ActionButton(Button):
 
 class NotificationBox(Box):
     def __init__(self, notification: Notification, timeout_ms=5000, **kwargs):
-        urgency_class = {0: ("low-urgency", False), 1: ("normal-urgency", False), 2: ("critical-urgency", True)}
+        urgency_class = {
+            0: ("low-urgency", False),
+            1: ("normal-urgency", False),
+            2: ("critical-urgency", True),
+        }
 
         super().__init__(
             name="notification-box",
@@ -65,10 +69,14 @@ class NotificationBox(Box):
                         self.create_action_buttons(notification),
                         Box(
                             name="notification-urgency-line",
-                            visible=urgency_class.get(notification.urgency, urgency_class[0])[1],
+                            visible=urgency_class.get(
+                                notification.urgency, urgency_class[0]
+                            )[1],
                             h_expand=True,
                             h_align="fill",
-                            style_classes=urgency_class.get(notification.urgency, urgency_class[0])[0],
+                            style_classes=urgency_class.get(
+                                notification.urgency, urgency_class[0]
+                            )[0],
                         ),
                     ],
                 ),

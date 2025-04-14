@@ -25,6 +25,7 @@ dev = [
     "detect-secrets>=1.5.0",
     "pre-commit>=4.1.0",
     "ruff>=0.9.4",
+    "vulture>=2.14",
 ]
 stubs = [
     "pygobject-stubs>=2.12.0",
@@ -78,7 +79,8 @@ ignore = [
   "S607",
   "S603",
   "RUF003",
-  "RUF002"
+  "RUF002",
+  "S112"
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -95,3 +97,14 @@ convention = "google"
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
+
+[tool.vulture]
+ignore_decorators = ["@Signal", "@Property"]
+paths = ["src/mewline", "whitelist-vulture"]
+sort_by_size = true
+ignore_names = [
+  "open_widget_from_di",
+  "overlays",
+  "start_children",
+  "end_children"
+]

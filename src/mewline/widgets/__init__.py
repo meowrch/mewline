@@ -20,8 +20,6 @@ from mewline.widgets.workspaces import HyprlandWorkSpacesWidget
 class StatusBar(WaylandWindow):
     """A widget to display the status bar panel."""
 
-    widgets_list: dict
-
     def __init__(self, **kwargs):
         box = CenterBox(
             name="panel-inner",

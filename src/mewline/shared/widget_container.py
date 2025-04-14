@@ -1,6 +1,5 @@
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
-from fabric.widgets.eventbox import EventBox
 
 from mewline.utils.widget_utils import setup_cursor_hover
 
@@ -15,20 +14,6 @@ class BoxWidget(Box):
             **kwargs,
         )
         self.add_style_class("default")
-
-
-class EventBoxWidget(EventBox):
-    """A container for box widgets."""
-
-    def __init__(self, **kwargs):
-        super().__init__(
-            name="panel-eventbox",
-            **kwargs,
-        )
-        self.connect(
-            "child-notify",
-            lambda *_: self.children[0].add_style_class("default"),
-        )
 
 
 class ButtonWidget(Button):

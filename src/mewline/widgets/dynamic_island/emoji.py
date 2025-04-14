@@ -88,12 +88,6 @@ class EmojiPicker(BaseDiWidget, Box):
         self.selected_index = -1
         self.di.close()
 
-    def open_picker(self):
-        self.search_entry.set_text("")
-        self.current_page_index = 0
-        self.arrange_viewport()
-        self.search_entry.grab_focus()
-
     def arrange_viewport(self, query: str = ""):
         remove_handler(self._arranger_handler) if self._arranger_handler else None
         self.stack.children = []

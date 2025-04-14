@@ -8,22 +8,9 @@ from fabric.utils import bulk_connect
 from gi.repository import GLib  # type: ignore
 from loguru import logger
 
-
-class PlayerctlImportError(ImportError):
-    """An error to raise when playerctl is not installed."""
-
-    def __init__(self, *args):
-        super().__init__(
-            "Playerctl is not installed, please install it first",
-            *args,
-        )
-
-
 try:
     gi.require_version("Playerctl", "2.0")
     from gi.repository import Playerctl
-
-    # from gi.repository import Playerctl  # type: ignore
 except ValueError:
     logger.error("Playerctl is not installed, please install it first")
     exit(1)
