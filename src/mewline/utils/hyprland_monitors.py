@@ -33,13 +33,6 @@ class HyprlandMonitors(Hyprland):
         self.display: Gdk.Display = Gdk.Display.get_default()
         super().__init__(commands_only, **kwargs)
 
-    # Add new arguments
-    def get_all_monitors(self) -> dict:
-        monitors = json.loads(self.send_command("j/monitors").reply)
-        return {
-            monitor["id"]: monitor["name"] for monitor in monitors
-        }
-
     def get_gdk_monitor_id_from_name(
         self, plug_name: str
     ) -> int | None:
@@ -51,14 +44,6 @@ class HyprlandMonitors(Hyprland):
                 == plug_name
             ):
                 return i
-        return None
-
-    def get_gdk_monitor_id(self, hyprland_id: int) -> int | None:
-        monitors = self.get_all_monitors()
-        if hyprland_id in monitors:
-            return self.get_gdk_monitor_id_from_name(
-                monitors[hyprland_id]
-            )
         return None
 
     def get_current_gdk_monitor_id(self) -> int | None:

@@ -174,11 +174,3 @@ class DynamicIsland(Window):
 
         if widget == "notification":
             self.set_keyboard_mode("none")
-
-
-    def toggle_hidden(self):
-        self.hidden = not self.hidden
-        if self.hidden:
-            self.di_box.add_style_class("hidden")
-        else:
-            self.di_box.remove_style_class("hidden")

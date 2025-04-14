@@ -27,7 +27,6 @@ class BaseNetworkSlot(CenterBox):
         self.network_info = network_info
         self.parent = parent
         self.interface = self._get_interface()
-        self.is_expanded = False
         self.password_entry = None
         self.is_saved = self._is_saved_connection()
 

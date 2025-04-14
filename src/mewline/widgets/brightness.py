@@ -8,7 +8,6 @@ from gi.repository import GLib
 from mewline import constants as cnst
 from mewline.config import cfg
 from mewline.services import brightness_service
-from mewline.shared.widget_container import EventBoxWidget
 from mewline.utils.misc import convert_to_percent
 from mewline.utils.widget_utils import get_brightness_icon
 from mewline.utils.widget_utils import text_icon

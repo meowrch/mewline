@@ -10,9 +10,9 @@ from fabric.widgets.wayland import WaylandWindow as Window
 from gi.repository import GObject
 
 from mewline import constants as cnst
+from mewline.config import cfg
 from mewline.services import audio_service
 from mewline.services import brightness_service
-from mewline.utils.hyprland_monitors import HyprlandMonitors
 from mewline.utils.misc import convert_to_percent
 from mewline.utils.widget_utils import create_scale
 from mewline.utils.widget_utils import get_audio_icon
@@ -34,9 +34,7 @@ class GenericOSDContainer(Box):
             name="osd-level", h_align="center", h_expand=True, visible=False
         )
         self.icon: Label = text_icon(
-            icon=cnst.icons["brightness"]["medium"],
-            size="24px",
-            name="osd-icon"
+            icon=cnst.icons["brightness"]["medium"], size="24px", name="osd-icon"
         )
         self.scale = create_scale()
 
@@ -69,8 +67,10 @@ class BrightnessOSDContainer(GenericOSDContainer):
         self.level.set_label(f"{current_brightness}%")
         self.icon.set_label(icon)
 
-    def on_brightness_changed(self, sender, value, *args):
-        normalized_brightness = (value / self.brightness_service.max_brightness_level) * 101
+    def on_brightness_changed(self, _sender, value, *args):
+        normalized_brightness = (
+            value / self.brightness_service.max_brightness_level
+        ) * 101
         self.scale.animate_value(normalized_brightness)
 
 
@@ -130,10 +130,11 @@ class OSDContainer(Window):
         keyboard_mode: Literal["none", "exclusive", "on-demand"] = "on-demand",
         **kwargs,
     ):
+        self.config = cfg.modules.osd
         self.audio_container = AudioOSDContainer()
         self.brightness_container = BrightnessOSDContainer()
 
-        self.timeout = 1500  # TODO
+        self.timeout = self.config.timeout
 
         self.revealer = Revealer(
             name="osd-revealer",
@@ -144,16 +145,13 @@ class OSDContainer(Window):
 
         super().__init__(
             layer="overlay",
-            anchor="bottom-center",  # TODO
+            anchor=self.config.anchor,
             child=self.revealer,
             visible=False,
             pass_through=True,
             keyboard_mode=keyboard_mode,
             **kwargs,
         )
-
-        self.monitor = HyprlandMonitors().get_current_gdk_monitor_id()
-
         self.last_activity_time = time.time()
 
         self.audio_container.audio.connect("notify::speaker", self.show_audio)

@@ -154,7 +154,7 @@ class Compact(BaseDiWidget, CenterBox):
         # Обновление обложки
         art_url = (
             self.current_mpris_player.arturl
-            or ""
+            or self.config.music.default_album_logo
         )
         self.cover.set_style(
             f"background-image: url('{art_url}'); background-size: cover;"

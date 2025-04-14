@@ -6,16 +6,6 @@ from fabric import Service
 from fabric import Signal
 from loguru import logger
 
-DeviceState = {
-    0: "UNKNOWN",
-    1: "CHARGING",
-    2: "DISCHARGING",
-    3: "EMPTY",
-    4: "FULLY_CHARGED",
-    5: "PENDING_CHARGE",
-    6: "PENDING_DISCHARGE",
-}
-
 
 class BatteryService(Service):
     """Service to interact with the PowerProfiles service."""

@@ -71,7 +71,6 @@ class MicrophoneModule(BaseModel):
 
 
 class BatteryModule(BaseModel):
-    hide_label_when_full: bool
     label: bool
     tooltip: bool
 
@@ -111,7 +110,8 @@ class Compact(BaseModel):
 
 class WallpapersMenu(BaseModel):
     wallpapers_dirs: list[str] = Field(
-        default=cnst.DEFAULT_WALLPAPERS_DIRS, description="Directory containing wallpapers"
+        default=cnst.DEFAULT_WALLPAPERS_DIRS,
+        description="Directory containing wallpapers",
     )
     method: Literal["swww"]
 

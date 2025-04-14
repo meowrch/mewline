@@ -2,11 +2,6 @@ from pathlib import Path
 
 from gi.repository import GLib
 
-NOTIFICATION_WIDTH = 400
-NOTIFICATION_IMAGE_SIZE = 64
-NOTIFICATION_ACTION_NUMBER = 3
-HIGH_POLL_INTERVAL = 1000 * 3600  # 1 hour
-
 APPLICATION_NAME = "mewline"
 APP_FOLDER = Path(__file__).resolve().parent
 SYSTEM_CACHE_DIR = Path(GLib.get_user_cache_dir())
@@ -46,7 +41,7 @@ DEFAULT_CONFIG = {
         "osd_enabled": True,
     },
     "modules": {
-        "osd": {"timeout": 1500, "anchor": "bottom center"},
+        "osd": {"timeout": 1500, "anchor": "bottom-center"},
         "workspaces": {
             "count": 8,
             "hide_unoccupied": True,
@@ -80,7 +75,6 @@ DEFAULT_CONFIG = {
             "step_size": 5,
         },
         "battery": {
-            "hide_label_when_full": True,
             "label": True,
             "tooltip": True,
         },

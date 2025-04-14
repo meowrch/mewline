@@ -223,7 +223,7 @@ class WallpaperSelector(BaseDiWidget, Box):
             symlink_monitor.connect("changed", self.on_symlink_changed)
             self.symlink_monitors.append(symlink_monitor)
 
-    def on_symlink_changed(self, monitor, file, other_file, event_type):
+    def on_symlink_changed(self, _monitor, _file, _other_file, event_type):
         if event_type in (
             Gio.FileMonitorEvent.CHANGES_DONE_HINT,
             Gio.FileMonitorEvent.CHANGED,
@@ -273,7 +273,7 @@ class WallpaperSelector(BaseDiWidget, Box):
         self.files_with_paths.sort(key=lambda x: x[0].lower())
         self._start_thumbnail_thread()
 
-    def on_directory_changed(self, monitor, file, _other_file, event_type):
+    def on_directory_changed(self, _monitor, file, _other_file, event_type):
         file_name = file.get_basename()
         file_parent = os.path.dirname(file.get_path())
 

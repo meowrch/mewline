@@ -64,8 +64,8 @@ class NotificationHistoryEl(Box):
             if image_pixbuf := self._notification.image_pixbuf:
                 self.image = CustomImage(
                     pixbuf=image_pixbuf.scale_simple(
-                        cnst.NOTIFICATION_IMAGE_SIZE,
-                        cnst.NOTIFICATION_IMAGE_SIZE,
+                        64,
+                        64,
                         GdkPixbuf.InterpType.BILINEAR,
                     ),
                     style_classes="image",

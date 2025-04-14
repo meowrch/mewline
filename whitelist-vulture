@@ -1,0 +1,7 @@
+_._duration  # unused attribute (src/mewline/shared/animator.py:76)
+_.xalign  # unused attribute (src/mewline/widgets/dynamic_island/app_launcher.py:49)
+_.xalign  # unused attribute (src/mewline/widgets/dynamic_island/clipboard.py:57)
+_.xalign  # unused attribute (src/mewline/widgets/dynamic_island/emoji.py:57)
+_.xalign  # unused attribute (src/mewline/widgets/dynamic_island/wallpapers.py:159)
+_.toggle_shuffle  # unused method (src/mewline/services/mpris.py:87)
+_.stop  # unused method (src/mewline/shared/animator.py:174)

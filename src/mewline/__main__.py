@@ -29,13 +29,16 @@ def create_keybindings():
 def main():
     ##==> Creating App
     ##############################
-    app = Application(
-        cnst.APPLICATION_NAME,
-        ScreenCorners(),
-        StatusBar(),
-        DynamicIsland(),
-        OSDContainer(),
-    )
+    widgets = []
+
+    if cfg.options.screen_corners:
+        widgets.append(ScreenCorners())
+
+    if cfg.options.osd_enabled:
+        widgets.append(OSDContainer())
+
+    widgets.extend((StatusBar(), DynamicIsland()))
+    app = Application(cnst.APPLICATION_NAME, *widgets)
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)
     cnst.APP_CACHE_DIRECTORY.mkdir(parents=True, exist_ok=True)
@@ -55,7 +58,7 @@ def main():
     app.run()
 
 
-if __name__ == "__main__":
+if __name__ == "main":
     parser = argparse.ArgumentParser(
         description="Mewline: A minimalist status bar for meowrch."
     )

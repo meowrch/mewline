@@ -53,7 +53,7 @@ class AppLauncher(BaseDiWidget, Box):
             min_content_size=(450, 105),
             max_content_size=(450, 105),
             child=self.viewport,
-            v_expand=True
+            v_expand=True,
         )
 
         self.header_box = Box(
@@ -98,7 +98,7 @@ class AppLauncher(BaseDiWidget, Box):
         self.selected_index = -1  # Reset selection
         self.di.close()
 
-    def open_launcher(self) -> None:
+    def open_widget_from_di(self) -> None:
         self._all_apps = get_desktop_applications()
         self.arrange_viewport()
 
@@ -160,9 +160,7 @@ class AppLauncher(BaseDiWidget, Box):
                 orientation="h",
                 spacing=10,
                 children=[
-                    Image(
-                        pixbuf=app.get_icon_pixbuf(size=24)
-                    ),
+                    Image(pixbuf=app.get_icon_pixbuf(size=24)),
                     Label(
                         name="app-label",
                         label=app.display_name or "Unknown",
