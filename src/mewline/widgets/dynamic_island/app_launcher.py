@@ -1,5 +1,6 @@
 import operator
 from collections.abc import Iterator
+from threading import Lock
 from typing import TYPE_CHECKING
 
 from fabric.utils import DesktopApp
@@ -25,6 +26,8 @@ if TYPE_CHECKING:
 
 class AppLauncher(BaseDiWidget, Box):
     focuse_kb = True
+    checking_changes_lock = Lock()
+    arranging_viewport_lock = Lock()
 
     def __init__(self, dynamic_island: "DynamicIsland") -> None:
         Box.__init__(self, name="app-launcher", visible=False, all_visible=False)
@@ -97,37 +100,63 @@ class AppLauncher(BaseDiWidget, Box):
         self.di.close()
 
     def open_widget_from_di(self) -> None:
-        self._all_apps = get_desktop_applications()
-        self.arrange_viewport()
+        GLib.Thread.new("app_launcher_checking_for_changes", self._check_changes)
+
+    def _check_changes(self) -> None:
+        with self.checking_changes_lock:
+            new_apps = get_desktop_applications()
+
+            if not self._all_apps:
+                self._all_apps = new_apps
+                self.arrange_viewport()
+                return
+
+            new_app_names = [a.name for a in new_apps]
+            old_app_names = [a.name for a in self._all_apps]
+
+            if set(old_app_names) != set(new_app_names):
+                self._all_apps = new_apps
+                self.arrange_viewport()
+                return
 
     def arrange_viewport(self, query: str = "") -> None:
-        remove_handler(self._arranger_handler) if self._arranger_handler else None
-        self.viewport.children = []
-        self.selected_index = -1  # Clear selection when viewport changes
+        GLib.Thread.new(
+            "app_launcher_arrange_viewport",
+            self._arrange_viewport,
+            query,
+        )
 
-        filtered_apps_iter = iter(
-            sorted(
-                [
-                    app
-                    for app in self._all_apps
-                    if query.casefold()
-                    in (
-                        (app.display_name or "")
-                        + (" " + app.name + " ")
-                        + (app.generic_name or "")
-                    ).casefold()
-                ],
-                key=lambda app: (app.display_name or "").casefold(),
+    def _arrange_viewport(self, query: str = "") -> None:
+        with self.arranging_viewport_lock:
+            remove_handler(self._arranger_handler) if self._arranger_handler else None
+            self.viewport.children = []
+            self.selected_index = -1  # Clear selection when viewport changes
+
+            filtered_apps_iter = iter(
+                sorted(
+                    [
+                        app
+                        for app in self._all_apps
+                        if query.casefold()
+                        in (
+                            (app.display_name or "")
+                            + (" " + app.name + " ")
+                            + (app.generic_name or "")
+                        ).casefold()
+                    ],
+                    key=lambda app: (app.display_name or "").casefold(),
+                )
             )
-        )
-        should_resize = operator.length_hint(filtered_apps_iter) == len(self._all_apps)
+            should_resize = operator.length_hint(filtered_apps_iter) == len(
+                self._all_apps
+            )
 
-        self._arranger_handler = idle_add(
-            lambda apps_iter: self.add_next_application(apps_iter)
-            or self.handle_arrange_complete(should_resize, query),
-            filtered_apps_iter,
-            pin=True,
-        )
+            self._arranger_handler = idle_add(
+                lambda apps_iter: self.add_next_application(apps_iter)
+                or self.handle_arrange_complete(should_resize, query),
+                filtered_apps_iter,
+                pin=True,
+            )
 
     def handle_arrange_complete(self, should_resize, query) -> bool:
         if should_resize:
