@@ -58,7 +58,7 @@ def main():
     app.run()
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Mewline: A minimalist status bar for meowrch."
     )
