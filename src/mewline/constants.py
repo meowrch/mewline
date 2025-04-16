@@ -7,11 +7,11 @@ APP_FOLDER = Path(__file__).resolve().parent
 SYSTEM_CACHE_DIR = Path(GLib.get_user_cache_dir())
 APP_CACHE_DIRECTORY = SYSTEM_CACHE_DIR / APPLICATION_NAME
 
-DEFAULT_WALLPAPERS_DIRS = [
-    Path.home() / "wallpapers"
-]
+DEFAULT_WALLPAPERS_DIRS = [Path.home() / "wallpapers"]
 WALLPAPERS_THUMBS_DIR = APP_CACHE_DIRECTORY / "thumbs"
 CACHE_MAPPING_FILEPATH = WALLPAPERS_THUMBS_DIR / "cache_mapping.json"
+
+THEMES_THUMBS_DIR = APP_CACHE_DIRECTORY / "themes_thumbs"
 
 STYLES_FOLDER = APP_FOLDER / "styles"
 DIST_FOLDER = APP_CACHE_DIRECTORY / "dist"
@@ -108,21 +108,19 @@ DEFAULT_CONFIG = {
                     "enable_icon": True,
                     "truncation": True,
                     "truncation_size": 50,
-                    "title_map": []
+                    "title_map": [],
                 },
                 "music": {
                     "enabled": True,
                     "truncation": True,
                     "truncation_size": 30,
-                    "default_album_logo": "https://sonos-partner-documentation.s3.amazonaws.com/ReadMe-External/content-service-features/add-images/add-album-art/SonosApp-DefaultArt-Alone.png"
-                }
+                    "default_album_logo": "https://sonos-partner-documentation.s3.amazonaws.com/ReadMe-External/content-service-features/add-images/add-album-art/SonosApp-DefaultArt-Alone.png",
+                },
             },
             "wallpapers": {
                 "method": "swww",
-                "wallpapers_dirs": [
-                    *map(str, DEFAULT_WALLPAPERS_DIRS)
-                ],
-            }
+                "wallpapers_dirs": [*map(str, DEFAULT_WALLPAPERS_DIRS)],
+            },
         },
     },
 }
@@ -131,16 +129,25 @@ DEFAULT_CONFIG = {
 ##==> Keybindings (prefix, suffix, command)
 ############################################
 kb_prefix = "Super+Alt"
-kb_di_open = "fabric-cli invoke-action mewline dynamic-island-open \"{module}\""
+kb_di_open = 'fabric-cli invoke-action mewline dynamic-island-open "{module}"'
 KEYBINDINGS = {
     "power-menu": (kb_prefix, "P", kb_di_open.format(module="power-menu")),
-    "date-notification": (kb_prefix, "D", kb_di_open.format(module="date-notification")),
+    "date-notification": (
+        kb_prefix,
+        "D",
+        kb_di_open.format(module="date-notification"),
+    ),
     "bluetooth": (kb_prefix, "B", kb_di_open.format(module="bluetooth")),
     "app-launcher": (kb_prefix, "A", kb_di_open.format(module="app-launcher")),
     "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers")),
     "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji")),
     "clipboard": (kb_prefix, "V", kb_di_open.format(module="clipboard")),
     "network": (kb_prefix, "N", kb_di_open.format(module="network")),
+    "pawlette-themes": (
+        kb_prefix,
+        "T",
+        kb_di_open.format(module="pawlette-themes"),
+    ),
 }
 
 
@@ -174,17 +181,14 @@ icons = {
         "low": "󰕿",
         "muted": "󰝟",
     },
-    "microphone": {
-        "active": "",
-        "muted": ""
-    },
+    "microphone": {"active": "", "muted": ""},
     "brightness": {
         "symbolic": "display-brightness-symbolic",
         "off": "󰃝",
         "low": "󰃞",
         "medium": "󰃟",
-        "high": "󰃠"
-    }
+        "high": "󰃠",
+    },
 }
 
 

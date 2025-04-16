@@ -10,6 +10,7 @@
 @use "./emoji.scss";
 @use "./clipboard.scss";
 @use "./network.scss";
+@use "./pawlette_themes.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -93,6 +94,13 @@
     min-width: 500px;
     border-radius: 0 0 36px 36px;
   }
+
+  &.pawlette-themes {
+    padding: 16px;
+    min-height: 420px;
+    min-width: 620px;
+    border-radius: 0 0 36px 36px;    
+  }
 }
 
 #power-menu,
@@ -103,7 +111,8 @@
 #wallpapers,
 #emoji,
 #app-launcher,
-#clipboard {
+#clipboard,
+#pawlette-themes {
   opacity: 1;
   margin: -800px;
   transition: all 0.25s cubic-bezier(0.5, 0.25, 0, 1);

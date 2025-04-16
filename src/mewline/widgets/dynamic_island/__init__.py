@@ -13,6 +13,7 @@ from mewline.widgets.dynamic_island.date_notification import DateNotificationMen
 from mewline.widgets.dynamic_island.emoji import EmojiPicker
 from mewline.widgets.dynamic_island.network import NetworkConnections
 from mewline.widgets.dynamic_island.notifications import NotificationContainer
+from mewline.widgets.dynamic_island.pawlette_themes import PawletteThemes
 from mewline.widgets.dynamic_island.power import PowerMenu
 from mewline.widgets.dynamic_island.wallpapers import WallpaperSelector
 from mewline.widgets.screen_corners import MyCorner
@@ -30,7 +31,7 @@ class DynamicIsland(Window):
             keyboard_mode="none",
             exclusivity="normal",
             visible=False,
-            all_visible=False
+            all_visible=False,
         )
 
         self.hidden = False
@@ -47,6 +48,7 @@ class DynamicIsland(Window):
         self.emoji = EmojiPicker(self)
         self.clipboard = Clipboard(self)
         self.network = NetworkConnections()
+        self.pawlette_themes = PawletteThemes()
 
         self.widgets: dict[str, type[BaseDiWidget]] = {
             "compact": self.compact,
@@ -59,6 +61,7 @@ class DynamicIsland(Window):
             "emoji": self.emoji,
             "clipboard": self.clipboard,
             "network": self.network,
+            "pawlette-themes": self.pawlette_themes
         }
         self.current_widget: str | None = None
 
