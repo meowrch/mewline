@@ -427,7 +427,7 @@ class WallpaperSelector(BaseDiWidget, Box):
                     top = (img.height - size) // 2
                     img_cropped = img.crop((left, top, left + size, top + size))
                     img_cropped = img_cropped.convert("RGBA").resize(
-                        (96, 96), Image.LANCZOS
+                        (500, 500), Image.LANCZOS
                     )
                     img_cropped = self._add_rounded_corners(img_cropped, 15)
 
@@ -448,8 +448,12 @@ class WallpaperSelector(BaseDiWidget, Box):
                 if os.path.exists(cache_path):
                     try:
                         pixbuf = GdkPixbuf.Pixbuf.new_from_file(cache_path)
-                        self.thumbnails.append((pixbuf, file_name))
-                        processed.append((pixbuf, file_name))
+                        scaled_pixbuf = pixbuf.scale_simple(
+                            96, 96,
+                            GdkPixbuf.InterpType.BILINEAR
+                        )
+                        self.thumbnails.append((scaled_pixbuf, file_name))
+                        processed.append((scaled_pixbuf, file_name))
                     except Exception:
                         continue
             if processed:
