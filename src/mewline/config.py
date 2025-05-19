@@ -10,9 +10,9 @@ from mewline.utils.config_structure import Config
 
 
 def generate_default_config():
-    cnst.MEWLINE_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    cnst.MEWLINE_THEMES_FOLDER.mkdir(parents=True, exist_ok=True)
-    with open(cnst.MEWLINE_CONFIG_PATH, "w", encoding="utf-8") as f:
+    cnst.APP_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    cnst.APP_THEMES_FOLDER.mkdir(parents=True, exist_ok=True)
+    with open(cnst.APP_CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(
             obj=cnst.DEFAULT_CONFIG,
             fp=f,
@@ -79,4 +79,4 @@ def load_config(path: Path) -> Config:
         return Config(**cnst.DEFAULT_CONFIG)
 
 
-cfg: Config = load_config(cnst.MEWLINE_CONFIG_PATH)
+cfg: Config = load_config(cnst.APP_CONFIG_PATH)
