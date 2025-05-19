@@ -1,8 +1,8 @@
 # Maintainer: Dmitry <dimflix.official@gmail.com>
-pkgname=mewline-git
-pkgver=r1.0.0
+pkgname=mewline
+pkgver=1.0.0  # Автоматически обновится в workflow
 pkgrel=1
-pkgdesc="😺 Elegant and extensible status bar for the meowrch distribution"
+pkgdesc="😺 Elegant and extensible status bar for the meowrch distribution (stable)"
 arch=('any')
 url="https://github.com/meowrch/mewline"
 license=('MIT')
@@ -17,17 +17,12 @@ depends=(
   'tesseract-data-rus'
   'cliphist'
 )
-makedepends=('python-uv' 'git' 'python-virtualenv')
-source=("git+$url.git")
-sha256sums=('SKIP')
-
-pkgver() {
-  cd "$srcdir/mewline"
-  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
-}
+makedepends=('python-uv' 'python-virtualenv')
+source=("$url/releases/download/v$pkgver/mewline-v$pkgver.tar.gz")
+sha256sums=('SKIP')  # Автоматическая замена в workflow
 
 package() {
-  cd "$srcdir/mewline"
+  cd "$srcdir/mewline-v$pkgver"
 
   # Install virtual environment
   install -d -m755 "$pkgdir/opt/$pkgname"
@@ -40,7 +35,7 @@ package() {
   # Create launch script
   install -Dm755 /dev/stdin "$pkgdir/usr/bin/mewline" << EOF
 #!/bin/sh
-cd /opt/mewline-git
+cd /opt/mewline
 exec .venv/bin/python run.py "\$@"
 EOF
 
@@ -48,5 +43,4 @@ EOF
   chmod -R a+rwX "$pkgdir/opt/$pkgname/src/mewline/styles"
   find "$pkgdir/opt/$pkgname/src/mewline/styles" -type d -exec chmod 777 {} +
   find "$pkgdir/opt/$pkgname/src/mewline/styles" -type f -exec chmod 666 {} +
-  chmod 755 "$pkgdir/usr/bin/mewline"
 }
