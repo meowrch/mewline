@@ -31,7 +31,9 @@ COMPILED_STYLE = DIST_FOLDER / "main.css"
 
 ##==> Settings of other modules
 ##############################################################
-DEFAULT_WALLPAPERS_DIRS = [Path.home() / "wallpapers"]
+DEFAULT_WALLPAPERS_DIR = XDG_DATA_HOME / "wallpapers"
+LIST_WALLPAPERS_PATHS = [DEFAULT_WALLPAPERS_DIR]
+DEFAULT_CURRENT_WALL_PATH = DEFAULT_WALLPAPERS_DIR / ".current.wall"
 WALLPAPERS_THUMBS_DIR = APP_CACHE_DIRECTORY / "thumbs"
 CACHE_MAPPING_FILEPATH = WALLPAPERS_THUMBS_DIR / "cache_mapping.json"
 
@@ -154,7 +156,9 @@ DEFAULT_CONFIG = {
             },
             "wallpapers": {
                 "method": "swww",
-                "wallpapers_dirs": [*map(str, DEFAULT_WALLPAPERS_DIRS)],
+                "wallpapers_dirs": [*map(str, LIST_WALLPAPERS_PATHS)],
+                "save_current_wall": True,
+                "current_wall_path": str(DEFAULT_CURRENT_WALL_PATH)
             },
         },
     },
