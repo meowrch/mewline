@@ -364,6 +364,17 @@ class WallpaperSelector(BaseDiWidget, Box):
             )
             WallpaperApply.apply_with_swww(full_path)
 
+        if self.config.save_current_wall:
+            try:
+                current_wall = Path(self.config.current_wall_path)
+                current_wall.parent.mkdir(parents=True, exist_ok=True)
+                current_wall.unlink(missing_ok=True)
+                current_wall.symlink_to(target=full_path)
+            except Exception:
+                logger.warning(
+                    f'Failed to set a link to the current wallpaper at path "{self.config.current_wall_path}"'
+                )
+
     def on_search_entry_key_press(self, widget, event):
         if event.keyval in (Gdk.KEY_Up, Gdk.KEY_Down, Gdk.KEY_Left, Gdk.KEY_Right):
             self.move_selection_2d(event.keyval)
@@ -449,8 +460,7 @@ class WallpaperSelector(BaseDiWidget, Box):
                     try:
                         pixbuf = GdkPixbuf.Pixbuf.new_from_file(cache_path)
                         scaled_pixbuf = pixbuf.scale_simple(
-                            96, 96,
-                            GdkPixbuf.InterpType.BILINEAR
+                            96, 96, GdkPixbuf.InterpType.BILINEAR
                         )
                         self.thumbnails.append((scaled_pixbuf, file_name))
                         processed.append((scaled_pixbuf, file_name))

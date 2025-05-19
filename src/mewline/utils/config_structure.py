@@ -1,9 +1,6 @@
 from typing import Literal
 
 from pydantic import BaseModel
-from pydantic import Field
-
-from mewline import constants as cnst
 
 
 class Theme(BaseModel):
@@ -109,11 +106,11 @@ class Compact(BaseModel):
 
 
 class WallpapersMenu(BaseModel):
-    wallpapers_dirs: list[str] = Field(
-        default=cnst.DEFAULT_WALLPAPERS_DIRS,
-        description="Directory containing wallpapers",
-    )
+    wallpapers_dirs: list[str]
     method: Literal["swww"]
+    save_current_wall: bool
+    current_wall_path: str
+
 
 
 class DynamicIsland(BaseModel):
