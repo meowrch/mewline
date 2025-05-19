@@ -115,15 +115,21 @@ class MprisPlayer(Service):
 
     @Property(str or None, "readable")
     def arturl(self) -> str | None:
-        if "mpris:artUrl" in self.metadata:  # type: ignore
-            return self.metadata["mpris:artUrl"]  # type: ignore
-        return None
+        art_url_variant = self.metadata.lookup_value("mpris:artUrl")
+        if not art_url_variant:
+            return None
+
+        art_url = art_url_variant.get_string()
+
+        if not art_url or not art_url.startswith(("http://", "https://", "file://")):
+            return None
+
+        return art_url
 
     @Property(str or None, "readable")
     def length(self) -> str | None:
-        if "mpris:length" in self.metadata:  # type: ignore
-            return self.metadata["mpris:length"]  # type: ignore
-        return None
+        length = self.metadata.lookup_value("mpris:length")
+        return str(length.get_int64()) if length else None
 
     @Property(str, "readable")
     def artist(self) -> str:
