@@ -46,7 +46,7 @@ def main():
 
     ##==> Theming
     ##############################
-    copy_theme(path=cnst.MEWLINE_THEMES_FOLDER / (cfg.theme.name + ".scss"))
+    copy_theme(path=cnst.APP_THEMES_FOLDER / (cfg.theme.name + ".scss"))
 
     main_css_file = monitor_file(str(cnst.STYLES_FOLDER))
     main_css_file.connect("changed", lambda *_: process_and_apply_css(app))

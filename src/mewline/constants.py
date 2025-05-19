@@ -1,16 +1,27 @@
+import os
 from pathlib import Path
 
-from gi.repository import GLib
-
+##==> BASE
+##############################################################
 APPLICATION_NAME = "mewline"
 APP_FOLDER = Path(__file__).resolve().parent
-SYSTEM_CACHE_DIR = Path(GLib.get_user_cache_dir())
-APP_CACHE_DIRECTORY = SYSTEM_CACHE_DIR / APPLICATION_NAME
 
-DEFAULT_WALLPAPERS_DIRS = [Path.home() / "wallpapers"]
-WALLPAPERS_THUMBS_DIR = APP_CACHE_DIRECTORY / "thumbs"
-CACHE_MAPPING_FILEPATH = WALLPAPERS_THUMBS_DIR / "cache_mapping.json"
+##==> Obtaining paths according to XDG standards
+##############################################################
+XDG_DATA_HOME = Path(os.getenv("XDG_DATA_HOME", Path.home() / ".local" / "share"))
+XDG_CACHE_HOME = Path(os.getenv("XDG_CACHE_HOME", Path.home() / ".cache"))
+XDG_CONFIG_HOME = Path(os.getenv("XDG_CONFIG_HOME", Path.home() / ".config"))
+XDG_STATE_HOME = Path(os.getenv("XDG_STATE_HOME", Path.home() / ".local" / "state"))
 
+##==> Application paths
+##############################################################
+APP_CACHE_DIRECTORY = XDG_CACHE_HOME / APPLICATION_NAME
+APP_SETTINGS_FOLDER = XDG_CONFIG_HOME / "mewline"
+APP_CONFIG_PATH = APP_SETTINGS_FOLDER / "config.json"
+APP_THEMES_FOLDER = APP_SETTINGS_FOLDER / "themes"
+
+##==> Styles for mewline
+##############################################################
 STYLES_FOLDER = APP_FOLDER / "styles"
 DIST_FOLDER = APP_CACHE_DIRECTORY / "dist"
 MAIN_STYLE = STYLES_FOLDER / "main.scss"
@@ -18,16 +29,42 @@ THEME_STYLE = STYLES_FOLDER / "theme.scss"
 DEFAULT_THEME_STYLE = STYLES_FOLDER / "default_theme.scss"
 COMPILED_STYLE = DIST_FOLDER / "main.css"
 
+##==> Settings of other modules
+##############################################################
+DEFAULT_WALLPAPERS_DIRS = [Path.home() / "wallpapers"]
+WALLPAPERS_THUMBS_DIR = APP_CACHE_DIRECTORY / "thumbs"
+CACHE_MAPPING_FILEPATH = WALLPAPERS_THUMBS_DIR / "cache_mapping.json"
+
 NOTIFICATION_CACHE_FILE = APP_CACHE_DIRECTORY / "notifications.json"
 
 CLIPBOARD_THUMBS_DIR = APP_CACHE_DIRECTORY / "clipboard_thumbs"
 
-HYPRLAND_CONFIG_FOLDER = Path.home() / ".config" / "hypr"
+HYPRLAND_CONFIG_FOLDER = XDG_CONFIG_HOME / "hypr"
 HYPRLAND_CONFIG_FILE = HYPRLAND_CONFIG_FOLDER / "hyprland.conf"
 
-MEWLINE_SETTINGS_FOLDER = Path.home() / ".config" / "mewline"
-MEWLINE_CONFIG_PATH = MEWLINE_SETTINGS_FOLDER / "config.json"
-MEWLINE_THEMES_FOLDER = MEWLINE_SETTINGS_FOLDER / "themes"
+##==> Keybindings (prefix, suffix, command)
+############################################
+kb_prefix = "Super+Alt"
+kb_di_open = 'fabric-cli invoke-action mewline dynamic-island-open "{module}"'
+KEYBINDINGS = {
+    "power-menu": (kb_prefix, "P", kb_di_open.format(module="power-menu")),
+    "date-notification": (
+        kb_prefix,
+        "D",
+        kb_di_open.format(module="date-notification"),
+    ),
+    "bluetooth": (kb_prefix, "B", kb_di_open.format(module="bluetooth")),
+    "app-launcher": (kb_prefix, "A", kb_di_open.format(module="app-launcher")),
+    "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers")),
+    "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji")),
+    "clipboard": (kb_prefix, "V", kb_di_open.format(module="clipboard")),
+    "network": (kb_prefix, "N", kb_di_open.format(module="network")),
+    "pawlette-themes": (
+        kb_prefix,
+        "T",
+        kb_di_open.format(module="pawlette-themes"),
+    ),
+}
 
 ##==> Default settings
 ############################################
@@ -122,32 +159,6 @@ DEFAULT_CONFIG = {
         },
     },
 }
-
-
-##==> Keybindings (prefix, suffix, command)
-############################################
-kb_prefix = "Super+Alt"
-kb_di_open = 'fabric-cli invoke-action mewline dynamic-island-open "{module}"'
-KEYBINDINGS = {
-    "power-menu": (kb_prefix, "P", kb_di_open.format(module="power-menu")),
-    "date-notification": (
-        kb_prefix,
-        "D",
-        kb_di_open.format(module="date-notification"),
-    ),
-    "bluetooth": (kb_prefix, "B", kb_di_open.format(module="bluetooth")),
-    "app-launcher": (kb_prefix, "A", kb_di_open.format(module="app-launcher")),
-    "wallpapers": (kb_prefix, "W", kb_di_open.format(module="wallpapers")),
-    "emoji": (kb_prefix, "code:60", kb_di_open.format(module="emoji")),
-    "clipboard": (kb_prefix, "V", kb_di_open.format(module="clipboard")),
-    "network": (kb_prefix, "N", kb_di_open.format(module="network")),
-    "pawlette-themes": (
-        kb_prefix,
-        "T",
-        kb_di_open.format(module="pawlette-themes"),
-    ),
-}
-
 
 ##==> Icons
 ############################################
