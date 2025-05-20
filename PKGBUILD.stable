@@ -20,11 +20,11 @@ depends=(
   'cliphist'
 )
 makedepends=('python-uv' 'python-virtualenv')
-source=("$url/releases/download/v$pkgver/mewline-v$pkgver.tar.gz")
+source=("$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')  # Автоматическая замена в workflow
 
 package() {
-  cd "$srcdir/mewline-v$pkgver"
+  cd "$srcdir/mewline-$pkgver"
 
   # Install virtual environment
   install -d -m755 "$pkgdir/opt/$pkgname"
