@@ -2,10 +2,13 @@ from fabric.widgets.box import Box
 from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
+from gi.repository import Gdk
 from gi.repository import GLib
+from gi.repository import Gtk
 
 from mewline.config import cfg
 from mewline.services import battery_service
+from mewline.services.battery import PowerProfiles
 from mewline.shared.widget_container import ButtonWidget
 from mewline.utils.misc import format_time
 
@@ -18,6 +21,7 @@ class Battery(ButtonWidget):
         super().__init__(name="battery")
 
         self.client = battery_service
+        self.power_profiles_client = PowerProfiles()
         self.client.connect("changed", lambda *_: self.update_ui())
         self.config = cfg.modules.battery
         self.full_battery_level = 100
@@ -47,6 +51,7 @@ class Battery(ButtonWidget):
         self.box = Box(children=[self.icon, self.revealer])
         self.connect("enter-notify-event", self.on_mouse_enter)
         self.connect("leave-notify-event", self.on_mouse_leave)
+        self.connect("clicked", self.show_power_profiles_menu)
         self.add(self.box)
         self.update_ui()
 
@@ -103,3 +108,38 @@ class Battery(ButtonWidget):
                 )
 
         return True
+
+    def show_power_profiles_menu(self, _):
+        profiles = self.power_profiles_client.power_profiles
+
+        menu = Gtk.Menu()
+        menu.set_name("power-profiles-menu")
+
+        for profile_id, profile_data in profiles.items():
+            box = Gtk.Box(spacing=6)
+            icon = Gtk.Image.new_from_icon_name(
+                profile_data["icon_name"],
+                Gtk.IconSize.BUTTON,
+            )
+            label = Gtk.Label(label=profile_data["name"])
+
+            box.pack_start(icon, False, False, 0)
+            box.pack_start(label, True, True, 0)
+
+            item = Gtk.MenuItem()
+            item.add(box)
+
+            if profile_id == self.power_profiles_client.get_current_profile():
+                item.get_style_context().add_class("selected")
+
+            item.connect(
+                "activate",
+                lambda _, pp_name: self.power_profiles_client.set_power_profile(
+                    pp_name
+                ),
+                profile_id,
+            )
+            menu.append(item)
+
+        menu.show_all()
+        menu.popup_at_widget(self, Gdk.Gravity.SOUTH, Gdk.Gravity.NORTH, None)
