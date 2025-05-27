@@ -11,6 +11,7 @@ from mewline.services import battery_service
 from mewline.services.battery import PowerProfiles
 from mewline.shared.widget_container import ButtonWidget
 from mewline.utils.misc import format_time
+from mewline.utils.widget_utils import text_icon
 
 
 class Battery(ButtonWidget):
@@ -30,16 +31,23 @@ class Battery(ButtonWidget):
         self.hide_timer = None
         self.hover_counter = 0
 
-        self.icon = Image(
-            icon_name=self.client.get_property("IconName"),
-            icon_size=14,
-        )
-
         is_present = self.client.get_property("IsPresent")
+
+        self.icon = (
+            text_icon(icon="󰐧", size="18px")
+            if not is_present
+            else Image(
+                icon_name=self.client.get_property("IconName"),
+                icon_size=14,
+            )
+        )
         battery_percent = (
             round(self.client.get_property("Percentage")) if is_present else 0
         )
-        self.label = Label(label=f"{battery_percent}%", style_classes="panel-text")
+        self.label = Label(
+            label="AC" if not is_present else f"{battery_percent}%",
+            style_classes="panel-text",
+        )
         self.revealer = Revealer(
             name="battery-label-revealer",
             transition_duration=250,
@@ -79,33 +87,46 @@ class Battery(ButtonWidget):
         battery_percent = (
             round(self.client.get_property("Percentage")) if is_present else 0
         )
-        self.label.set_text(f"{battery_percent}%")
-        self.icon.set_from_icon_name(
-            icon_name=self.client.get_property("IconName"), icon_size=14
+        if is_present:
+            battery_percent = round(self.client.get_property("Percentage"))
+            self.label.set_text(f"{battery_percent}%")
+        else:
+            self.label.set_text("AC")
+
+        self.icon = (
+            text_icon(icon="󰐧", size="18px")
+            if not is_present
+            else Image(
+                icon_name=self.client.get_property("IconName"),
+                icon_size=14,
+            )
         )
 
         if self.config.tooltip:
-            battery_state = self.client.get_property("State")
-            is_charging = battery_state == 1 if is_present else False
-            temperature = self.client.get_property("Temperature")
-            capacity = self.client.get_property("Capacity")
-            time_remaining = (
-                self.client.get_property("TimeToFull")
-                if is_charging
-                else self.client.get_property("TimeToEmpty")
-            )
-
-            tool_tip_text = f"󱐋 Capacity : {capacity}\n Temperature: {temperature}°C"
-            if battery_percent == self.full_battery_level:
-                self.set_tooltip_text(f"Full\n{tool_tip_text}")
-            elif is_charging and battery_percent < self.full_battery_level:
-                self.set_tooltip_text(
-                    f"󰄉 Time to full: {format_time(time_remaining)}\n{tool_tip_text}"
-                )
+            if not is_present:
+                self.set_tooltip_text("The unit operates on AC power")
             else:
-                self.set_tooltip_text(
-                    f"󰄉 Time to empty: {format_time(time_remaining)}\n{tool_tip_text}"
+                battery_state = self.client.get_property("State")
+                is_charging = battery_state == 1 if is_present else False
+                temperature = self.client.get_property("Temperature")
+                capacity = self.client.get_property("Capacity")
+                time_remaining = (
+                    self.client.get_property("TimeToFull")
+                    if is_charging
+                    else self.client.get_property("TimeToEmpty")
                 )
+
+                tool_tip_text = f"󱐋 Capacity : {capacity}\n Temperature: {temperature}°C"
+                if battery_percent == self.full_battery_level:
+                    self.set_tooltip_text(f"Full\n{tool_tip_text}")
+                elif is_charging and battery_percent < self.full_battery_level:
+                    self.set_tooltip_text(
+                        f"󰄉 Time to full: {format_time(time_remaining)}\n{tool_tip_text}"
+                    )
+                else:
+                    self.set_tooltip_text(
+                        f"󰄉 Time to empty: {format_time(time_remaining)}\n{tool_tip_text}"
+                    )
 
         return True
 
