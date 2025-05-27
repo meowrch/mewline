@@ -194,6 +194,11 @@ icons = {
         "low": "󰕿",
         "muted": "󰝟",
     },
+    "powerprofiles": {
+        "balanced": "power-profile-balanced-symbolic",
+        "power-saver": "power-profile-power-saver-symbolic",
+        "performance": "power-profile-performance-symbolic",
+    },
     "microphone": {"active": "", "muted": ""},
     "brightness": {
         "symbolic": "display-brightness-symbolic",

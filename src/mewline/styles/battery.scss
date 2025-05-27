@@ -1,0 +1,24 @@
+@use "sass:color";
+@use "theme.scss";
+@use "variable.scss";
+
+#power-profiles-menu {
+    background: theme.$background-base;
+    border-radius: variable.$radius;
+    padding: 0.45em;
+
+    menuitem {
+        padding: 0.25em 1em;
+        border-radius: variable.$radius;
+
+        &:hover {
+            background-color: theme.$background-highlight;
+        }
+
+        &.selected {
+            font-weight: bold;
+            color: theme.$text-on-accent;
+            background-color: theme.$accent-color;
+        }
+    }
+}
