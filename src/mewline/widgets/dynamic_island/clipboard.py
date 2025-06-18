@@ -11,6 +11,7 @@ from fabric.widgets.label import Label
 from fabric.widgets.scrolledwindow import ScrolledWindow
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
+from gi.repository import Gio
 from gi.repository import GLib
 from loguru import logger
 
@@ -36,6 +37,7 @@ class Clipboard(BaseDiWidget, Box):
         self.history: list[dict] = []
         self.cache_dir = cnst.CLIPBOARD_THUMBS_DIR
         self.cache_dir.mkdir(exist_ok=True)
+        self.monitor = None  # Монитор изменений базы данных
 
         self.viewport = Box(orientation="v", spacing=10)
         self.scrolled_window = ScrolledWindow(
@@ -43,7 +45,7 @@ class Clipboard(BaseDiWidget, Box):
             min_content_size=(480, 200),
             max_content_size=(480, 600),
             child=self.viewport,
-            v_expand=True
+            v_expand=True,
         )
 
         self.search_entry = Entry(
@@ -82,12 +84,16 @@ class Clipboard(BaseDiWidget, Box):
         )
 
         self.load_history()
+        self.setup_file_monitor()  # Настраиваем мониторинг изменений
         self.arrange_viewport()
 
         self.add(self.main_box)
         self.show_all()
 
     def close(self) -> None:
+        if self.monitor:
+            self.monitor.cancel()
+            self.monitor = None
         self.di.close()
 
     def load_history(self) -> None:
@@ -98,7 +104,10 @@ class Clipboard(BaseDiWidget, Box):
                 text=True,
                 stderr=subprocess.PIPE,
             )
-            for line in output.splitlines():
+            # Берем только последние 100 записей (новые внизу)
+            lines = output.splitlines()[:100]
+
+            for line in lines:
                 if "\t" not in line:
                     continue
 
@@ -118,7 +127,37 @@ class Clipboard(BaseDiWidget, Box):
 
                 self.history.append(entry)
         except Exception as e:
-            print(f"Error loading history: {e}\n{e.stderr}")
+            logger.error(f"Error loading history: {e}")
+
+    def setup_file_monitor(self) -> None:
+        """Настраивает мониторинг изменений базы данных буфера обмена."""
+        db_path = cnst.XDG_CACHE_HOME / "cliphist" / "db"
+        if not db_path.exists():
+            return
+
+        file = Gio.File.new_for_path(str(db_path))
+        self.monitor = file.monitor_file(Gio.FileMonitorFlags.NONE, None)
+        self.monitor.connect("changed", self.on_db_changed)
+
+    def on_db_changed(
+        self,
+        _monitor: Gio.FileMonitor,
+        _file: Gio.File,
+        _other_file: Gio.File,
+        event_type: Gio.FileMonitorEvent,
+    ) -> None:
+        """Обработчик изменений в базе данных."""
+        if event_type in (
+            Gio.FileMonitorEvent.CHANGES_DONE_HINT,
+            Gio.FileMonitorEvent.CREATED,
+        ):
+            GLib.idle_add(self.refresh_history)
+
+    def refresh_history(self) -> None:
+        """Обновляет историю и перестраивает интерфейс."""
+        self.load_history()
+        current_search = self.search_entry.get_text()
+        self.arrange_viewport(current_search)
 
     def cliphist_decode(self, raw: str) -> bytes | None:
         try:
