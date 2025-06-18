@@ -100,6 +100,8 @@ class AppLauncher(BaseDiWidget, Box):
         self.di.close()
 
     def open_widget_from_di(self) -> None:
+        if not self.get_mapped() or not self.get_visible():
+            return
         GLib.Thread.new("app_launcher_checking_for_changes", self._check_changes)
 
     def _check_changes(self) -> None:

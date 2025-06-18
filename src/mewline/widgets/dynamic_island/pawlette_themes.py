@@ -114,6 +114,8 @@ class PawletteThemes(BaseDiWidget, Box):
             return {}
 
     def open_widget_from_di(self) -> None:
+        if not self.get_mapped() or not self.get_visible():
+            return
         GLib.Thread.new("pawlette_themes_checking_for_changes", self._check_changes)
 
     def _check_changes(self) -> None:
