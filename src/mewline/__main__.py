@@ -10,6 +10,7 @@ from mewline.config import cfg
 from mewline.config import change_hypr_config
 from mewline.config import generate_default_config
 from mewline.utils.setup_loguru import setup_loguru
+from mewline.utils.temporary_fixes import *  # noqa: F403
 from mewline.utils.theming import copy_theme
 from mewline.utils.theming import process_and_apply_css
 from mewline.widgets import StatusBar
