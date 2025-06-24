@@ -70,8 +70,8 @@ class DynamicIsland(Window):
             name="dynamic-island-content",
             v_expand=True,
             h_expand=True,
-            transition_type="crossfade",
-            transition_duration=50,
+            transition_type="none",
+            transition_duration=0,
             children=[*self.widgets.values()],
         )
 
