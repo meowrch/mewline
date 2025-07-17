@@ -34,7 +34,7 @@
     label {
       font-weight: bold;
     }
-    
+
     &.enabled {
       color: theme.$background-base;
       background-color: theme.$accent-success;
@@ -79,7 +79,7 @@
     &.connect {
       background-color: theme.$background-element;
       color: theme.$text-color;
-      
+
       &:hover {
         color: theme.$accent-success;
       }
@@ -87,7 +87,7 @@
     &.disconnect {
       background-color: theme.$background-element;
       color: theme.$text-color;
-      
+
       &:hover {
         color: theme.$accent-error;
       }
