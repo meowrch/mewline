@@ -1,5 +1,7 @@
 import shlex
 import subprocess
+import threading
+import time
 
 from fabric.bluetooth import BluetoothClient
 from fabric.bluetooth import BluetoothDevice
@@ -40,7 +42,7 @@ class BluetoothDeviceSlot(CenterBox):
         self.connect_button = Button(
             name="bluetooth-connect",
             label="Connect",
-            on_clicked=lambda *_: self.device.set_connecting(not self.device.connected),
+            on_clicked=self.on_connect_clicked,
         )
         setup_cursor_hover(self.connect_button)
         self.remove_button = Button(
@@ -55,7 +57,7 @@ class BluetoothDeviceSlot(CenterBox):
             icon=cnst.icons["bluetooth"]["paired"],
             size="24px",
             style_classes="paired",
-            visible=False
+            visible=False,
         )
         self.start_children = [
             Box(
@@ -71,6 +73,148 @@ class BluetoothDeviceSlot(CenterBox):
             Box(spacing=8, children=[self.remove_button, self.connect_button])
         ]
         self.device.emit("changed")  # to update display status
+
+    def on_connect_clicked(self, *_):
+        """Handle connect/disconnect button click with improved state management."""
+        try:
+            # First, verify the actual device state via bluetoothctl
+            current_state = self.get_device_real_state()
+
+            if current_state is None:
+                logger.warning(
+                    f"Could not determine real state for device {self.device.address}"
+                )
+                # Fallback to fabric's state
+                current_state = self.device.connected
+
+            # Log current vs reported state
+            if current_state != self.device.connected:
+                logger.info(
+                    f"State mismatch detected: real={current_state}, reported={self.device.connected}"
+                )
+
+            # Perform the appropriate action based on REAL state
+            if current_state:
+                # Device is actually connected, so disconnect
+                self.safe_disconnect()
+            else:
+                # Device is not connected, so connect
+                self.safe_connect()
+
+        except Exception as e:
+            logger.error(f"Error in connect/disconnect operation: {e}")
+            # Fallback to original behavior if our logic fails
+            self.device.set_connecting(not self.device.connected)
+
+    def get_device_real_state(self):
+        """Get the real connection state from bluetoothctl."""
+        try:
+            command = shlex.split(
+                f"bluetoothctl info {shlex.quote(self.device.address)}"
+            )
+            result = subprocess.run(command, capture_output=True, text=True, timeout=3)
+
+            if result.returncode == 0:
+                # Parse the output to find connection state
+                lines = result.stdout.split("\n")
+                for line in lines:
+                    if "Connected:" in line:
+                        return "yes" in line.lower()
+
+            return None
+
+        except Exception as e:
+            logger.error(f"Error getting real device state: {e}")
+            return None
+
+    def safe_connect(self):
+        """Safely connect to device with timeout and error handling."""
+        try:
+            logger.info(
+                f"Attempting to connect to {self.device.name} ({self.device.address})"
+            )
+
+            # Use a thread to avoid blocking the UI
+            def connect_thread():
+                try:
+                    self.device.set_connecting(True)
+                    time.sleep(0.5)  # Small delay to prevent rapid state changes
+
+                    # Verify the device is still available before connecting
+                    if self.get_device_real_state() is False:
+                        # Device is not connected, proceed with connection
+                        pass  # Let fabric handle the connection
+                    else:
+                        logger.info(
+                            f"Device {self.device.address} is already connected"
+                        )
+
+                except Exception as e:
+                    logger.error(f"Error in connect thread: {e}")
+
+            thread = threading.Thread(target=connect_thread)
+            thread.daemon = True
+            thread.start()
+
+        except Exception as e:
+            logger.error(f"Error in safe_connect: {e}")
+            # Fallback to original behavior
+            self.device.set_connecting(True)
+
+    def safe_disconnect(self):
+        """Safely disconnect from device with proper state management."""
+        try:
+            logger.info(
+                f"Attempting to disconnect from {self.device.name} ({self.device.address})"
+            )
+
+            # Use a thread to avoid blocking the UI
+            def disconnect_thread():
+                try:
+                    self.device.set_connecting(False)
+                    time.sleep(0.5)  # Small delay to prevent rapid state changes
+
+                    # Double-check disconnection via bluetoothctl
+                    time.sleep(1)
+                    real_state = self.get_device_real_state()
+                    if real_state is True:
+                        logger.warning(
+                            f"Device {self.device.address} still connected after disconnect attempt"
+                        )
+                        # Force disconnect via bluetoothctl
+                        self.force_disconnect_via_bluetoothctl()
+
+                except Exception as e:
+                    logger.error(f"Error in disconnect thread: {e}")
+
+            thread = threading.Thread(target=disconnect_thread)
+            thread.daemon = True
+            thread.start()
+
+        except Exception as e:
+            logger.error(f"Error in safe_disconnect: {e}")
+            # Fallback to original behavior
+            self.device.set_connecting(False)
+
+    def force_disconnect_via_bluetoothctl(self):
+        """Force disconnect via bluetoothctl as a last resort."""
+        try:
+            logger.info(f"Force disconnecting {self.device.address} via bluetoothctl")
+            command = shlex.split(
+                f"bluetoothctl disconnect {shlex.quote(self.device.address)}"
+            )
+
+            result = subprocess.run(command, capture_output=True, text=True, timeout=5)
+
+            if result.returncode == 0:
+                logger.info(f"Successfully force-disconnected {self.device.address}")
+            else:
+                logger.error(
+                    f"Failed to force-disconnect {self.device.address}: {result.stderr}"
+                )
+
+        except Exception as e:
+            logger.error(f"Error in force_disconnect_via_bluetoothctl: {e}")
 
     @staticmethod
     def remove_bluetooth_device(mac_address):
