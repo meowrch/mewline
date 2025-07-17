@@ -39,6 +39,7 @@ class BluetoothDeviceSlot(CenterBox):
             "notify::closed", lambda *_: self.device.closed and self.destroy()
         )
 
+        # Create connection button with improved styling
         self.connect_button = Button(
             name="bluetooth-connect",
             label="Connect",
@@ -237,19 +238,34 @@ class BluetoothDeviceSlot(CenterBox):
 
     def on_changed(self, *_):
         if self.device.connecting:
-            self.connect_button.set_label(
-                "Connecting..." if self.device.connecting else "Disconnecting..."
-            )
-        else:
-            self.connect_button.set_label(
-                "Connect" if not self.device.connected else "Disconnect"
-            )
+            # Add loading state
+            self.add_style_class("loading")
+            self.connect_button.add_style_class("loading")
 
-        if self.device.connected:
-            self.paired_icon.set_visible(True)
-        if self.device.connected and self in self.available_box:
+            # Determine if we're connecting or disconnecting
+            if self.device.connected:
+                self.connect_button.set_label("Disconnecting...")
+            else:
+                self.connect_button.set_label("Connecting...")
+        else:
+            # Update button based on connection state
+            if self.device.connected:
+                self.add_style_class("connected")
+                self.connect_button.add_style_class("connected")
+                self.connect_button.set_label("Disconnect")
+                self.paired_icon.set_visible(True)
+            else:
+                self.add_style_class("disconnected")
+                self.connect_button.add_style_class("disconnected")
+                self.connect_button.set_label("Connect")
+                self.paired_icon.set_visible(False)
+
+        if self.device.paired and self in self.available_box:
             self.available_box.remove(self)
             self.paired_box.add(self)
+        elif not self.device.paired and self in self.paired_box:
+            self.paired_box.remove(self)
+            self.available_box.add(self)
 
         return
 
