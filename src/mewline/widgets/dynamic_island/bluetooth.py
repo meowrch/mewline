@@ -27,9 +27,9 @@ class BluetoothDeviceSlot(CenterBox):
         self.paired_box = paired_box
         self.available_box = available_box
         if not device.name or device.name.strip() == "":
-            self.device.close()
-            self.destroy()
-            del self
+            logger.warning(f"Device with empty name detected: {device.address}")
+            # Don't create UI for devices without proper names
+            # Just return early without destroying - let parent handle cleanup
             return
 
         self.device.connect("changed", self.on_changed)
@@ -273,12 +273,30 @@ class BluetoothConnections(BaseDiWidget, Box):
         if not (device := client.get_device(address)):
             return
 
+        # Skip devices without proper names to prevent crashes
+        if not device.name or device.name.strip() == "":
+            logger.debug(f"Skipping device with empty name: {address}")
+            return
+
         logger.info(f'Device "{device.name}" ({device.address}) added.')
-        slot = BluetoothDeviceSlot(device, self.paired_box, self.available_box)
 
-        if device.paired:
-            self.paired_scroll_box.set_visible(True)
-            return self.paired_box.add(slot)
+        try:
+            slot = BluetoothDeviceSlot(device, self.paired_box, self.available_box)
 
-        self.available_scroll_box.set_visible(True)
-        return self.available_box.add(slot)
+            # Check if slot was properly initialized (has children)
+            if not slot.get_children():
+                logger.warning(
+                    f"Device slot for {device.name} was not properly initialized"
+                )
+                return
+
+            if device.paired:
+                self.paired_scroll_box.set_visible(True)
+                return self.paired_box.add(slot)
+
+            self.available_scroll_box.set_visible(True)
+            return self.available_box.add(slot)
+
+        except Exception as e:
+            logger.error(f"Error adding device {device.name} ({address}): {e}")
+            return
