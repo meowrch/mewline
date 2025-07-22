@@ -113,13 +113,13 @@ class NotificationBox(Box):
                             children=[
                                 Label(
                                     name="notification-title",
-                                    markup=notification.summary.replace("\n", " "),
+                                    markup=GLib.markup_escape_text(notification.summary.replace("\n", " ")),
                                     h_align="start",
                                     ellipsization="end",
                                 ),
                                 Label(
                                     name="notification-app-name",
-                                    markup=" | " + notification.app_name,
+                                    markup=" | " + GLib.markup_escape_text(notification.app_name),
                                     h_align="start",
                                     ellipsization="end",
                                 ),
@@ -127,7 +127,7 @@ class NotificationBox(Box):
                         ),
                         Label(
                             name="notification-text",
-                            markup=notification.body.replace("\n", " "),
+                            markup=GLib.markup_escape_text(notification.body.replace("\n", " ")),
                             h_align="start",
                             ellipsization="end",
                         )

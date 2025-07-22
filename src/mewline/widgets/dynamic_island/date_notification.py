@@ -75,7 +75,7 @@ class NotificationHistoryEl(Box):
 
         self.notification_icon = get_icon(notification.app_icon)
         self.summary_label = Label(
-            markup=notification.summary,
+            markup=GLib.markup_escape_text(notification.summary),
             h_align="start",
             h_expand=True,
             ellipsization="end",
@@ -96,7 +96,9 @@ class NotificationHistoryEl(Box):
             children=[
                 self.header_box,
                 Label(
-                    markup=parse_markup(self._notification.body),
+                    markup=GLib.markup_escape_text(
+                        parse_markup(self._notification.body)
+                    ),
                     line_wrap="word-char",
                     ellipsization="end",
                     v_align="start",
@@ -139,9 +141,12 @@ class DateNotificationMenu(BaseDiWidget, Box):
             cache_notification_service.get_deserialized()
         )
 
+        # Get the raw data for IDs
+        raw_notifications = cache_notification_service.do_read_notifications()
+
         self.notifications_list = [
-            NotificationHistoryEl(notification=val, id=val["id"])
-            for val in self.notifications
+            NotificationHistoryEl(notification=notification, id=raw_data["id"])
+            for notification, raw_data in zip(self.notifications, raw_notifications, strict=False)
         ]
         self.notifications_list.reverse()
 
