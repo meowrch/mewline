@@ -25,8 +25,12 @@ class OCRWidget(ButtonWidget):
         super().__init__(name="ocr", **kwargs)
         self.config = cfg.modules.ocr
         langs = self.get_available_languages()
+        combined_langs = self.get_combined_languages(langs)
+        all_langs = langs + combined_langs
         self.current_lang = (
-            self.config.default_lang if self.config.default_lang in langs else langs[0]
+            self.config.default_lang
+            if self.config.default_lang in all_langs
+            else langs[0]
         )
 
         self.children = text_icon(
@@ -167,7 +171,9 @@ class OCRWidget(ButtonWidget):
 
         # Get available languages
         langs = self.get_available_languages()
+        combined_langs = self.get_combined_languages(langs)
 
+        # Add single languages
         for lang in langs:
             if lang != "osd":  # Skip the OSD option
                 item = Gtk.MenuItem(label=lang)
@@ -178,12 +184,44 @@ class OCRWidget(ButtonWidget):
                 item.connect("activate", self.on_language_selected, lang)
                 menu.append(item)
 
+        # Add separator if there are combined languages
+        if combined_langs:
+            separator = Gtk.SeparatorMenuItem()
+            menu.append(separator)
+
+            # Add combined languages
+            for lang_combo in combined_langs:
+                item = Gtk.MenuItem(label=lang_combo)
+                label = item.get_child()
+                label.set_name("ocr-menu-item")  # For CSS targeting
+                if lang_combo == self.current_lang:
+                    label.get_style_context().add_class("selected")
+                item.connect("activate", self.on_language_selected, lang_combo)
+                menu.append(item)
+
         menu.show_all()
         menu.popup_at_widget(self, Gdk.Gravity.SOUTH, Gdk.Gravity.NORTH, None)
 
     @ttl_lru_cache(600, 10)
     def get_available_languages(self):
         return pytesseract.get_languages()
+
+    def get_combined_languages(self, available_langs):
+        """Get available combined language options based on installed languages."""
+        combined = []
+
+        # Check if both Russian and English are available
+        if "rus" in available_langs and "eng" in available_langs:
+            combined.append("rus+eng")
+
+        # Add other useful combinations if languages are available
+        if "deu" in available_langs and "eng" in available_langs:
+            combined.append("deu+eng")
+
+        if "fra" in available_langs and "eng" in available_langs:
+            combined.append("fra+eng")
+
+        return combined
 
     def on_language_selected(self, _, lang):
         self.current_lang = lang
