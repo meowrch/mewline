@@ -10,6 +10,7 @@ class MyNotifications(Notifications):
     NOTIFICATION_DAEMONS = (
         "dunst",
         "mako",
+        "swaync",
         "xfce4-notifyd",
         "notify-osd",
         "wxWidgets-notify",
