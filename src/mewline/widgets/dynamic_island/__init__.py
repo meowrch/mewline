@@ -109,6 +109,13 @@ class DynamicIsland(Window):
             h_align="center",
             v_align="end",
         )
+        # Animated dots revealer
+        self.inline_dots_revealer = Revealer(
+            transition_type="slide-down",
+            transition_duration=200,
+            reveal_child=True,
+            child=self.inline_dots,
+        )
         self.inline_prev_btn = FabricButton(
             name="inline-nav-button",
             v_align="center",
@@ -138,7 +145,7 @@ class DynamicIsland(Window):
             h_expand=True,
             children=[
                 Box(v_expand=True, h_expand=True, children=[self.inline_stack]),
-                self.inline_dots,
+                self.inline_dots_revealer,
             ],
         )
         # External urgency line for inline capsule (shown below dots)
@@ -163,12 +170,25 @@ class DynamicIsland(Window):
             v_expand=True,
             h_expand=False,
         )
+        # Animated revealers for nav
+        self.inline_right_revealer = Revealer(
+            transition_type="slide-left",
+            transition_duration=200,
+            reveal_child=True,
+            child=self.inline_capsule_right,
+        )
+        self.inline_prev_revealer = Revealer(
+            transition_type="slide-right",
+            transition_duration=200,
+            reveal_child=True,
+            child=self.inline_prev_btn,
+        )
 
         self.inline_capsule = FabricCenterBox(
             name="inline-capsule",
-            start_children=self.inline_prev_btn,
+            start_children=self.inline_prev_revealer,
             center_children=self.inline_capsule_center,
-            end_children=self.inline_capsule_right,
+            end_children=self.inline_right_revealer,
             v_expand=True,
             h_expand=True,
         )
@@ -312,13 +332,30 @@ class DynamicIsland(Window):
             self.inline_dots.add(dot)
         # Toggle nav visibility (prev/next) and dots
         show_nav = len(self._inline_items) > 1
-        self.inline_prev_btn.set_visible(show_nav)
-        self.inline_next_btn.set_visible(show_nav)
-        self.inline_dots.set_visible(show_nav)
+        # Animate via revealers
+        with contextlib.suppress(Exception):
+            # Prev arrow only when multiple
+            self.inline_prev_revealer.set_reveal_child(show_nav)
+            # Keep the right column (with the corner close button)
+            # visible whenever there is at least one item
+            self.inline_right_revealer.set_reveal_child(len(self._inline_items) > 0)
+            # Show dots only when multiple
+            self.inline_dots_revealer.set_reveal_child(show_nav)
+            # Hide only the right arrow (next) when single;
+            # keep the corner close button visible
+            self.inline_next_btn.set_visible(show_nav)
         # Hide internal urgency lines for items in multi mode;
         # show external line only in multi
         self._toggle_inline_urgency_lines(show_nav)
         self._update_inline_external_urgency_line()
+        # Always hide internal close buttons in capsule; use the corner close instead
+        try:
+            for it in self._inline_items:
+                self._hide_internal_close_button(it)
+            # Ensure the corner close button itself is visible when we have items
+            self.inline_close_btn.set_visible(len(self._inline_items) > 0)
+        except Exception:
+            ...
 
     def _inline_go_to(self, idx: int):
         if 0 <= idx < len(self._inline_items):
@@ -367,8 +404,34 @@ class DynamicIsland(Window):
         except Exception:
             ...
 
+    def _set_inline_internal_close_visibility(self, container: Box, visible: bool):
+        try:
+
+            def set_vis(widget):
+                try:
+                    if (
+                        hasattr(widget, "get_name")
+                        and widget.get_name() == "notify-close-button"
+                    ):
+                        widget.set_visible(visible)
+                        return True
+                except Exception:
+                    ...
+                try:
+                    for child in widget.get_children():
+                        if set_vis(child):
+                            return True
+                except Exception:
+                    ...
+                return False
+
+            set_vis(container)
+        except Exception:
+            ...
+
     def _set_inline_internal_urgency_visibility(self, container: Box, visible: bool):
         try:
+
             def set_vis(widget):
                 try:
                     if (
@@ -386,6 +449,7 @@ class DynamicIsland(Window):
                 except Exception:
                     ...
                 return False
+
             set_vis(container)
         except Exception:
             ...
@@ -399,20 +463,24 @@ class DynamicIsland(Window):
             return None
 
     def _toggle_inline_urgency_lines(self, multi: bool):
-        # Hide internal urgency lines in multi mode; show external only in multi
+        # In capsule: always hide internal urgency lines; use external only in multi
         try:
             for item in self._inline_items:
-                self._set_inline_internal_urgency_visibility(item, not multi)
+                self._set_inline_internal_urgency_visibility(item, False)
         except Exception:
             ...
         with contextlib.suppress(Exception):
-            self.inline_urgency_line.set_visible(False if not multi else self.inline_urgency_line.get_visible())
+            self.inline_urgency_line.set_visible(
+                False if not multi else self.inline_urgency_line.get_visible()
+            )
 
     def _update_inline_external_urgency_line(self):
-        # Update external urgency line (only when there are multiple inline items)
+        # Update external urgency line for inline capsule.
+        # In capsule mode we always hide internal lines, and use the external line:
+        # - show it for critical urgency (2) even when there is only one item
+        # - hide it for normal/low
         try:
-            multi = len(self._inline_items) > 1
-            if not multi:
+            if not self._inline_items:
                 self.inline_urgency_line.set_visible(False)
                 return
             current = self._current_inline_view_box()
@@ -703,6 +771,86 @@ class DynamicIsland(Window):
 
     def close(self):
         self.set_keyboard_mode("none")
+        # Move inline notifications to dedicated view (ordinary) before hiding capsule
+        moved = False
+        try:
+            migrated = []
+            for box in list(self._inline_items):
+                moved = True
+                migrated.append(box)
+                # Remove from inline stack safely
+                with contextlib.suppress(Exception):
+                    if box.get_parent() == self.inline_stack:
+                        self.inline_stack.remove(box)
+                # Adopt into dedicated notification view
+                with contextlib.suppress(Exception):
+                    box._inline = False
+                with contextlib.suppress(Exception):
+                    self.notification.view_stack.add_named(
+                        box,
+                        f"n-{getattr(getattr(box, 'notification', None), 'id', 'x')}",
+                    )
+            # Clear inline state now that we've migrated
+            with contextlib.suppress(Exception):
+                self._inline_items.clear()
+                self._inline_index = 0
+        except Exception:
+            ...
+        if moved:
+            # Build dedicated view presentation (single vs. multi)
+            try:
+                # Reset containers visibility first
+                self.notification.simple_container.set_visible(False)
+                self.notification.view_box.set_visible(False)
+            except Exception:
+                ...
+            try:
+                self.notification._view_items = list(migrated)
+                self.notification._view_index = 0
+            except Exception:
+                ...
+            try:
+                if len(self.notification._view_items) == 1:
+                    # Single mode: ensure internal close is visible
+                    # and show in simple container
+                    one = self.notification._view_items[0]
+                    with contextlib.suppress(Exception):
+                        if one.get_parent() == self.notification.view_stack:
+                            self.notification.view_stack.remove(one)
+                    with contextlib.suppress(Exception):
+                        self.notification._set_internal_close_visibility(one, True)
+                        self.notification._update_internal_urgency_for_box(one)
+                    self.notification._show_single_notification(one)
+                    # Hide external urgency line in single mode
+                    with contextlib.suppress(Exception):
+                        self.notification.view_urgency_line.set_visible(False)
+                elif len(self.notification._view_items) > 1:
+                    # Multi mode: make sure all items are in the stack and configure nav
+                    for i, box in enumerate(self.notification._view_items):
+                        with contextlib.suppress(Exception):
+                            if box.get_parent() != self.notification.view_stack:
+                                self.notification.view_stack.add_named(
+                                    box,
+                                    f"n-{getattr(getattr(box, 'notification', None), 'id', i)}",
+                                )
+                        with contextlib.suppress(Exception):
+                            self.notification._set_internal_close_visibility(box, False)
+                    with contextlib.suppress(Exception):
+                        self.notification.view_stack.set_visible_child(
+                            self.notification._view_items[self.notification._view_index]
+                        )
+                    self.notification._show_multi_notification_view()
+                    self.notification._update_view_nav()
+                    self.notification._update_external_urgency_line()
+            except Exception:
+                ...
+
+            # Hide the inline area and switch to dedicated notification view
+            with contextlib.suppress(Exception):
+                self.inline_notification_revealer.set_reveal_child(False)
+                self.inline_notification_container.set_visible(False)
+            self.open("notification")
+            return
         # Hide and clear inline notifications when closing DI
         self.hide_inline_notifications()
         # Stop pointer polling
@@ -771,3 +919,27 @@ class DynamicIsland(Window):
 
         if widget == "notification":
             self.set_keyboard_mode("none")
+        else:
+            # When opening DI to another widget,
+            # move dedicated notifications to inline capsule
+            try:
+                for box in list(getattr(self.notification, "_view_items", [])):
+                    # Detach from current dedicated parent first
+                    # (stack in multi or simple_container in single)
+                    with contextlib.suppress(Exception):
+                        parent = box.get_parent()
+                        if parent == self.notification.view_stack:
+                            self.notification.view_stack.remove(box)
+                        elif parent == self.notification.simple_container:
+                            self.notification.simple_container.remove(box)
+                    # Mark as inline and add to inline capsule
+                    with contextlib.suppress(Exception):
+                        box._inline = True
+                    self.show_inline_notification(box)
+                # Clear dedicated list
+                with contextlib.suppress(Exception):
+                    self.notification._view_items.clear()
+                    self.notification._view_index = 0
+                    self.notification._update_view_nav()
+            except Exception:
+                ...

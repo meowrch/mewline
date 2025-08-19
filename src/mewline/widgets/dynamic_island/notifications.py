@@ -11,6 +11,7 @@ from fabric.widgets.centerbox import CenterBox as FabricCenterBox
 from fabric.widgets.image import Image
 from fabric.widgets.image import Image as FabricImage
 from fabric.widgets.label import Label
+from fabric.widgets.revealer import Revealer as FabricRevealer
 from fabric.widgets.stack import Stack as FabricStack
 from gi.repository import Gdk
 from gi.repository import GdkPixbuf
@@ -378,6 +379,13 @@ class NotificationContainer(BaseDiWidget, Box):
         self.view_dots = Box(
             name="inline-dots", orientation="h", spacing=6, h_align="center"
         )
+        # Wrap dots in a revealer for animated show/hide when switching multi/single
+        self.dots_revealer = FabricRevealer(
+            transition_type="slide-down",
+            transition_duration=200,
+            reveal_child=True,
+            child=self.view_dots,
+        )
         # Center column: stack expands, dots at bottom
         self.view_center = Box(
             orientation="v",
@@ -385,7 +393,7 @@ class NotificationContainer(BaseDiWidget, Box):
             h_expand=True,
             children=[
                 Box(v_expand=True, h_expand=True, children=[self.view_stack]),
-                self.view_dots,
+                self.dots_revealer,
             ],
         )
         # External urgency line (shown below dots when multiple notifications)
@@ -411,12 +419,27 @@ class NotificationContainer(BaseDiWidget, Box):
             v_expand=True,
             h_expand=False,
         )
+        # Animated revealer for the right column (close + next)
+        self.right_revealer = FabricRevealer(
+            transition_type="slide-left",
+            transition_duration=200,
+            reveal_child=True,
+            child=self.view_right,
+        )
+
+        # Animated revealer for left prev button
+        self.left_revealer = FabricRevealer(
+            transition_type="slide-right",
+            transition_duration=200,
+            reveal_child=True,
+            child=self.view_prev_btn,
+        )
 
         self.view_box = FabricCenterBox(
             name="di-notification-carousel",
-            start_children=self.view_prev_btn,
+            start_children=self.left_revealer,
             center_children=self.view_center,
-            end_children=self.view_right,
+            end_children=self.right_revealer,
             v_expand=True,
             h_expand=True,
         )
@@ -681,6 +704,12 @@ class NotificationContainer(BaseDiWidget, Box):
         # Toggle external urgency line and hide internal ones in multi-view
         self._toggle_urgency_lines(show_nav)
         self._update_external_urgency_line()
+
+        # Animate nav show/hide via revealers
+        with contextlib.suppress(Exception):
+            self.left_revealer.set_reveal_child(show_nav)
+            self.right_revealer.set_reveal_child(show_nav)
+            self.dots_revealer.set_reveal_child(show_nav)
 
         # Keep navigation containers attached at all times so the center content can
         # take the full available width of the island. We only toggle visibility.

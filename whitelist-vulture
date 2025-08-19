@@ -14,5 +14,5 @@ _.xalign  # unused attribute (src/mewline/widgets/dynamic_island/wallpapers.py:1
 _.toggle_shuffle  # unused method (src/mewline/services/mpris.py:87)
 _.get_profile_icon  # unused method (src/mewline/services/battery.py:176)
 _.stop  # unused method (src/mewline/shared/animator.py:174)
-_.mark_action_clicked  # unused method (src/mewline/services/cache_notification.py:143)
-_._detach_nav  # unused method (src/mewline/widgets/dynamic_island/notifications.py:476)
+_._detach_nav  # unused method (src/mewline/widgets/dynamic_island/notifications.py:507)
+_._set_inline_internal_close_visibility  # unused method (src/mewline/widgets/dynamic_island/__init__.py:407)

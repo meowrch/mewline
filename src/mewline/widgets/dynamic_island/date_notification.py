@@ -1,3 +1,4 @@
+import contextlib
 import time
 
 import gi
@@ -28,8 +29,13 @@ gi.require_version("Gtk", "3.0")
 
 
 class NotificationHistoryEl(Box):
-    def __init__(self, id: int, notification: Notification):
+    def __init__(
+        self, id: int, notification: Notification, actions_clicked: bool = False
+    ):
         urgency_class = {0: "low-urgency", 1: "normal-urgency", 2: "critical-urgency"}
+        self._any_action_invoked = False
+        self._id = id
+        self._actions_clicked_initial = actions_clicked
 
         Box.__init__(
             self,
@@ -89,6 +95,66 @@ class NotificationHistoryEl(Box):
         self.header_box.add(self.summary_label)
         self.header_box.add(self.close_button)
 
+        # Build action buttons (if any) under the body text
+        self.actions_box = None
+        try:
+            actions = list(getattr(self._notification, "actions", []) or [])
+        except Exception:
+            actions = []
+        if actions and not self._actions_clicked_initial:
+
+            def make_action_btn(act):
+                btn = Button(
+                    name="history-action-button",
+                    h_expand=False,
+                    child=Label(name="button-label", label=getattr(act, "label", "")),
+                )
+                setup_cursor_hover(btn)
+
+                def on_click(_w):
+                    # Mark that at least one action was invoked and hide actions row
+                    if not self._any_action_invoked:
+                        self._any_action_invoked = True
+                        try:
+                            if self.actions_box is not None:
+                                self.actions_box.set_visible(False)
+                                parent = self.actions_box.get_parent()
+                                if parent is not None:
+                                    parent.remove(self.actions_box)
+                        except Exception:
+                            ...
+                        # Persist that an action was clicked for this history item
+                        with contextlib.suppress(Exception):
+                            cache_notification_service.mark_action_clicked(self._id)
+                    try:
+                        parent = getattr(act, "parent", None)
+                        action_id = None
+                        for attr in ("id", "key", "action_id", "identifier", "name"):
+                            if hasattr(act, attr):
+                                action_id = getattr(act, attr)
+                                if action_id:
+                                    break
+                        if (
+                            parent is not None
+                            and hasattr(parent, "invoke_action")
+                            and action_id is not None
+                        ):
+                            parent.invoke_action(action_id)
+                        else:
+                            act.invoke()
+                    except Exception as e:
+                        logger.warning(f"History action invoke failed: {e}")
+
+                btn.connect("clicked", on_click)
+                return btn
+
+            self.actions_box = Box(
+                name="notification-history-actions",
+                orientation="h",
+                spacing=6,
+                children=[make_action_btn(a) for a in actions],
+            )
+
         self.main_container = Box(
             orientation="v",
             spacing=4,
@@ -106,6 +172,7 @@ class NotificationHistoryEl(Box):
                     h_align="start",
                     style_classes="text",
                 ),
+                *([self.actions_box] if self.actions_box is not None else []),
             ],
         )
 
@@ -145,8 +212,14 @@ class DateNotificationMenu(BaseDiWidget, Box):
         raw_notifications = cache_notification_service.do_read_notifications()
 
         self.notifications_list = [
-            NotificationHistoryEl(notification=notification, id=raw_data["id"])
-            for notification, raw_data in zip(self.notifications, raw_notifications, strict=False)
+            NotificationHistoryEl(
+                notification=notification,
+                id=raw_data["id"],
+                actions_clicked=raw_data.get("actions_clicked", False),
+            )
+            for notification, raw_data in zip(
+                self.notifications, raw_notifications, strict=False
+            )
         ]
         self.notifications_list.reverse()
 
@@ -294,11 +367,21 @@ class DateNotificationMenu(BaseDiWidget, Box):
 
         notification: Notification = fabric_notif.get_notification_from_id(id)
 
-        count = len(self.notification_list_box.children)
+        # Determine the correct persisted cache ID for this new notification entry.
+        # The cache service assigns sequential IDs and persists them; relying on the
+        # visible count here can desync with the cache and break actions/removal.
+        try:
+            raw_cache = cache_notification_service.do_read_notifications()
+            new_cache_id = raw_cache[-1]["id"] if raw_cache else 1
+        except Exception:
+            # Fallback to a best-effort ID if reading cache fails
+            new_cache_id = 1 + len(self.notification_list_box.children)
 
         self.notification_list_box.children = [
             NotificationHistoryEl(
-                notification=notification, id=count + 1 if count > 0 else 1
+                notification=notification,
+                id=new_cache_id,
+                actions_clicked=False,
             ),
             *self.notification_list_box.children,
         ]
