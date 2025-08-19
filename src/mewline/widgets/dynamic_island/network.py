@@ -358,7 +358,20 @@ class WifiNetworkSlot(BaseNetworkSlot):
         return self.network_info["ssid"]
 
     def _get_icon_name(self) -> str:
-        signal_level = min(int(self.network_info["signal"]) // 25, 3)
+        raw = str(self.network_info.get("signal", "0")).strip().lower()
+        signal_val = 0
+        try:
+            # Try decimal first
+            signal_val = int(raw)
+        except Exception:
+            # Try hexadecimal (e.g., 'f1')
+            try:
+                signal_val = int(raw, 16)
+            except Exception:
+                signal_val = 0
+        # Clamp to [0, 100]
+        signal_val = max(0, min(signal_val, 100))
+        signal_level = min(signal_val // 25, 3)
         if self._requires_password():
             return self.SECURED_SIGNAL_ICONS[signal_level]
         return self.SIGNAL_ICONS[signal_level]

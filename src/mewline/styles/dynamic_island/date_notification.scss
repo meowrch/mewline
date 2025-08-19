@@ -49,6 +49,34 @@
     border-radius: functions.toEm(15);
   }
 
+  #notification-history-actions {
+    margin-top: 6px;
+    // Use orientation: horizontal for inline layout in GTK
+
+    #history-action-button {
+      padding: variable.$padding * 0.5 variable.$padding;
+      border: variable.$border;
+      border-radius: variable.$radius;
+      background-color: theme.$background-highlight;
+      border-width: 2px;
+      transition: background 120ms ease-in-out, border-color 120ms ease-in-out;
+      margin-right: 6px;
+
+      label#button-label {
+        font-size: 12px;
+      }
+
+      &:hover {
+        background-color: theme.$background-element;
+        box-shadow: none;
+      }
+
+      &:active {
+        background-color: color.scale(theme.$background-element, $lightness: -5%);
+      }
+    }
+  }
+
   &.low-urgency {
     border: variable.$border-width solid theme.$background-element;
   }

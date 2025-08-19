@@ -42,6 +42,7 @@ class ActionButton(Button):
         self.action = action
         self.notification_box = notification_box
         self.add_style_class("action")
+        # Pause dismissal when hovering action buttons so user has time to click
         self.connect(
             "enter-notify-event", lambda *_: notification_box.hover_button(self)
         )
@@ -50,8 +51,33 @@ class ActionButton(Button):
         )
 
     def on_clicked(self, *_):
-        self.action.invoke()
-        self.action.parent.close("dismissed-by-user")
+        # Mark that at least one action was invoked for this notification
+        with contextlib.suppress(Exception):
+            self.notification_box._any_action_invoked = True
+
+        # Invoke the action and then close the notification as dismissed-by-user
+        try:
+            parent = getattr(self.action, "parent", None)
+            action_id = None
+            for attr in ("id", "key", "action_id", "identifier", "name"):
+                if hasattr(self.action, attr):
+                    action_id = getattr(self.action, attr)
+                    if action_id:
+                        break
+            if parent is not None and hasattr(parent, "invoke_action") and action_id is not None:
+                parent.invoke_action(action_id)
+            else:
+                self.action.invoke()
+        except Exception as e:
+            logger.error(f"Action invoke failed: {e}")
+        # Attempt to close via the underlying notification
+        try:
+            if hasattr(self.action, "parent") and self.action.parent is not None:
+                self.action.parent.close("dismissed-by-user")
+            elif hasattr(self.notification_box, "notification"):
+                self.notification_box.notification.close("dismissed-by-user")
+        except Exception as e:
+            logger.warning(f"Failed to close notification after action: {e}")
 
 
 class NotificationBox(Box):
@@ -65,7 +91,11 @@ class NotificationBox(Box):
         super().__init__(
             name="notification-box",
             orientation="v",
+            h_expand=True,
+            v_expand=True,
+            h_align="fill",
             spacing=10,
+            pass_through=False,
             children=[
                 self.create_content(notification),
                 Box(
@@ -89,17 +119,29 @@ class NotificationBox(Box):
             ],
         )
         self.notification = notification
-        self.timeout_ms = timeout_ms
+        self._any_action_invoked = False
+        # If there are actions: we still use timeout to hide the card,
+        # but we will NOT mark as EXPIRED
+        # Critical urgency: keep until user closes
+        if getattr(notification, "urgency", 1) == 2:
+            self.timeout_ms = 0
+        else:
+            self.timeout_ms = timeout_ms
         self._timeout_id = None
+        # Island-level hover detection will handle pausing, keep simple setup
         self.start_timeout()
 
     def create_content(self, notification):
         return Box(
             name="notification-content",
             spacing=8,
+            v_align="start",
+            h_expand=True,
+            h_align="fill",
             children=[
                 Box(
                     name="notification-image",
+                    v_align="start",
                     children=CustomImage(
                         pixbuf=notification.image_pixbuf.scale_simple(
                             48, 48, GdkPixbuf.InterpType.BILINEAR
@@ -111,11 +153,14 @@ class NotificationBox(Box):
                 Box(
                     name="notification-text",
                     orientation="v",
-                    v_align="center",
+                    v_align="start",
+                    h_expand=True,
+                    h_align="fill",
                     children=[
                         Box(
                             name="notification-summary-box",
                             orientation="h",
+                            h_expand=True,
                             children=[
                                 Label(
                                     name="notification-title",
@@ -124,6 +169,7 @@ class NotificationBox(Box):
                                     ),
                                     h_align="start",
                                     ellipsization="end",
+                                    xalign=0,
                                 ),
                                 Label(
                                     name="notification-app-name",
@@ -131,6 +177,7 @@ class NotificationBox(Box):
                                     + GLib.markup_escape_text(notification.app_name),
                                     h_align="start",
                                     ellipsization="end",
+                                    xalign=0,
                                 ),
                             ],
                         ),
@@ -146,9 +193,9 @@ class NotificationBox(Box):
                         else Box(),
                     ],
                 ),
-                Box(h_expand=True),
                 Box(
                     orientation="v",
+                    v_align="start",
                     children=[
                         self.create_close_button(),
                         Box(v_expand=True),
@@ -209,6 +256,8 @@ class NotificationBox(Box):
 
     def start_timeout(self):
         self.stop_timeout()
+        if not self.timeout_ms or self.timeout_ms == 0:
+            return
         self._timeout_id = GLib.timeout_add(self.timeout_ms, self.close_notification)
 
     def stop_timeout(self):
@@ -217,7 +266,26 @@ class NotificationBox(Box):
             self._timeout_id = None
 
     def close_notification(self):
-        self.notification.close("expired")
+        # If this notification has actions and no action has been invoked yet,
+        # hide it from the view without marking it as EXPIRED.
+        try:
+            has_actions = bool(getattr(self.notification, "actions", []))
+        except Exception:
+            has_actions = False
+        if has_actions and not getattr(self, "_any_action_invoked", False):
+            # Ask container to remove from view without closing upstream
+            try:
+                if hasattr(self, "_container") and self._container is not None:
+                    self._container.remove_box_without_close(self)
+            except Exception:
+                # Fallback: just hide
+                with contextlib.suppress(Exception):
+                    self.set_visible(False)
+            self.stop_timeout()
+            return False
+        # Normal close flow (no actions or user has already clicked action)
+        with contextlib.suppress(Exception):
+            self.notification.close("expired")
         self.stop_timeout()
         return False
 
@@ -347,6 +415,7 @@ class NotificationContainer(BaseDiWidget, Box):
 
         self._view_items: list[NotificationBox] = []
         self._view_index: int = 0
+        self._nav_attached: bool = True
         self._update_view_nav()
 
     def _view_prev(self, *args):
@@ -367,6 +436,40 @@ class NotificationContainer(BaseDiWidget, Box):
             self.view_stack.set_visible_child(self._view_items[self._view_index])
             self._update_view_nav()
 
+    def _attach_nav(self):
+        try:
+            # Add back to containers if missing
+            try:
+                if self.view_prev_btn.get_parent() is None:
+                    self.view_box.start_container.add(self.view_prev_btn)
+            except Exception:
+                ...
+            try:
+                if self.view_right.get_parent() is None:
+                    self.view_box.end_container.add(self.view_right)
+            except Exception:
+                ...
+        except Exception:
+            ...
+        self._nav_attached = True
+
+    def _detach_nav(self):
+        try:
+            # Remove from containers so no space is reserved
+            try:
+                if self.view_prev_btn.get_parent() is not None:
+                    self.view_box.start_container.remove(self.view_prev_btn)
+            except Exception:
+                ...
+            try:
+                if self.view_right.get_parent() is not None:
+                    self.view_box.end_container.remove(self.view_right)
+            except Exception:
+                ...
+        except Exception:
+            ...
+        self._nav_attached = False
+
     def _update_view_nav(self):
         # Dots
         try:
@@ -386,17 +489,19 @@ class NotificationContainer(BaseDiWidget, Box):
                 dot.add_style_class("active")
             self.view_dots.add(dot)
         show_nav = len(self._view_items) > 1
+        # Attach/detach nav from layout to avoid reserving space when single item
+        if show_nav and not getattr(self, "_nav_attached", False):
+            self._attach_nav()
+        elif not show_nav and getattr(self, "_nav_attached", False):
+            self._detach_nav()
+
         self.view_prev_btn.set_visible(show_nav)
         self.view_next_btn.set_visible(show_nav)
         self.view_dots.set_visible(show_nav)
         # Show external close only when multiple notifications;
         # otherwise rely on internal close
         if hasattr(self, "view_close_btn"):
-            self.view_right.set_visible(
-                show_nav
-                or (hasattr(self, "view_right")
-                and self.view_right.get_visible())
-            )
+            self.view_right.set_visible(show_nav)
             self.view_close_btn.set_visible(show_nav)
         # Ensure current item's internal close visibility matches
         if self._view_items:
@@ -411,6 +516,10 @@ class NotificationContainer(BaseDiWidget, Box):
             return
 
         new_box = NotificationBox(notification)
+        # Link back so the box can request removal without closing upstream
+        with contextlib.suppress(Exception):
+            new_box._container = self
+
         # Track the box by notification id for later cleanup
         with contextlib.suppress(Exception):
             self._boxes_by_id[notification.id] = new_box
@@ -504,6 +613,38 @@ class NotificationContainer(BaseDiWidget, Box):
             with contextlib.suppress(Exception):
                 self.view_stack.remove(current)
 
+    def remove_box_without_close(self, notif_box: Box):
+        # Remove notification box from dedicated carousel (or inline area)
+        # without closing upstream notification
+        if getattr(notif_box, "_inline", False):
+            # Inline area removal
+            self.dynamic_island.remove_inline_notification(notif_box)
+            with contextlib.suppress(Exception):
+                notif_box.destroy()
+            return
+        # Dedicated view removal
+        if notif_box in self._view_items:
+            idx = self._view_items.index(notif_box)
+            try:
+                if notif_box.get_parent() == self.view_stack:
+                    self.view_stack.remove(notif_box)
+            except Exception: ...
+            self._view_items.pop(idx)
+            if self._view_items:
+                self._view_index = min(idx, len(self._view_items) - 1)
+                self.view_stack.set_visible_child(self._view_items[self._view_index])
+                self._update_view_nav()
+            else:
+                self._view_index = 0
+                self._update_view_nav()
+                # Close DI if we're in notification view and no items left
+                try:
+                    if self.dynamic_island.current_widget == "notification":
+                        self.dynamic_island.close()
+                except Exception: ...
+        with contextlib.suppress(Exception):
+            notif_box.destroy()
+
     def on_notification_closed(self, notification, reason):
         logger.info(f"Notification {notification.id} closed with reason: {reason}")
         notif_box = self._boxes_by_id.pop(notification.id, None)
@@ -529,8 +670,11 @@ class NotificationContainer(BaseDiWidget, Box):
                 self.view_stack.set_visible_child(self._view_items[self._view_index])
                 self._update_view_nav()
             else:
-                # No notifications left in dedicated view: keep carousel widgets intact
-                # Just reset index and hide nav/dots, then close DI window
+                # No notifications left in dedicated view:
+                # close DI window to avoid empty expanded island
                 self._view_index = 0
                 self._update_view_nav()
-                self.dynamic_island.close()
+                try:
+                    if self.dynamic_island.current_widget == "notification":
+                        self.dynamic_island.close()
+                except Exception: ...

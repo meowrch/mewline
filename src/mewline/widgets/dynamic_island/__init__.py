@@ -9,6 +9,8 @@ from fabric.widgets.revealer import Revealer
 from fabric.widgets.stack import Stack
 from fabric.widgets.stack import Stack as FabricStack
 from fabric.widgets.wayland import WaylandWindow as Window
+from gi.repository import Gdk
+from gi.repository import GLib
 from gi.repository import Gtk
 
 from mewline.widgets.dynamic_island.app_launcher import AppLauncher
@@ -159,6 +161,29 @@ class DynamicIsland(Window):
             v_expand=True,
             h_expand=True,
         )
+        # Pause all inline notification timeouts while hovering the capsule
+        try:
+
+            def _inline_pause(*_a):
+                for item in self._inline_items:
+                    if hasattr(item, "pause_timeout"):
+                        item.pause_timeout()
+                return False
+
+            def _inline_resume(*_a):
+                # Only resume when pointer leaves the capsule entirely
+                for item in self._inline_items:
+                    if hasattr(item, "resume_timeout"):
+                        item.resume_timeout()
+                return False
+
+            self.inline_capsule.add_events(
+                Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK
+            )
+            self.inline_capsule.connect("enter-notify-event", _inline_pause)
+            self.inline_capsule.connect("leave-notify-event", _inline_resume)
+        except Exception:
+            ...
 
         self.inline_notification_container.children = [self.inline_capsule]
 
@@ -224,6 +249,14 @@ class DynamicIsland(Window):
 
         self.di_root_column.children = [self.di_box, self.inline_notification_revealer]
 
+        # Set up hover detection for the entire Dynamic Island
+        # to pause notification timers
+        self._setup_island_hover_detection()
+        # Recursively hook pointer events for all island children
+        self._hook_pointer_events_recursively(self.di_root_column)
+        # Fallback pointer polling (silent) to ensure hover works across backends
+        self._start_island_pointer_polling()
+
         ##==> Show the dynamic island
         ######################################
         self.add(self.di_root_column)
@@ -251,7 +284,8 @@ class DynamicIsland(Window):
             for child in list(self.inline_dots.get_children()):
                 self.inline_dots.remove(child)
                 child.destroy()
-        except Exception: ...
+        except Exception:
+            ...
 
         for i in range(len(self._inline_items)):
             dot_shape = FabricBox(name="inline-dot-shape")
@@ -300,17 +334,20 @@ class DynamicIsland(Window):
                     ):
                         widget.set_visible(False)
                         return True
-                except Exception: ...
+                except Exception:
+                    ...
                 try:
                     for child in widget.get_children():
                         if hide_in(child):
                             return True
-                except Exception: ...
+                except Exception:
+                    ...
 
                 return False
 
             hide_in(container)
-        except Exception: ...
+        except Exception:
+            ...
 
     def show_inline_notification(self, notif_box: Box) -> None:
         """Add notification to inline carousel and show it."""
@@ -321,12 +358,33 @@ class DynamicIsland(Window):
             self._inline_index = len(self._inline_items) - 1
             # Hide internal close button of the card (we show capsule close instead)
             self._hide_internal_close_button(notif_box)
+            # Also ensure hover on the notification card pauses its timer
+            try:
+                notif_box.add_events(
+                    Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK
+                )
+                notif_box.connect(
+                    "enter-notify-event",
+                    lambda *_: hasattr(notif_box, "pause_timeout")
+                    and notif_box.pause_timeout(),
+                )
+                notif_box.connect(
+                    "leave-notify-event",
+                    lambda *_: hasattr(notif_box, "resume_timeout")
+                    and notif_box.resume_timeout(),
+                )
+            except Exception:
+                ...
+
             self.inline_stack.set_visible_child(notif_box)
             self._update_inline_nav()
             self.inline_notification_container.set_visible(True)
             self.inline_notification_revealer.set_reveal_child(True)
+            # Hook pointer events on the newly added notification card
+            self._hook_pointer_events_recursively(notif_box)
         except Exception:
             self.inline_notification_container.set_visible(True)
+            self.inline_notification_revealer.set_reveal_child(True)
             self.inline_notification_revealer.set_reveal_child(True)
             self.inline_notification_revealer.set_reveal_child(True)
 
@@ -346,7 +404,8 @@ class DynamicIsland(Window):
                     )
                 else:
                     self._inline_index = 0
-        except Exception: ...
+        except Exception:
+            ...
 
         self._update_inline_nav()
 
@@ -361,10 +420,172 @@ class DynamicIsland(Window):
             for child in list(self.inline_stack.get_children()):
                 self.inline_stack.remove(child)
                 child.destroy()
-        except Exception: ...
+        except Exception:
+            ...
         self._inline_items.clear()
         self._inline_index = 0
         self._update_inline_nav()
+
+    def _setup_island_hover_detection(self):
+        """Set up hover detection for the entire Dynamic Island."""
+        try:
+            # Enable mouse events on the main DI container
+            self.di_box.add_events(
+                Gdk.EventMask.ENTER_NOTIFY_MASK
+                | Gdk.EventMask.LEAVE_NOTIFY_MASK
+                | Gdk.EventMask.POINTER_MOTION_MASK
+            )
+
+            # Connect hover events to pause/resume notification timers
+            self.di_box.connect("enter-notify-event", self._on_island_mouse_enter)
+            self.di_box.connect("leave-notify-event", self._on_island_mouse_leave)
+            self.di_box.connect("motion-notify-event", self._on_island_mouse_motion)
+
+            # Also enable events on the inline notification container
+            self.inline_notification_container.add_events(
+                Gdk.EventMask.ENTER_NOTIFY_MASK
+                | Gdk.EventMask.LEAVE_NOTIFY_MASK
+                | Gdk.EventMask.POINTER_MOTION_MASK
+            )
+
+            self.inline_notification_container.connect(
+                "enter-notify-event", self._on_island_mouse_enter
+            )
+            self.inline_notification_container.connect(
+                "leave-notify-event", self._on_island_mouse_leave
+            )
+            self.inline_notification_container.connect(
+                "motion-notify-event", self._on_island_mouse_motion
+            )
+
+            # Track hover state for the entire island
+            self._island_hovered = False
+
+        except Exception as e:
+            print(f"Failed to setup island hover detection: {e}")
+
+    def _hook_pointer_events_recursively(self, widget):
+        """Recursively add pointer event masks
+        and connect to island handlers for all children widgets.
+        """  # noqa: D205
+        try:
+            # Avoid double-hooking
+            if getattr(widget, "_di_hover_hooked", False):
+                return
+            widget.add_events(
+                Gdk.EventMask.ENTER_NOTIFY_MASK
+                | Gdk.EventMask.LEAVE_NOTIFY_MASK
+                | Gdk.EventMask.POINTER_MOTION_MASK
+            )
+            widget.connect("enter-notify-event", self._on_island_mouse_enter)
+            widget.connect("leave-notify-event", self._on_island_mouse_leave)
+            widget.connect("motion-notify-event", self._on_island_mouse_motion)
+            widget._di_hover_hooked = True
+        except Exception:
+            ...
+
+        # Recurse into children if available
+        try:
+            for child in widget.get_children():
+                self._hook_pointer_events_recursively(child)
+        except Exception:
+            ...
+
+    def _on_island_mouse_enter(self, widget, event):
+        """Handle mouse entering the Dynamic Island area."""
+        self._island_hovered = True
+        self._pause_all_notification_timers()
+        return False
+
+    def _on_island_mouse_leave(self, widget, event):
+        """Handle mouse leaving the Dynamic Island area."""
+        self._island_hovered = False
+        # Small delay before resuming to avoid flicker
+        # when moving between island elements
+        GLib.timeout_add(150, self._delayed_resume_all_timers)
+        return False
+
+    def _on_island_mouse_motion(self, widget, event):
+        """Handle mouse motion within the Dynamic Island."""
+        if not self._island_hovered:
+            self._island_hovered = True
+            self._pause_all_notification_timers()
+        return False
+
+    def _delayed_resume_all_timers(self):
+        """Resume all notification timers after delay if not hovered."""
+        if not self._island_hovered:
+            self._resume_all_notification_timers()
+        return False
+
+    def _start_island_pointer_polling(self):
+        try:
+            if getattr(self, "_pointer_poll_id", None):
+                return
+            self._pointer_poll_id = GLib.timeout_add(200, self._poll_pointer_inside)
+        except Exception:
+            ...
+
+    def _poll_pointer_inside(self):
+        try:
+            gdk_window = self.get_window()
+            if not gdk_window:
+                return True
+            display = gdk_window.get_display()
+            seat = display.get_default_seat() if display else None
+            pointer = seat.get_pointer() if seat else None
+            if not pointer:
+                return True
+            _, x, y, _ = gdk_window.get_device_position(pointer)
+            width = gdk_window.get_width()
+            height = gdk_window.get_height()
+            inside = 0 <= x <= width and 0 <= y <= height
+            if inside and not self._island_hovered:
+                self._island_hovered = True
+                self._pause_all_notification_timers()
+            elif not inside and self._island_hovered:
+                self._island_hovered = False
+                self._resume_all_notification_timers()
+        except Exception:
+            ...
+
+        return True
+
+    def _pause_all_notification_timers(self):
+        """Pause timeout timers for all active notifications."""
+        # Pause timers for notifications in dedicated view
+        try:
+            for notif_box in self.notification._view_items:
+                if hasattr(notif_box, "pause_timeout"):
+                    notif_box.pause_timeout()
+        except Exception:
+            ...
+
+        # Pause timers for inline notifications
+        try:
+            for notif_box in self._inline_items:
+                if hasattr(notif_box, "pause_timeout"):
+                    notif_box.pause_timeout()
+        except Exception:
+            ...
+
+    def _resume_all_notification_timers(self):
+        """Resume timeout timers for all active notifications."""
+        # Resume timers for notifications in dedicated view
+        try:
+            for notif_box in self.notification._view_items:
+                if hasattr(notif_box, "resume_timeout"):
+                    notif_box.resume_timeout()
+        except Exception:
+            ...
+
+        # Resume timers for inline notifications
+        try:
+            for notif_box in self._inline_items:
+                if hasattr(notif_box, "resume_timeout"):
+                    notif_box.resume_timeout()
+        except Exception:
+            ...
 
     def call_module_method_if_exists(
         self, module: BaseDiWidget, method_name: str, **kwargs
@@ -380,6 +601,13 @@ class DynamicIsland(Window):
         self.set_keyboard_mode("none")
         # Hide and clear inline notifications when closing DI
         self.hide_inline_notifications()
+        # Stop pointer polling
+        try:
+            if getattr(self, "_pointer_poll_id", None):
+                GLib.source_remove(self._pointer_poll_id)
+                self._pointer_poll_id = None
+        except Exception:
+            ...
 
         if self.current_widget is not None:
             self.call_module_method_if_exists(
@@ -433,6 +661,9 @@ class DynamicIsland(Window):
         self.call_module_method_if_exists(
             self.widgets[self.current_widget], "open_widget_from_di"
         )
+
+        # Ensure all children have pointer events hooked (some widgets change on open)
+        self._hook_pointer_events_recursively(self.di_root_column)
 
         if widget == "notification":
             self.set_keyboard_mode("none")
