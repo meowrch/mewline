@@ -165,7 +165,7 @@
   // Render as a rounded box with a slight gap from the island content and edges
   margin: 6px 12px 0 12px; // small gap and side insets to keep island corners visible
   padding: 10px 12px 6px 12px; // tighter bottom so dots sit lower
-  border-radius: 20px; // normalized rounded corners (use 36px if you prefer larger)
+  border-radius: 30px; // normalized rounded corners (use 36px if you prefer larger)
   background-color: theme.$background-highlight;
   box-shadow: 0 0 3px 0 color.adjust(theme.$shadow-color, $alpha: -0.6);
   outline: 1px solid theme.$background-element; // subtle border like other widgets
@@ -209,22 +209,28 @@
   padding: 0;
   border: none;
   background: transparent;
-  min-width: 14px;
-  min-height: 14px;
+  min-width: 8px;   // shrink clickable area a bit
+  min-height: 8px;
   border-radius: 50%;
   transition: background-color 0.2s ease;
 
-  &:hover {
+  \u0026:hover {
     background-color: color.adjust(theme.$background-element, $alpha: -0.5);
   }
 }
 
 #inline-dot-shape {
-  min-width: 6px;
-  min-height: 6px;
+  /* GTK doesn't support width/height here; use min- to force size */
+  min-width: 2px;
+  min-height: 2px;
   border-radius: 50%; // fully rounded
   background-color: theme.$background-element;
   transition: background-color 0.2s ease;
+}
+
+#inline-dots {
+  padding-top: 0;
+  margin-bottom: 6px; // увеличил отступ до критической полосы
 }
 
 #inline-dot.active > #inline-dot-shape {

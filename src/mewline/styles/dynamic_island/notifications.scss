@@ -43,7 +43,7 @@
   background-color: theme.$accent-success;
   border-radius: 2px;
   min-height: 4px;
-  margin: 0 2rem 0px 2rem;
+  margin: 6px 2rem 0px 2rem; // небольшой отступ сверху от контента/точек
 
   &.low-urgency {
     background: theme.$accent-success;

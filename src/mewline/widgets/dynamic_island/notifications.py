@@ -102,23 +102,18 @@ class NotificationBox(Box):
             pass_through=False,
             children=[
                 self.create_content(notification),
+                self.create_action_buttons(notification),
+                Box(v_expand=True),  # spacer to push urgency line to the bottom
                 Box(
-                    spacing=10,
-                    orientation="vertical",
-                    children=[
-                        self.create_action_buttons(notification),
-                        Box(
-                            name="notification-urgency-line",
-                            visible=urgency_class.get(
-                                notification.urgency, urgency_class[0]
-                            )[1],
-                            h_expand=True,
-                            h_align="fill",
-                            style_classes=urgency_class.get(
-                                notification.urgency, urgency_class[0]
-                            )[0],
-                        ),
+                    name="notification-urgency-line",
+                    visible=urgency_class.get(notification.urgency, urgency_class[0])[
+                        1
                     ],
+                    h_expand=True,
+                    h_align="fill",
+                    style_classes=urgency_class.get(
+                        notification.urgency, urgency_class[0]
+                    )[0],
                 ),
             ],
         )
@@ -393,6 +388,16 @@ class NotificationContainer(BaseDiWidget, Box):
                 self.view_dots,
             ],
         )
+        # External urgency line (shown below dots when multiple notifications)
+        self.view_urgency_line = Box(
+            name="notification-urgency-line",
+            visible=False,
+            h_expand=True,
+            h_align="fill",
+        )
+        # Insert external urgency line below dots
+        with contextlib.suppress(Exception):
+            self.view_center.add(self.view_urgency_line)
 
         # Right column: copy exact structure from inline capsule (which works perfectly)
         self.view_next_btn.set_halign(Gtk.Align.CENTER)
@@ -443,18 +448,21 @@ class NotificationContainer(BaseDiWidget, Box):
             self._view_index -= 1
             self.view_stack.set_visible_child(self._view_items[self._view_index])
             self._update_view_nav()
+            self._update_external_urgency_line()
 
     def _view_next(self, *args):
         if self._view_index < len(self._view_items) - 1:
             self._view_index += 1
             self.view_stack.set_visible_child(self._view_items[self._view_index])
             self._update_view_nav()
+            self._update_external_urgency_line()
 
     def _view_go_to(self, idx: int):
         if 0 <= idx < len(self._view_items):
             self._view_index = idx
             self.view_stack.set_visible_child(self._view_items[self._view_index])
             self._update_view_nav()
+            self._update_external_urgency_line()
 
     def _attach_nav(self):
         try:
@@ -489,6 +497,131 @@ class NotificationContainer(BaseDiWidget, Box):
         except Exception:
             ...
         self._nav_attached = False
+
+    def _update_internal_urgency_for_box(self, box: Box):
+        """Ensure the internal urgency line
+        in a single notification reflects its urgency.
+        """  # noqa: D205
+        try:
+            urgency = 1
+            try:
+                urgency = getattr(getattr(box, "notification", None), "urgency", 1)
+            except Exception:
+                urgency = 1
+
+            def set_vis(widget):
+                try:
+                    if (
+                        hasattr(widget, "get_name")
+                        and widget.get_name() == "notification-urgency-line"
+                    ):
+                        widget.set_visible(urgency == 2)
+                        # Also normalize classes
+                        try:
+                            for cls in (
+                                "low-urgency",
+                                "normal-urgency",
+                                "critical-urgency",
+                            ):
+                                widget.remove_style_class(cls)
+                        except Exception:
+                            ...
+                        if urgency == 2:
+                            widget.add_style_class("critical-urgency")
+                        elif urgency == 1:
+                            widget.add_style_class("normal-urgency")
+                        else:
+                            widget.add_style_class("low-urgency")
+                        return True
+                except Exception:
+                    ...
+                try:
+                    for child in widget.get_children():
+                        if set_vis(child):
+                            return True
+                except Exception:
+                    ...
+                return False
+
+            set_vis(box)
+        except Exception:
+            ...
+
+    def _set_internal_urgency_visibility(self, container: Box, visible: bool):
+        try:
+
+            def set_vis(widget):
+                try:
+                    if (
+                        hasattr(widget, "get_name")
+                        and widget.get_name() == "notification-urgency-line"
+                    ):
+                        widget.set_visible(visible)
+                        return True
+                except Exception:
+                    ...
+                try:
+                    for child in widget.get_children():
+                        if set_vis(child):
+                            return True
+                except Exception:
+                    ...
+                return False
+
+            set_vis(container)
+        except Exception:
+            ...
+
+    def _current_view_notification_box(self) -> Box | None:
+        try:
+            if not self._view_items:
+                return None
+            return self._view_items[self._view_index]
+        except Exception:
+            return None
+
+    def _toggle_urgency_lines(self, multi: bool):
+        # In multi mode: hide internal lines, show external container; single: inverse
+        try:
+            for item in self._view_items:
+                self._set_internal_urgency_visibility(item, not multi)
+        except Exception:
+            ...
+        with contextlib.suppress(Exception):
+            self.view_urgency_line.set_visible(
+                False if not multi else self.view_urgency_line.get_visible()
+            )
+
+    def _update_external_urgency_line(self):
+        # Update external urgency line (only in multi mode)
+        try:
+            show_nav = len(self._view_items) > 1
+            if not show_nav:
+                self.view_urgency_line.set_visible(False)
+                return
+            current = self._current_view_notification_box()
+            if current is None:
+                self.view_urgency_line.set_visible(False)
+                return
+            urgency = getattr(getattr(current, "notification", None), "urgency", 1)
+            # Reset classes
+            try:
+                for cls in ("low-urgency", "normal-urgency", "critical-urgency"):
+                    self.view_urgency_line.remove_style_class(cls)
+            except Exception:
+                ...
+            if urgency == 2:
+                self.view_urgency_line.add_style_class("critical-urgency")
+                self.view_urgency_line.set_visible(True)
+            elif urgency == 1:
+                self.view_urgency_line.add_style_class("normal-urgency")
+                self.view_urgency_line.set_visible(False)
+            else:
+                self.view_urgency_line.add_style_class("low-urgency")
+                self.view_urgency_line.set_visible(False)
+        except Exception:
+            with contextlib.suppress(Exception):
+                self.view_urgency_line.set_visible(False)
 
     def _show_single_notification(self, box: Box):
         # Place a single notification box inside the simple container and show it
@@ -544,6 +677,10 @@ class NotificationContainer(BaseDiWidget, Box):
             self.view_dots.add(dot)
 
         show_nav = len(self._view_items) > 1
+
+        # Toggle external urgency line and hide internal ones in multi-view
+        self._toggle_urgency_lines(show_nav)
+        self._update_external_urgency_line()
 
         # Keep navigation containers attached at all times so the center content can
         # take the full available width of the island. We only toggle visibility.
@@ -633,6 +770,7 @@ class NotificationContainer(BaseDiWidget, Box):
             # Multiple notifications => use external close, hide internal
             self._set_internal_close_visibility(new_box, False)
             self._update_view_nav()
+            self._update_external_urgency_line()
 
         # Ensure DI is open to notification view
         self.dynamic_island.open("notification")
@@ -745,11 +883,16 @@ class NotificationContainer(BaseDiWidget, Box):
                         self.view_stack.remove(remaining)
                 self._set_internal_close_visibility(remaining, True)
                 self._show_single_notification(remaining)
+                # Restore internal urgency line based on remaining notification urgency
+                self._update_internal_urgency_for_box(remaining)
+                with contextlib.suppress(Exception):
+                    self.view_urgency_line.set_visible(False)
             else:
                 # Stay in multi mode
                 self._view_index = min(idx, len(self._view_items) - 1)
                 self.view_stack.set_visible_child(self._view_items[self._view_index])
                 self._update_view_nav()
+                self._update_external_urgency_line()
         with contextlib.suppress(Exception):
             notif_box.destroy()
 
@@ -798,8 +941,13 @@ class NotificationContainer(BaseDiWidget, Box):
                         self.view_stack.remove(remaining)
                 self._set_internal_close_visibility(remaining, True)
                 self._show_single_notification(remaining)
+                # Restore internal urgency line based on remaining notification urgency
+                self._update_internal_urgency_for_box(remaining)
+                with contextlib.suppress(Exception):
+                    self.view_urgency_line.set_visible(False)
             else:
                 # Stay in multi mode
                 self._view_index = min(idx, len(self._view_items) - 1)
                 self.view_stack.set_visible_child(self._view_items[self._view_index])
                 self._update_view_nav()
+                self._update_external_urgency_line()

@@ -1,3 +1,5 @@
+import contextlib
+
 from fabric import Application
 from fabric.widgets.box import Box
 from fabric.widgets.box import Box as FabricBox
@@ -139,6 +141,15 @@ class DynamicIsland(Window):
                 self.inline_dots,
             ],
         )
+        # External urgency line for inline capsule (shown below dots)
+        self.inline_urgency_line = Box(
+            name="notification-urgency-line",
+            visible=False,
+            h_expand=True,
+            h_align="fill",
+        )
+        with contextlib.suppress(Exception):
+            self.inline_capsule_center.add(self.inline_urgency_line)
 
         # Right side container: three blocks
         # (close at top, arrow centered, bottom spacer expands)
@@ -269,6 +280,7 @@ class DynamicIsland(Window):
             self._inline_index -= 1
         self.inline_stack.set_visible_child(self._inline_items[self._inline_index])
         self._update_inline_nav()
+        self._update_inline_external_urgency_line()
 
     def _inline_next(self):
         if not self._inline_items:
@@ -277,6 +289,7 @@ class DynamicIsland(Window):
             self._inline_index += 1
         self.inline_stack.set_visible_child(self._inline_items[self._inline_index])
         self._update_inline_nav()
+        self._update_inline_external_urgency_line()
 
     def _update_inline_nav(self):
         # Rebuild dots reflecting current count and index
@@ -302,12 +315,17 @@ class DynamicIsland(Window):
         self.inline_prev_btn.set_visible(show_nav)
         self.inline_next_btn.set_visible(show_nav)
         self.inline_dots.set_visible(show_nav)
+        # Hide internal urgency lines for items in multi mode;
+        # show external line only in multi
+        self._toggle_inline_urgency_lines(show_nav)
+        self._update_inline_external_urgency_line()
 
     def _inline_go_to(self, idx: int):
         if 0 <= idx < len(self._inline_items):
             self._inline_index = idx
             self.inline_stack.set_visible_child(self._inline_items[self._inline_index])
             self._update_inline_nav()
+            self._update_inline_external_urgency_line()
 
     def _inline_close_current(self):
         if not self._inline_items:
@@ -349,6 +367,78 @@ class DynamicIsland(Window):
         except Exception:
             ...
 
+    def _set_inline_internal_urgency_visibility(self, container: Box, visible: bool):
+        try:
+            def set_vis(widget):
+                try:
+                    if (
+                        hasattr(widget, "get_name")
+                        and widget.get_name() == "notification-urgency-line"
+                    ):
+                        widget.set_visible(visible)
+                        return True
+                except Exception:
+                    ...
+                try:
+                    for child in widget.get_children():
+                        if set_vis(child):
+                            return True
+                except Exception:
+                    ...
+                return False
+            set_vis(container)
+        except Exception:
+            ...
+
+    def _current_inline_view_box(self) -> Box | None:
+        try:
+            if not self._inline_items:
+                return None
+            return self._inline_items[self._inline_index]
+        except Exception:
+            return None
+
+    def _toggle_inline_urgency_lines(self, multi: bool):
+        # Hide internal urgency lines in multi mode; show external only in multi
+        try:
+            for item in self._inline_items:
+                self._set_inline_internal_urgency_visibility(item, not multi)
+        except Exception:
+            ...
+        with contextlib.suppress(Exception):
+            self.inline_urgency_line.set_visible(False if not multi else self.inline_urgency_line.get_visible())
+
+    def _update_inline_external_urgency_line(self):
+        # Update external urgency line (only when there are multiple inline items)
+        try:
+            multi = len(self._inline_items) > 1
+            if not multi:
+                self.inline_urgency_line.set_visible(False)
+                return
+            current = self._current_inline_view_box()
+            if current is None:
+                self.inline_urgency_line.set_visible(False)
+                return
+            urgency = getattr(getattr(current, "notification", None), "urgency", 1)
+            # Reset classes
+            try:
+                for cls in ("low-urgency", "normal-urgency", "critical-urgency"):
+                    self.inline_urgency_line.remove_style_class(cls)
+            except Exception:
+                ...
+            if urgency == 2:
+                self.inline_urgency_line.add_style_class("critical-urgency")
+                self.inline_urgency_line.set_visible(True)
+            elif urgency == 1:
+                self.inline_urgency_line.add_style_class("normal-urgency")
+                self.inline_urgency_line.set_visible(False)
+            else:
+                self.inline_urgency_line.add_style_class("low-urgency")
+                self.inline_urgency_line.set_visible(False)
+        except Exception:
+            with contextlib.suppress(Exception):
+                self.inline_urgency_line.set_visible(False)
+
     def show_inline_notification(self, notif_box: Box) -> None:
         """Add notification to inline carousel and show it."""
         try:
@@ -358,6 +448,12 @@ class DynamicIsland(Window):
             self._inline_index = len(self._inline_items) - 1
             # Hide internal close button of the card (we show capsule close instead)
             self._hide_internal_close_button(notif_box)
+            # Hide internal urgency line in multi mode (will show external below dots)
+            try:
+                if len(self._inline_items) > 1:
+                    self._set_inline_internal_urgency_visibility(notif_box, False)
+            except Exception:
+                ...
             # Also ensure hover on the notification card pauses its timer
             try:
                 notif_box.add_events(
@@ -380,10 +476,13 @@ class DynamicIsland(Window):
             self._update_inline_nav()
             self.inline_notification_container.set_visible(True)
             self.inline_notification_revealer.set_reveal_child(True)
+            # Update external urgency line state
+            self._update_inline_external_urgency_line()
             # Hook pointer events on the newly added notification card
             self._hook_pointer_events_recursively(notif_box)
         except Exception:
             self.inline_notification_container.set_visible(True)
+            self.inline_notification_revealer.set_reveal_child(True)
             self.inline_notification_revealer.set_reveal_child(True)
             self.inline_notification_revealer.set_reveal_child(True)
             self.inline_notification_revealer.set_reveal_child(True)
@@ -408,13 +507,17 @@ class DynamicIsland(Window):
             ...
 
         self._update_inline_nav()
+        self._update_inline_external_urgency_line()
 
         if not self._inline_items:
+            self.hide_inline_notifications()
             self.hide_inline_notifications()
 
     def hide_inline_notifications(self) -> None:
         self.inline_notification_revealer.set_reveal_child(False)
         self.inline_notification_container.set_visible(False)
+        with contextlib.suppress(Exception):
+            self.inline_urgency_line.set_visible(False)
         # Clear carousel
         try:
             for child in list(self.inline_stack.get_children()):
@@ -424,6 +527,7 @@ class DynamicIsland(Window):
             ...
         self._inline_items.clear()
         self._inline_index = 0
+        self._update_inline_nav()
         self._update_inline_nav()
 
     def _setup_island_hover_detection(self):
