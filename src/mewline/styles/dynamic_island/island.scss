@@ -43,8 +43,8 @@
 
   &.notification {
     padding: 16px;
-    min-height: 45px;
-    min-width: 360px;
+    min-height: 80px;
+    min-width: 300px;
     border-radius: 0 0 36px 36px;
   }
 
@@ -232,7 +232,7 @@
 }
 // Mirror width constraints of the island per widget by applying same min-widths
 #inline-notification-container.power-menu { min-width: 320px; }
-#inline-notification-container.notification { min-width: 360px; }
+#inline-notification-container.notification { min-width: 300px; }
 #inline-notification-container.bluetooth { min-width: 500px; }
 #inline-notification-container.network { min-width: 500px; }
 #inline-notification-container.date-notification { min-width: 500px; }

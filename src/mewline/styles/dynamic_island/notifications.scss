@@ -86,3 +86,8 @@
 #notification-text {
   color: theme.$text-color;
 }
+
+#notification-box {
+  min-width: 400px;
+  min-height: 70px;
+}

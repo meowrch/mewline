@@ -64,7 +64,11 @@ class ActionButton(Button):
                     action_id = getattr(self.action, attr)
                     if action_id:
                         break
-            if parent is not None and hasattr(parent, "invoke_action") and action_id is not None:
+            if (
+                parent is not None
+                and hasattr(parent, "invoke_action")
+                and action_id is not None
+            ):
                 parent.invoke_action(action_id)
             else:
                 self.action.invoke()
@@ -390,10 +394,10 @@ class NotificationContainer(BaseDiWidget, Box):
             ],
         )
 
-        # Right vertical container (same pattern as inline capsule):
-        # close at top-right, next arrow centered vertically, bottom spacer
+        # Right column: copy exact structure from inline capsule (which works perfectly)
         self.view_next_btn.set_halign(Gtk.Align.CENTER)
         self.view_next_btn.set_valign(Gtk.Align.CENTER)
+
         self.view_right = FabricCenterBox(
             orientation="v",
             start_children=self.view_close_btn,
@@ -411,11 +415,27 @@ class NotificationContainer(BaseDiWidget, Box):
             v_expand=True,
             h_expand=True,
         )
+
+        # Simple single-notification container (no CenterBox)
+        self.simple_container = Box(
+            name="di-single-notification",
+            orientation="v",
+            v_expand=True,
+            h_expand=True,
+        )
+        # Add both to this container; we toggle visibility
+        self.add(self.simple_container)
         self.add(self.view_box)
+        # Initially hide both (no items yet)
+        with contextlib.suppress(Exception):
+            self.simple_container.set_visible(False)
+            self.view_box.set_visible(False)
 
         self._view_items: list[NotificationBox] = []
         self._view_index: int = 0
         self._nav_attached: bool = True
+        # Ensure nav containers are attached initially so center content can fill width
+        self._attach_nav()
         self._update_view_nav()
 
     def _view_prev(self, *args):
@@ -470,13 +490,47 @@ class NotificationContainer(BaseDiWidget, Box):
             ...
         self._nav_attached = False
 
+    def _show_single_notification(self, box: Box):
+        # Place a single notification box inside the simple container and show it
+        try:
+            for child in list(self.simple_container.get_children()):
+                self.simple_container.remove(child)
+        except Exception:
+            ...
+        with contextlib.suppress(Exception):
+            self.simple_container.add(box)
+            self.simple_container.set_visible(True)
+            self.view_box.set_visible(False)
+
+    def _show_multi_notification_view(self):
+        # Show the carousel view and hide single-container
+        with contextlib.suppress(Exception):
+            self.simple_container.set_visible(False)
+            self.view_box.set_visible(True)
+
     def _update_view_nav(self):
+        # If in single-notification mode, no nav visuals needed
+        try:
+            if self.simple_container.get_visible():
+                # Ensure nav hidden
+                with contextlib.suppress(Exception):
+                    self.view_prev_btn.set_visible(False)
+                    self.view_next_btn.set_visible(False)
+                    self.view_dots.set_visible(False)
+                    if hasattr(self, "view_close_btn"):
+                        self.view_right.set_visible(False)
+                        self.view_close_btn.set_visible(False)
+                return
+        except Exception:
+            ...
+
         # Dots
         try:
             for child in list(self.view_dots.get_children()):
                 self.view_dots.remove(child)
                 child.destroy()
-        except Exception: ...
+        except Exception:
+            ...
 
         for i in range(len(self._view_items)):
             dot_shape = Box(name="inline-dot-shape")
@@ -488,12 +542,18 @@ class NotificationContainer(BaseDiWidget, Box):
             if i == self._view_index:
                 dot.add_style_class("active")
             self.view_dots.add(dot)
+
         show_nav = len(self._view_items) > 1
-        # Attach/detach nav from layout to avoid reserving space when single item
-        if show_nav and not getattr(self, "_nav_attached", False):
-            self._attach_nav()
-        elif not show_nav and getattr(self, "_nav_attached", False):
-            self._detach_nav()
+
+        # Keep navigation containers attached at all times so the center content can
+        # take the full available width of the island. We only toggle visibility.
+        # This prevents the CenterBox from collapsing to the natural width of the
+        # center child (which caused the "centered narrow" appearance).
+        try:
+            if not getattr(self, "_nav_attached", False):
+                self._attach_nav()
+        except Exception:
+            ...
 
         self.view_prev_btn.set_visible(show_nav)
         self.view_next_btn.set_visible(show_nav)
@@ -538,18 +598,41 @@ class NotificationContainer(BaseDiWidget, Box):
             self.dynamic_island.show_inline_notification(new_box)
             return
 
-        # Dedicated notification view: add to carousel
+        # Dedicated notification view logic
+        pre_count = len(self._view_items)
         new_box._inline = False
-        self.view_stack.add_named(new_box, f"n-{notification.id}")
-        self._view_items.append(new_box)
-        self._view_index = len(self._view_items) - 1
-        self.view_stack.set_visible_child(new_box)
-        # Manage close buttons based on count
-        if len(self._view_items) > 1:
-            self._set_internal_close_visibility(new_box, False)
-        else:
+
+        if pre_count == 0:
+            # Single mode: show only the box in a simple container (no CenterBox)
+            self._view_items.append(new_box)
+            self._view_index = 0
             self._set_internal_close_visibility(new_box, True)
-        self._update_view_nav()
+            self._show_single_notification(new_box)
+        elif pre_count >= 1:
+            # If we were in single mode, migrate the existing box into the stack
+            if self.simple_container.get_visible():
+                try:
+                    existing_children = list(self.simple_container.get_children())
+                except Exception:
+                    existing_children = []
+                if existing_children:
+                    first_box = existing_children[0]
+                    with contextlib.suppress(Exception):
+                        self.simple_container.remove(first_box)
+                    with contextlib.suppress(Exception):
+                        self.view_stack.add_named(
+                            first_box, f"n-{getattr(first_box.notification, 'id', 'x')}"
+                        )
+                self._show_multi_notification_view()
+
+            # Add the new box to the carousel
+            self.view_stack.add_named(new_box, f"n-{notification.id}")
+            self._view_items.append(new_box)
+            self._view_index = len(self._view_items) - 1
+            self.view_stack.set_visible_child(new_box)
+            # Multiple notifications => use external close, hide internal
+            self._set_internal_close_visibility(new_box, False)
+            self._update_view_nav()
 
         # Ensure DI is open to notification view
         self.dynamic_island.open("notification")
@@ -565,18 +648,21 @@ class NotificationContainer(BaseDiWidget, Box):
                     ):
                         widget.set_visible(False)
                         return True
-                except Exception: ...
+                except Exception:
+                    ...
 
                 try:
                     for child in widget.get_children():
                         if hide_in(child):
                             return True
-                except Exception: ...
+                except Exception:
+                    ...
 
                 return False
 
             hide_in(container)
-        except Exception: ...
+        except Exception:
+            ...
 
     def _set_internal_close_visibility(self, container: Box, visible: bool):
         try:
@@ -589,18 +675,21 @@ class NotificationContainer(BaseDiWidget, Box):
                     ):
                         widget.set_visible(visible)
                         return True
-                except Exception: ...
+                except Exception:
+                    ...
 
                 try:
                     for child in widget.get_children():
                         if set_vis(child):
                             return True
-                except Exception: ...
+                except Exception:
+                    ...
 
                 return False
 
             set_vis(container)
-        except Exception: ...
+        except Exception:
+            ...
 
     def _view_close_current(self):
         if not self._view_items:
@@ -628,20 +717,39 @@ class NotificationContainer(BaseDiWidget, Box):
             try:
                 if notif_box.get_parent() == self.view_stack:
                     self.view_stack.remove(notif_box)
-            except Exception: ...
+                elif (
+                    self.simple_container.get_visible()
+                    and notif_box.get_parent() == self.simple_container
+                ):
+                    self.simple_container.remove(notif_box)
+            except Exception:
+                ...
             self._view_items.pop(idx)
-            if self._view_items:
-                self._view_index = min(idx, len(self._view_items) - 1)
-                self.view_stack.set_visible_child(self._view_items[self._view_index])
-                self._update_view_nav()
-            else:
+            # Decide whether to switch modes based on remaining count
+            if len(self._view_items) == 0:
                 self._view_index = 0
-                self._update_view_nav()
+                with contextlib.suppress(Exception):
+                    self.simple_container.set_visible(False)
+                    self.view_box.set_visible(False)
                 # Close DI if we're in notification view and no items left
                 try:
                     if self.dynamic_island.current_widget == "notification":
                         self.dynamic_island.close()
-                except Exception: ...
+                except Exception:
+                    ...
+            elif len(self._view_items) == 1:
+                # Switch to single mode
+                remaining = self._view_items[0]
+                with contextlib.suppress(Exception):
+                    if remaining.get_parent() == self.view_stack:
+                        self.view_stack.remove(remaining)
+                self._set_internal_close_visibility(remaining, True)
+                self._show_single_notification(remaining)
+            else:
+                # Stay in multi mode
+                self._view_index = min(idx, len(self._view_items) - 1)
+                self.view_stack.set_visible_child(self._view_items[self._view_index])
+                self._update_view_nav()
         with contextlib.suppress(Exception):
             notif_box.destroy()
 
@@ -656,25 +764,42 @@ class NotificationContainer(BaseDiWidget, Box):
 
             return
 
-        # Remove from dedicated carousel
+        # Remove from dedicated carousel or single container
         if notif_box in self._view_items:
             idx = self._view_items.index(notif_box)
             try:
                 if notif_box.get_parent() == self.view_stack:
                     self.view_stack.remove(notif_box)
-            except Exception: ...
+                elif (
+                    self.simple_container.get_visible()
+                    and notif_box.get_parent() == self.simple_container
+                ):
+                    self.simple_container.remove(notif_box)
+            except Exception:
+                ...
 
             self._view_items.pop(idx)
-            if self._view_items:
-                self._view_index = min(idx, len(self._view_items) - 1)
-                self.view_stack.set_visible_child(self._view_items[self._view_index])
-                self._update_view_nav()
-            else:
-                # No notifications left in dedicated view:
-                # close DI window to avoid empty expanded island
+            if len(self._view_items) == 0:
+                # No notifications left in dedicated view: close DI
                 self._view_index = 0
-                self._update_view_nav()
+                with contextlib.suppress(Exception):
+                    self.simple_container.set_visible(False)
+                    self.view_box.set_visible(False)
                 try:
                     if self.dynamic_island.current_widget == "notification":
                         self.dynamic_island.close()
-                except Exception: ...
+                except Exception:
+                    ...
+            elif len(self._view_items) == 1:
+                # Switch to single mode with the remaining box
+                remaining = self._view_items[0]
+                with contextlib.suppress(Exception):
+                    if remaining.get_parent() == self.view_stack:
+                        self.view_stack.remove(remaining)
+                self._set_internal_close_visibility(remaining, True)
+                self._show_single_notification(remaining)
+            else:
+                # Stay in multi mode
+                self._view_index = min(idx, len(self._view_items) - 1)
+                self.view_stack.set_visible_child(self._view_items[self._view_index])
+                self._update_view_nav()
