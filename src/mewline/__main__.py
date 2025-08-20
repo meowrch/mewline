@@ -170,7 +170,7 @@ def main(debug_mode=False):
         widgets.append(OSDContainer())
 
     widgets.extend((StatusBar(), DynamicIsland()))
-    app = Application(cnst.APPLICATION_NAME, *widgets, open_inspector=True)
+    app = Application(cnst.APPLICATION_NAME, *widgets)
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)
     cnst.APP_CACHE_DIRECTORY.mkdir(parents=True, exist_ok=True)
