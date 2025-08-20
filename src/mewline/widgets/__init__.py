@@ -3,11 +3,9 @@ from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.wayland import WaylandWindow
 
 from mewline.utils.hyprland_monitors import HyprlandMonitors
-from mewline.widgets.audio_controls import MicrophoneControlWidget
-from mewline.widgets.audio_controls import SpeakersControlWidget
 from mewline.widgets.battery import Battery
 from mewline.widgets.bluetooth import Bluetooth
-from mewline.widgets.brightness import BrightnessWidget
+from mewline.widgets.combined_controls import CombinedControlsButton
 from mewline.widgets.datetime import DateTimeWidget
 from mewline.widgets.language import LanguageWidget
 from mewline.widgets.network_status import NetworkStatus
@@ -38,10 +36,8 @@ class StatusBar(WaylandWindow):
                 orientation="h",
                 children=[
                     OCRWidget(),
-                    BrightnessWidget(),
                     Battery(),
-                    SpeakersControlWidget(),
-                    MicrophoneControlWidget(),
+                    CombinedControlsButton(),
                     LanguageWidget(),
                     DateTimeWidget(),
                     Bluetooth(),
