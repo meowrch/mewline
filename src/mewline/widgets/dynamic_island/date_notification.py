@@ -322,21 +322,27 @@ class NotificationGroup(Box):
             with contextlib.suppress(Exception):
                 self.children = (self.header_btn, self.collapsed_overlay, self.revealer)
 
+        # Order items so newest is on top consistently
+        ordered_items = sorted(self.items, key=lambda it: int(getattr(it, "_id", 0)), reverse=True)
         max_preview = 4
-        slice_items = self.items[:max_preview]
+        slice_items = ordered_items[:max_preview]
         # Ensure overlay has enough height to show stacked cards
         step_top = 14  # vertical offset per layer (fixed)
         side_step = 14  # horizontal side margins per layer (for centered narrowing)
         card_height = 100  # fixed compact card height for uniform protrusion
         total_layers = len(slice_items)
-        buffer_bottom = 24  # extra space to avoid clipping into next group
+        buffer_bottom = 0  # no extra bottom buffer to minimize spacing between groups
+
+        # Start with minimal ladder height;
+        # will adjust to top card natural height after build
         base_height = card_height + step_top * max(0, total_layers - 1) + buffer_bottom
         try:
-            # Reserve height on the overlay itself to avoid being clipped by parent
             self.collapsed_overlay.set_size_request(-1, base_height)
             self.collapsed_base.set_size_request(-1, base_height)
         except Exception:
             ...
+
+        top_preview_card = None
 
         # Add older first so newest is on top.
         # Compute margins so newest has zero margins.
@@ -344,31 +350,121 @@ class NotificationGroup(Box):
             inv = max(0, (total_layers - 1) - depth)
             try:
                 notif = getattr(it, "_notification", None)
-                header_children = []
-                if notif and getattr(notif, "app_icon", None):
-                    header_children.append(get_icon(notif.app_icon))
-                header_children.append(
-                    Label(
-                        markup=GLib.markup_escape_text(getattr(notif, "summary", "")),
-                        ellipsization="end",
-                        h_align="start",
-                        h_expand=True,
-                        style_classes="summary",
+                is_top = depth == (total_layers - 1)
+
+                if is_top and notif is not None:
+                    # Build a full card
+                    # for the newest item (title + optional image + body)
+                    full_header_children = []
+                    has_image = False
+                    try:
+                        if getattr(notif, "image_pixbuf", None):
+                            img = CustomImage(
+                                pixbuf=notif.image_pixbuf.scale_simple(
+                                    64, 64, GdkPixbuf.InterpType.BILINEAR
+                                ),
+                                style_classes="image",
+                            )
+                            has_image = True
+                        else:
+                            img = None
+                    except Exception:
+                        img = None
+
+                    # Header: icon only if there is no big image on the left
+                    if not has_image and getattr(notif, "app_icon", None):
+                        full_header_children.append(get_icon(notif.app_icon))
+                    full_header_children.append(
+                        Label(
+                            markup=GLib.markup_escape_text(getattr(notif, "summary", "")),
+                            ellipsization="end",
+                            h_align="start",
+                            h_expand=True,
+                            line_wrap="word-char",
+                            style_classes="summary",
+                        )
                     )
-                )
-                # Compact preview without body for consistent height
-                preview_card_children = [
-                    Box(orientation="h", spacing=8, children=tuple(header_children)),
-                ]
-                preview_card = Box(
-                    name="notification-history-el",
-                    orientation="v",
-                    spacing=4,
-                    children=tuple(preview_card_children),
-                )
-                with contextlib.suppress(Exception):
-                    preview_card.set_size_request(-1, card_height)
-                    preview_card.set_vexpand(False)
+
+                    body_widget = None
+                    try:
+                        body_text = getattr(notif, "body", "")
+                        if body_text:
+                            body_widget = Label(
+                                markup=GLib.markup_escape_text(parse_markup(body_text)),
+                                line_wrap="word-char",
+                                ellipsization="end",
+                                v_align="start",
+                                h_expand=True,
+                                h_align="start",
+                                style_classes="text",
+                            )
+                    except Exception:
+                        body_widget = None
+
+                    main_container = Box(
+                        orientation="v",
+                        spacing=4,
+                        h_expand=True,
+                        children=[
+                            Box(orientation="h", spacing=8, children=tuple(full_header_children)),
+                            *( [body_widget] if body_widget is not None else [] ),
+                        ],
+                    )
+
+                    if img is not None:
+                        preview_card = Box(
+                            name="notification-history-el",
+                            orientation="h",
+                            spacing=16,
+                            v_expand=False,
+                            h_expand=True,
+                            children=[img, main_container],
+                        )
+                    else:
+                        preview_card = Box(
+                            name="notification-history-el",
+                            orientation="v",
+                            spacing=4,
+                            v_expand=False,
+                            h_expand=True,
+                            children=[main_container],
+                        )
+                    # Let the top card grow naturally; do not force a fixed height
+                    with contextlib.suppress(Exception):
+                        preview_card.set_vexpand(False)
+                else:
+                    # Set reference to top card for natural height measurement
+                    try:
+                        # depth counts from oldest; top card is when is_top True above
+                        if top_preview_card is None and is_top:
+                            top_preview_card = preview_card
+                    except Exception:
+                        ...
+                    # Compact preview for older items: header only
+                    header_children = []
+                    if notif and getattr(notif, "app_icon", None):
+                        header_children.append(get_icon(notif.app_icon))
+                    header_children.append(
+                        Label(
+                            markup=GLib.markup_escape_text(getattr(notif, "summary", "")),
+                            ellipsization="end",
+                            h_align="start",
+                            h_expand=True,
+                            style_classes="summary",
+                        )
+                    )
+                    preview_card_children = [
+                        Box(orientation="h", spacing=8, children=tuple(header_children)),
+                    ]
+                    preview_card = Box(
+                        name="notification-history-el",
+                        orientation="v",
+                        spacing=4,
+                        children=tuple(preview_card_children),
+                    )
+                    with contextlib.suppress(Exception):
+                        preview_card.set_size_request(-1, card_height)
+                        preview_card.set_vexpand(False)
             except Exception:
                 preview_card = Box(name="notification-history-el")
                 with contextlib.suppress(Exception):
@@ -386,8 +482,29 @@ class NotificationGroup(Box):
             except Exception:
                 ...
 
-        # Update expanded list
-        self.expanded_box.children = tuple(self.items)
+        # After building overlay, adjust base height to top card'
+        # preferred height to avoid extra bottom space
+        try:
+            if top_preview_card is None and slice_items:
+                # Top card was created in the loop when is_top True
+                # Find the last added overlay child (should be the top card)
+                children = [ch for ch in self.collapsed_overlay.get_children() if ch is not self.collapsed_base]
+                if children:
+                    top_preview_card = children[-1]
+        except Exception:
+            ...
+        try:
+            if top_preview_card is not None:
+                min_h, nat_h = top_preview_card.get_preferred_height()
+                top_h = max(min_h or 0, nat_h or 0)
+                new_base_height = max(card_height, top_h) + step_top * max(0, total_layers - 1) + buffer_bottom
+                self.collapsed_overlay.set_size_request(-1, new_base_height)
+                self.collapsed_base.set_size_request(-1, new_base_height)
+        except Exception:
+            ...
+
+        # Update expanded list (newest on top)
+        self.expanded_box.children = tuple(ordered_items)
 
     def set_expanded(self, value: bool):
         self.expanded = value
@@ -439,7 +556,7 @@ class DateNotificationMenu(BaseDiWidget, Box):
         self.group_container = Box(
             orientation="v",
             h_align="fill",
-            spacing=8,
+            spacing=4,
             h_expand=True,
             style_classes="notification-list",
             visible=len(items) > 0,
@@ -531,7 +648,8 @@ class DateNotificationMenu(BaseDiWidget, Box):
         self.notification_list_box = self.group_container
 
         # After layout is assembled, schedule a refresh for all groups to ensure
-        # overlays compute size after realization.
+        # overlays compute size after realization
+        # and offsets are recomputed based on top height.
         with contextlib.suppress(Exception):
             GLib.idle_add(self._refresh_all_groups_once)
 
