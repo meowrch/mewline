@@ -137,26 +137,37 @@ class DynamicIsland(Window):
             on_clicked=lambda *_: self._inline_close_current(),
         )
 
-        # Center section of capsule: content expands, dots anchored at bottom
-        self.inline_capsule_center = Box(
-            name="inline-capsule-center",
-            orientation="v",
-            v_expand=True,
-            h_expand=True,
-            children=[
-                Box(v_expand=True, h_expand=True, children=[self.inline_stack]),
-                self.inline_dots_revealer,
-            ],
-        )
         # External urgency line for inline capsule (shown below dots)
         self.inline_urgency_line = Box(
             name="notification-urgency-line",
             visible=False,
             h_expand=True,
             h_align="fill",
+            margin_bottom=6,  # Small margin to prevent line from touching container edge
         )
-        with contextlib.suppress(Exception):
-            self.inline_capsule_center.add(self.inline_urgency_line)
+
+        # Center section of capsule: content expands,
+        # dots and urgency line anchored at bottom
+        self.inline_capsule_center = Box(
+            name="inline-capsule-center",
+            orientation="v",
+            v_expand=True,
+            h_expand=True,
+            spacing=16,  # Add spacing between notification content and dots
+            children=[
+                Box(v_expand=True, h_expand=True, children=[self.inline_stack]),
+                Box(
+                    orientation="v",
+                    spacing=6,  # Small spacing between dots and urgency line, same as in view_center
+                    children=[
+                        self.inline_dots_revealer,
+                        # Urgency line with proper spacing - let CSS
+                        # handle the full styling
+                        self.inline_urgency_line,
+                    ],
+                ),
+            ],
+        )
 
         # Right side container: three blocks
         # (close at top, arrow centered, bottom spacer expands)
@@ -192,6 +203,37 @@ class DynamicIsland(Window):
             v_expand=True,
             h_expand=True,
         )
+
+        # Simple single-notification container (no navigation)
+        self.inline_simple_container = Box(
+            name="inline-simple-notification",
+            orientation="v",
+            v_expand=True,
+            h_expand=True,
+        )
+
+        # Add hover support for simple container too
+        try:
+            def _simple_pause(*_a):
+                for item in self._inline_items:
+                    if hasattr(item, "pause_timeout"):
+                        item.pause_timeout()
+                return False
+
+            def _simple_resume(*_a):
+                for item in self._inline_items:
+                    if hasattr(item, "resume_timeout"):
+                        item.resume_timeout()
+                return False
+
+            self.inline_simple_container.add_events(
+                Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK
+            )
+            self.inline_simple_container.connect("enter-notify-event", _simple_pause)
+            self.inline_simple_container.connect("leave-notify-event", _simple_resume)
+        except Exception:
+            ...
+
         # Pause all inline notification timeouts while hovering the capsule
         try:
 
@@ -216,7 +258,8 @@ class DynamicIsland(Window):
         except Exception:
             ...
 
-        self.inline_notification_container.children = [self.inline_capsule]
+        # Initially empty - will be set dynamically based on notification count
+        self.inline_notification_container.children = []
 
         self.inline_notification_revealer = Revealer(
             name="inline-notification-revealer",
@@ -311,7 +354,72 @@ class DynamicIsland(Window):
         self._update_inline_nav()
         self._update_inline_external_urgency_line()
 
+    def _switch_inline_container(self):
+        """Switch between simple container (single notification) and capsule (multiple)."""  # noqa: W505
+        try:
+            # Clear current children
+            for child in list(self.inline_notification_container.get_children()):
+                self.inline_notification_container.remove(child)
+
+            if len(self._inline_items) == 1:
+                # Single notification: use simple container without navigation
+                current_box = self._inline_items[0]
+
+                # Remove from all possible parents first
+                current_parent = current_box.get_parent()
+                if current_parent == self.inline_stack:
+                    self.inline_stack.remove(current_box)
+                elif current_parent == self.inline_simple_container:
+                    self.inline_simple_container.remove(current_box)
+
+                # Clear simple container first, then add the notification
+                for child in list(self.inline_simple_container.get_children()):
+                    self.inline_simple_container.remove(child)
+                self.inline_simple_container.add(current_box)
+                self.inline_notification_container.add(self.inline_simple_container)
+
+                # Show internal close button for single mode
+                self._set_inline_internal_close_visibility(current_box, True)
+                # Show internal urgency line for single mode
+                self._set_inline_internal_urgency_visibility(current_box, True)
+
+            elif len(self._inline_items) > 1:
+                # Multiple notifications: use capsule with navigation
+
+                # Ensure all items are in the stack, removing from other parents first
+                for i, box in enumerate(self._inline_items):
+                    current_parent = box.get_parent()
+                    if current_parent != self.inline_stack:
+                        # Remove from current parent first
+                        if current_parent == self.inline_simple_container:
+                            self.inline_simple_container.remove(box)
+                        elif current_parent is not None:
+                            with contextlib.suppress(Exception):
+                                current_parent.remove(box)
+                        # Add to stack
+                        self.inline_stack.add_named(box, f"notif-{i}")
+                    # Hide internal close buttons in multi mode
+                    self._hide_internal_close_button(box)
+                    # Hide internal urgency lines in multi mode
+                    self._set_inline_internal_urgency_visibility(box, False)
+
+                # Set current visible child
+                if self._inline_items:
+                    self.inline_stack.set_visible_child(self._inline_items[self._inline_index])
+
+                self.inline_notification_container.add(self.inline_capsule)
+
+        except Exception as e:
+            print(f"Error switching inline container: {e}")
+
     def _update_inline_nav(self):
+        # First switch container based on count
+        self._switch_inline_container()
+
+        # Only update navigation if we're in multi mode (capsule)
+        if len(self._inline_items) <= 1:
+            return
+
         # Rebuild dots reflecting current count and index
         try:
             for child in list(self.inline_dots.get_children()):
@@ -348,14 +456,6 @@ class DynamicIsland(Window):
         # show external line only in multi
         self._toggle_inline_urgency_lines(show_nav)
         self._update_inline_external_urgency_line()
-        # Always hide internal close buttons in capsule; use the corner close instead
-        try:
-            for it in self._inline_items:
-                self._hide_internal_close_button(it)
-            # Ensure the corner close button itself is visible when we have items
-            self.inline_close_btn.set_visible(len(self._inline_items) > 0)
-        except Exception:
-            ...
 
     def _inline_go_to(self, idx: int):
         if 0 <= idx < len(self._inline_items):
@@ -510,19 +610,11 @@ class DynamicIsland(Window):
     def show_inline_notification(self, notif_box: Box) -> None:
         """Add notification to inline carousel and show it."""
         try:
-            name = f"notif-{len(self._inline_items)}"
-            self.inline_stack.add_named(notif_box, name)
+            # Add to items list first
             self._inline_items.append(notif_box)
             self._inline_index = len(self._inline_items) - 1
-            # Hide internal close button of the card (we show capsule close instead)
-            self._hide_internal_close_button(notif_box)
-            # Hide internal urgency line in multi mode (will show external below dots)
-            try:
-                if len(self._inline_items) > 1:
-                    self._set_inline_internal_urgency_visibility(notif_box, False)
-            except Exception:
-                ...
-            # Also ensure hover on the notification card pauses its timer
+
+            # Set up hover events for the notification
             try:
                 notif_box.add_events(
                     Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK
@@ -540,10 +632,11 @@ class DynamicIsland(Window):
             except Exception:
                 ...
 
-            self.inline_stack.set_visible_child(notif_box)
+            # Update navigation and container - this will handle single vs multi mode
             self._update_inline_nav()
             self.inline_notification_container.set_visible(True)
             self.inline_notification_revealer.set_reveal_child(True)
+
             # Update external urgency line state
             self._update_inline_external_urgency_line()
             # Hook pointer events on the newly added notification card
@@ -551,24 +644,25 @@ class DynamicIsland(Window):
         except Exception:
             self.inline_notification_container.set_visible(True)
             self.inline_notification_revealer.set_reveal_child(True)
-            self.inline_notification_revealer.set_reveal_child(True)
-            self.inline_notification_revealer.set_reveal_child(True)
-            self.inline_notification_revealer.set_reveal_child(True)
 
     def remove_inline_notification(self, notif_box: Box) -> None:
-        # Remove from our carousel tracking and stack
+        # Remove from our carousel tracking and both possible containers
         try:
             if notif_box in self._inline_items:
                 idx = self._inline_items.index(notif_box)
                 self._inline_items.pop(idx)
+
+                # Remove from stack if it's there
                 if notif_box.get_parent() == self.inline_stack:
                     self.inline_stack.remove(notif_box)
+
+                # Remove from simple container if it's there
+                if notif_box.get_parent() == self.inline_simple_container:
+                    self.inline_simple_container.remove(notif_box)
+
                 # Adjust current index
                 if self._inline_items:
                     self._inline_index = min(idx, len(self._inline_items) - 1)
-                    self.inline_stack.set_visible_child(
-                        self._inline_items[self._inline_index]
-                    )
                 else:
                     self._inline_index = 0
         except Exception:
@@ -578,7 +672,6 @@ class DynamicIsland(Window):
         self._update_inline_external_urgency_line()
 
         if not self._inline_items:
-            self.hide_inline_notifications()
             self.hide_inline_notifications()
 
     def hide_inline_notifications(self) -> None:
@@ -778,10 +871,13 @@ class DynamicIsland(Window):
             for box in list(self._inline_items):
                 moved = True
                 migrated.append(box)
-                # Remove from inline stack safely
+                # Remove from both possible inline containers
                 with contextlib.suppress(Exception):
                     if box.get_parent() == self.inline_stack:
                         self.inline_stack.remove(box)
+                with contextlib.suppress(Exception):
+                    if box.get_parent() == self.inline_simple_container:
+                        self.inline_simple_container.remove(box)
                 # Adopt into dedicated notification view
                 with contextlib.suppress(Exception):
                     box._inline = False

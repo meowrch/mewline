@@ -9,7 +9,6 @@
     background-color: theme.$accent-color;
     color: theme.$text-on-accent;
     padding: 8px;
-    margin-top: 8px;
 
     &:hover,
     &:active {
@@ -40,21 +39,25 @@
 }
 
 #notification-urgency-line {
-  background-color: theme.$accent-success;
+  background-color: transparent;
   border-radius: 2px;
   min-height: 4px;
-  margin: 6px 2rem 0px 2rem; // небольшой отступ сверху от контента/точек
+  margin: 6px 2rem 0 2rem; // отступ сверху от контента/точек, без нижнего отступа
+  opacity: 0; // Default: hidden
 
   &.low-urgency {
-    background: theme.$accent-success;
+    background: transparent;
+    opacity: 0; // Low urgency: hidden
   }
 
   &.normal-urgency {
-    background: theme.$accent-success;
+    background: transparent;
+    opacity: 0; // Normal urgency: hidden
   }
 
   &.critical-urgency {
     background: theme.$accent-warning;
+    opacity: 1; // Critical urgency: visible with warning color
   }
 }
 

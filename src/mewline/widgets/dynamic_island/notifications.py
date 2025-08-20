@@ -93,31 +93,42 @@ class NotificationBox(Box):
             2: ("critical-urgency", True),
         }
 
+        # Initialize the box first
         super().__init__(
             name="notification-box",
             orientation="v",
             h_expand=True,
-            v_expand=True,
+            v_expand=True,  # Expand vertically so spacer can push buttons to bottom
             h_align="fill",
-            spacing=10,
+            v_align="fill",  # Fill available vertical space
+            spacing=4,  # Reduced spacing to minimize gaps
             pass_through=False,
-            children=[
-                self.create_content(notification),
-                self.create_action_buttons(notification),
-                Box(v_expand=True),  # spacer to push urgency line to the bottom
-                Box(
-                    name="notification-urgency-line",
-                    visible=urgency_class.get(notification.urgency, urgency_class[0])[
-                        1
-                    ],
-                    h_expand=True,
-                    h_align="fill",
-                    style_classes=urgency_class.get(
-                        notification.urgency, urgency_class[0]
-                    )[0],
-                ),
-            ],
         )
+
+        # Create all children at once like in regular notifications
+        content_children = [self.create_content(notification)]
+
+        # Add expanding spacer to push action buttons to bottom
+        spacer = Box(v_expand=True, h_expand=False)
+        content_children.append(spacer)
+
+        # Add action buttons if they exist
+        action_buttons = self.create_action_buttons(notification)
+        if action_buttons and action_buttons.get_children():
+            content_children.append(action_buttons)
+
+        # Add urgency line
+        urgency_line = Box(
+            name="notification-urgency-line",
+            visible=urgency_class.get(notification.urgency, urgency_class[0])[1],
+            h_expand=True,
+            h_align="fill",
+            style_classes=urgency_class.get(notification.urgency, urgency_class[0])[0],
+        )
+        content_children.append(urgency_line)
+
+        # Set all children at once
+        self.children = content_children
         self.notification = notification
         self._any_action_invoked = False
         # If there are actions: we still use timeout to hide the card,
@@ -198,7 +209,8 @@ class NotificationBox(Box):
                     v_align="start",
                     children=[
                         self.create_close_button(),
-                        Box(v_expand=True),
+                        # Removed the expanding Box(v_expand=True)
+                        # that was pushing content down
                     ],
                 ),
             ],
@@ -386,16 +398,6 @@ class NotificationContainer(BaseDiWidget, Box):
             reveal_child=True,
             child=self.view_dots,
         )
-        # Center column: stack expands, dots at bottom
-        self.view_center = Box(
-            orientation="v",
-            v_expand=True,
-            h_expand=True,
-            children=[
-                Box(v_expand=True, h_expand=True, children=[self.view_stack]),
-                self.dots_revealer,
-            ],
-        )
         # External urgency line (shown below dots when multiple notifications)
         self.view_urgency_line = Box(
             name="notification-urgency-line",
@@ -403,9 +405,25 @@ class NotificationContainer(BaseDiWidget, Box):
             h_expand=True,
             h_align="fill",
         )
-        # Insert external urgency line below dots
-        with contextlib.suppress(Exception):
-            self.view_center.add(self.view_urgency_line)
+
+        # Center column: stack expands, dots at bottom
+        self.view_center = Box(
+            orientation="v",
+            v_expand=True,
+            h_expand=True,
+            spacing=16,  # Add spacing between notification content and dots
+            children=[
+                Box(v_expand=True, h_expand=True, children=[self.view_stack]),
+                Box(
+                    orientation="v",
+                    spacing=6,  # Small spacing between dots and urgency line
+                    children=[
+                        self.dots_revealer,
+                        self.view_urgency_line,
+                    ],
+                ),
+            ],
+        )
 
         # Right column: copy exact structure from inline capsule (which works perfectly)
         self.view_next_btn.set_halign(Gtk.Align.CENTER)
@@ -607,7 +625,12 @@ class NotificationContainer(BaseDiWidget, Box):
         # In multi mode: hide internal lines, show external container; single: inverse
         try:
             for item in self._view_items:
-                self._set_internal_urgency_visibility(item, not multi)
+                if multi:
+                    # Multi mode: hide all internal urgency lines
+                    self._set_internal_urgency_visibility(item, False)
+                else:
+                    # Single mode: only show urgency line if it's critical
+                    self._update_internal_urgency_for_box(item)
         except Exception:
             ...
         with contextlib.suppress(Exception):

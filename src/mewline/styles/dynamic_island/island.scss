@@ -164,7 +164,7 @@
   // Visual grouping for inline notifications so they feel part of the island
   // Render as a rounded box with a slight gap from the island content and edges
   margin: 6px 12px 0 12px; // small gap and side insets to keep island corners visible
-  padding: 10px 12px 6px 12px; // tighter bottom so dots sit lower
+  padding: 10px 12px 4px 12px; // minimal bottom padding
   border-radius: 30px; // normalized rounded corners (use 36px if you prefer larger)
   background-color: theme.$background-highlight;
   box-shadow: 0 0 3px 0 color.adjust(theme.$shadow-color, $alpha: -0.6);
@@ -202,7 +202,7 @@
 
 #inline-dots {
   padding-top: 0;
-  margin-bottom: 4px; // small gap from bottom edge
+  margin-bottom: 12px; // increased gap between dots and action buttons
 }
 
 #inline-dot {
@@ -228,10 +228,6 @@
   transition: background-color 0.2s ease;
 }
 
-#inline-dots {
-  padding-top: 0;
-  margin-bottom: 6px; // увеличил отступ до критической полосы
-}
 
 #inline-dot.active > #inline-dot-shape {
   background-color: theme.$accent-color;
