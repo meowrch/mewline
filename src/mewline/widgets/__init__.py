@@ -19,6 +19,8 @@ class StatusBar(WaylandWindow):
     """A widget to display the status bar panel."""
 
     def __init__(self, **kwargs):
+        self.combined_controls = CombinedControlsButton()
+
         box = CenterBox(
             name="panel-inner",
             start_children=Box(
@@ -37,7 +39,7 @@ class StatusBar(WaylandWindow):
                 children=[
                     OCRWidget(),
                     Battery(),
-                    CombinedControlsButton(),
+                    self.combined_controls,
                     LanguageWidget(),
                     DateTimeWidget(),
                     Bluetooth(),
@@ -60,3 +62,8 @@ class StatusBar(WaylandWindow):
             child=box,
             **kwargs,
         )
+
+    def set_osd_widget(self, osd_widget):
+        """Set OSD widget reference for combined controls."""
+        if hasattr(self, 'combined_controls'):
+            self.combined_controls.set_osd_widget(osd_widget)

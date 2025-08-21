@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 from typing import ClassVar
 
 from fabric.widgets.box import Box
@@ -52,6 +53,7 @@ class PopoverManager:
             anchor="left top",
             visible=False,
             all_visible=False,
+            keyboard_mode="on-demand",
         )
         return window
 
@@ -155,7 +157,22 @@ class Popover(Widget):
         self._content_window.add(
             Box(style_classes="popover-content", children=self._content)
         )
+        # Key and focus handling
+        try:
+            self._content_window.connect("key-press-event", self._on_key_press)
+            # Do not auto-close on focus-out to avoid closing
+            # while interacting with sliders
+            self._content_window.set_can_focus(True)
+        except Exception:
+            ...
+
         self._manager.activate_popover(self)
+        self._content_window.show()
+
+        with contextlib.suppress(Exception):
+            self._content_window.grab_focus()
+
+        self._visible = True
         self._content_window.show()
         self._visible = True
 
@@ -166,6 +183,16 @@ class Popover(Widget):
         self._manager.overlay.hide()
         self._visible = False
         self.emit("popover-closed")
+        return False
+
+    def _on_key_press(self, widget, event):
+        try:
+            if event.keyval == Gdk.KEY_Escape:
+                self.hide_popover()
+                return True
+        except Exception:
+            ...
+
         return False
 
     # Compatibility helpers

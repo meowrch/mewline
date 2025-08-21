@@ -162,14 +162,20 @@ def main(debug_mode=False):
     ##===> Creating App
     ##############################
     widgets = []
+    osd_widget = None
 
     if cfg.options.screen_corners:
         widgets.append(ScreenCorners())
 
     if cfg.options.osd_enabled:
-        widgets.append(OSDContainer())
+        osd_widget = OSDContainer()
+        widgets.append(osd_widget)
 
-    widgets.extend((StatusBar(), DynamicIsland()))
+    status_bar = StatusBar()
+    if osd_widget:
+        status_bar.set_osd_widget(osd_widget)
+
+    widgets.extend((status_bar, DynamicIsland()))
     app = Application(cnst.APPLICATION_NAME, *widgets)
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)

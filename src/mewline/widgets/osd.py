@@ -84,41 +84,88 @@ class AudioOSDContainer(GenericOSDContainer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.audio = audio_service
+        self.current_device = "speaker"  # Track which device we're showing
 
         self.sync_with_audio()
 
         self.scale.connect("value-changed", self.on_volume_changed)
         self.audio.connect("notify::speaker", self.on_audio_speaker_changed)
+        self.audio.connect("notify::microphone", self.on_audio_microphone_changed)
 
-    def sync_with_audio(self):
-        if self.audio.speaker:
+    def sync_with_audio(self, device="speaker"):
+        """Sync OSD display with audio device."""
+        self.current_device = device
+        if device == "speaker" and self.audio.speaker:
             volume = round(self.audio.speaker.volume)
             self.scale.set_value(volume)
-            self.update_icon(volume)
+            self.update_icon(volume, device)
+        elif device == "microphone" and self.audio.microphone:
+            volume = round(self.audio.microphone.volume)
+            self.scale.set_value(volume)
+            self.update_icon(volume, device)
 
     def on_volume_changed(self, *_):
-        if self.audio.speaker:
-            volume = self.scale.value
-            if 0 <= volume <= 100:
+        # This handles volume changes from the OSD scale itself
+        volume = self.scale.value
+        if 0 <= volume <= 100:
+            if self.current_device == "speaker" and self.audio.speaker:
                 self.audio.speaker.set_volume(volume)
-                self.update_icon(volume)
+                self.update_icon(volume, self.current_device)
+                self.emit("volume-changed")
+            elif self.current_device == "microphone" and self.audio.microphone:
+                self.audio.microphone.set_volume(volume)
+                self.update_icon(volume, self.current_device)
                 self.emit("volume-changed")
 
     def on_audio_speaker_changed(self, *_):
         if self.audio.speaker:
             self.audio.speaker.connect("notify::volume", self.update_volume)
+            self.audio.speaker.connect("notify::muted", self.update_volume)
+            self.update_volume()
+
+    def on_audio_microphone_changed(self, *_):
+        if self.audio.microphone:
+            self.audio.microphone.connect("notify::volume", self.update_volume)
+            self.audio.microphone.connect("notify::muted", self.update_volume)
             self.update_volume()
 
     def update_volume(self, *_):
-        if self.audio.speaker and not self.is_hovered():
-            volume = round(self.audio.speaker.volume)
-            self.scale.set_value(volume)
-            self.update_icon(volume)
+        # Update from service - only update if we're not being hovered
+        if not self.is_hovered():
+            if self.current_device == "speaker" and self.audio.speaker:
+                volume = round(self.audio.speaker.volume)
+                self.scale.set_value(volume)
+                self.update_icon(volume, "speaker")
+            elif self.current_device == "microphone" and self.audio.microphone:
+                volume = round(self.audio.microphone.volume)
+                self.scale.set_value(volume)
+                self.update_icon(volume, "microphone")
 
-    def update_icon(self, volume):
-        icon_name = get_audio_icon(volume, self.audio.speaker.muted)
+    def update_icon(self, volume, device="speaker"):
+        """Update icon and label based on device type."""
+        if device == "speaker" and self.audio.speaker:
+            icon_name = get_audio_icon(volume, self.audio.speaker.muted)
+        elif device == "microphone":
+            is_muted = self.audio.microphone.muted if self.audio.microphone else False
+            icon_name = cnst.icons["microphone"]["muted" if is_muted else "active"]
+        else:
+            # Fallback to speaker icons
+            icon_name = get_audio_icon(volume, False)
+
         self.level.set_label(f"{volume}%")
         self.icon.set_label(icon_name)
+
+    def show_for_device(self, device: str):
+        """Show OSD for specific device (speaker or microphone)."""
+        self.sync_with_audio(device)
+
+    def show_microphone(self):
+        """Show OSD for microphone volume."""
+        self.sync_with_audio("microphone")
+
+    def show_speaker(self):
+        """Show OSD for speaker volume."""
+        self.sync_with_audio("speaker")
 
 
 class OSDContainer(Window):
@@ -164,6 +211,19 @@ class OSDContainer(Window):
         invoke_repeater(100, self.check_inactivity, initial_call=True)
 
     def show_audio(self, *_):
+        """Show audio OSD (defaults to speaker)."""
+        self.show_box(box_to_show="audio")
+        self.reset_inactivity_timer()
+
+    def show_audio_speaker(self, *_):
+        """Show audio OSD for speaker."""
+        self.audio_container.show_speaker()
+        self.show_box(box_to_show="audio")
+        self.reset_inactivity_timer()
+
+    def show_audio_microphone(self, *_):
+        """Show audio OSD for microphone."""
+        self.audio_container.show_microphone()
         self.show_box(box_to_show="audio")
         self.reset_inactivity_timer()
 

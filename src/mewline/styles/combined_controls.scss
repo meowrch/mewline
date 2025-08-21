@@ -15,7 +15,7 @@
 }
 
 .cc-menu {
-  background: theme.$background-element;
+  background: theme.$background-base;
   border-radius: 20px;
   padding: 1.5rem;
 }
@@ -25,12 +25,11 @@
 }
 
 .cc-menu scale {
-  background-color: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   min-height: 8px;
 }
 .cc-menu scale trough {
-  background-color: rgba(theme.$text-secondary, 0.25);
+  background-color: theme.$background-highlight;
   border-radius: 999px;
 }
 .cc-menu scale highlight,
@@ -51,5 +50,32 @@
   color: theme.$text-color;
   opacity: 0.9;
   margin-left: 6px;
+}
+
+/* Mute button: center icon and improve contrast */
+.cc-mute-btn {
+  /* Gtk CSS does not support display:flex; rely on default button centering */
+  background: theme.$background-highlight;
+  border-radius: 6px;
+  padding: 0; /* ensure tight content box */
+  min-width: 28px;
+  min-height: 28px;
+
+  &:hover {
+    background: rgba(theme.$accent-color, 0.32);
+    border-color: rgba(theme.$accent-color, 0.95);
+  }
+
+  &:active {
+    background: rgba(theme.$accent-color, 0.42);
+  }
+
+  /* Ensure the icon itself is centered and not shifted by global margin */
+  #nerd-icon {
+    color: theme.$text-color;
+    font-size: 16px;
+    opacity: 0.95;
+    margin: 0; /* override .cc-menu #nerd-icon margin-left */
+  }
 }
 
