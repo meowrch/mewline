@@ -1,8 +1,10 @@
 import json
 import subprocess
+from copy import deepcopy
 from pathlib import Path
 
 from loguru import logger
+from pydantic import ValidationError
 
 import mewline.constants as cnst
 from mewline.utils.config_structure import Config
@@ -49,7 +51,9 @@ def change_hypr_config():
             f.write(f"\n{incl_str}")
             logger.info("[Config] Keyboard shortcuts added to Hyprland configuration.")
         else:
-            logger.info("[Config] Keyboard shortcuts already included in Hyprland configuration.")
+            logger.info(
+                "[Config] Keyboard shortcuts already included in Hyprland configuration."
+            )
 
     # Reload Hyprland configuration
     try:
@@ -58,23 +62,72 @@ def change_hypr_config():
         logger.error(f"Failed to send notification: {e}")
 
 
+def _deep_merge_dicts(d1: dict, d2: dict) -> dict:
+    """Recursively merges d2 into a copy of d1."""
+    result = deepcopy(d1)
+    for key, value in d2.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = _deep_merge_dicts(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
+def _get_nested_value(d: dict, path: tuple):
+    for key in path:
+        if not isinstance(d, dict):
+            return None
+        d = d.get(key)
+    return d
+
+
+def _set_nested_value(d: dict, path: tuple, value):
+    for key in path[:-1]:
+        if key not in d or not isinstance(d[key], dict):
+            d[key] = {}
+        d = d[key]
+    if path:
+        d[path[-1]] = value
+
+
 def load_config(path: Path) -> Config:
-    if not path.exists():
-        logger.warning(
-            f"Warning: The config file '{path}' was not found. Using default config."
-        )
-        return Config(**cnst.DEFAULT_CONFIG)
+    default_config = cnst.DEFAULT_CONFIG
+    user_config = {}
+
+    if path.exists():
+        try:
+            with open(path, encoding="utf-8") as f:
+                user_config = json.load(f)
+        except json.JSONDecodeError as e:
+            logger.warning(
+                f"Warning: The config file '{path}' is not valid JSON. Using default values. Error: {e}"
+            )
+
+    merged_config = _deep_merge_dicts(default_config, user_config)
 
     try:
-        with open(path) as f:
-            config_dict = json.load(f)
-            config = Config(**config_dict)
-            return config
-    except Exception:
+        return Config.model_validate(merged_config)
+    except ValidationError as e:
         logger.warning(
-            f"Warning: The config file '{path}' is invalid. Using default config."
+            "Invalid values found in configuration. Reverting invalid fields to their default values."
         )
-        return Config(**cnst.DEFAULT_CONFIG)
+
+        error_locations = [error["loc"] for error in e.errors()]
+
+        for loc in error_locations:
+            default_value = _get_nested_value(default_config, loc)
+            _set_nested_value(merged_config, loc, default_value)
+            field_path = ".".join(map(str, loc))
+            logger.info(f"Reverted '{field_path}' to its default value.")
+
+        try:
+            return Config.model_validate(merged_config)
+        except ValidationError as final_e:
+            logger.error(
+                "Configuration is still invalid after attempting to fix. "
+                f"Using the default configuration. Please check your config file. Error: {final_e}"
+            )
+            return Config.model_validate(default_config)
 
 
 cfg: Config = load_config(cnst.APP_CONFIG_PATH)
