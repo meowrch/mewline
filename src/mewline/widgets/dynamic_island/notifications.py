@@ -131,13 +131,43 @@ class NotificationBox(Box):
         self.children = content_children
         self.notification = notification
         self._any_action_invoked = False
-        # If there are actions: we still use timeout to hide the card,
-        # but we will NOT mark as EXPIRED
-        # Critical urgency: keep until user closes
+
+        # Get timeout from notification object
+        try:
+            notification_timeout = notification.get_timeout()
+        except (AttributeError, Exception):
+            notification_timeout = -1  # Default if can't get timeout
+
+        # Log timeout values for debugging
+        logger.info(
+            f"[Notification Timeout] Summary: {notification.summary[:30]}... | "
+            f"From notification: {notification_timeout}ms | "
+            f"Default: {timeout_ms}ms"
+        )
+
+        # Determine actual timeout to use:
+        # -1 means use server default (we'll use our default)
+        # 0 means no timeout (persistent)
+        # >0 means specific timeout in milliseconds
+        if notification_timeout == -1:
+            # Use default timeout passed to constructor
+            actual_timeout = timeout_ms
+            logger.info(f"  -> Using default timeout: {actual_timeout}ms")
+        elif notification_timeout == 0:
+            # No timeout - notification persists until closed
+            actual_timeout = 0
+            logger.info("  -> No timeout (persistent notification)")
+        else:
+            # Use the specific timeout from notification
+            actual_timeout = notification_timeout
+            logger.info(f"  -> Using notification timeout: {actual_timeout}ms")
+
+        # Critical urgency overrides: keep until user closes
         if getattr(notification, "urgency", 1) == 2:
             self.timeout_ms = 0
         else:
-            self.timeout_ms = timeout_ms
+            self.timeout_ms = actual_timeout
+
         self._timeout_id = None
         # Island-level hover detection will handle pausing, keep simple setup
         self.start_timeout()
