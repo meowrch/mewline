@@ -55,28 +55,9 @@ class DatetimeModule(BaseModel):
     format: str
 
 
-class SpeakersModule(BaseModel):
-    icon_size: str
-    tooltip: bool
-    step_size: int
-
-
-class MicrophoneModule(BaseModel):
-    icon_size: str
-    tooltip: bool
-    step_size: int
-
-
 class BatteryModule(BaseModel):
-    label: bool
+    show_label: bool
     tooltip: bool
-
-
-class BrightnessModule(BaseModel):
-    icon_size: str
-    label: bool
-    tooltip: bool
-    step_size: int
 
 
 class OcrModule(BaseModel):
@@ -112,7 +93,6 @@ class WallpapersMenu(BaseModel):
     current_wall_path: str
 
 
-
 class DynamicIsland(BaseModel):
     power_menu: PowerMenu
     compact: Compact
@@ -126,10 +106,7 @@ class Modules(BaseModel):
     power: PowerModule
     dynamic_island: DynamicIsland
     datetime: DatetimeModule
-    speakers: SpeakersModule
-    microphone: MicrophoneModule
     battery: BatteryModule
-    brightness: BrightnessModule
     ocr: OcrModule
 
 

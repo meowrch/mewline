@@ -1,8 +1,10 @@
 from fabric.utils import exec_shell_command_async
+from gi.repository import GLib
 
 import mewline.constants as cnst
 from mewline.config import cfg
 from mewline.shared.widget_container import ButtonWidget
+from mewline.utils.misc import uptime
 from mewline.utils.widget_utils import text_icon
 
 
@@ -20,7 +22,8 @@ class PowerButton(ButtonWidget):
         )
 
         if self.config.tooltip:
-            self.set_tooltip_text("Power")
+            self._update_tooltip()
+            GLib.timeout_add_seconds(60, self._update_tooltip)
 
         self.connect(
             "clicked",
@@ -28,3 +31,8 @@ class PowerButton(ButtonWidget):
                 cnst.kb_di_open.format(module="power-menu")
             ),
         )
+
+    def _update_tooltip(self):
+        """Updates the tooltip with the current system uptime."""
+        self.set_tooltip_text(f"Uptime: {uptime()}")
+        return True

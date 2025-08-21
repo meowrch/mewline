@@ -48,17 +48,22 @@ class Battery(ButtonWidget):
             label="AC" if not is_present else f"{battery_percent}%",
             style_classes="panel-text",
         )
+
         self.revealer = Revealer(
             name="battery-label-revealer",
             transition_duration=250,
             transition_type="slide-left",
             child=self.label,
-            child_revealed=False,
+            child_revealed=self.config.show_label,  # Use the new config option
         )
 
         self.box = Box(children=[self.icon, self.revealer])
-        self.connect("enter-notify-event", self.on_mouse_enter)
-        self.connect("leave-notify-event", self.on_mouse_leave)
+
+        # Conditionally connect hover events
+        if not self.config.show_label:
+            self.connect("enter-notify-event", self.on_mouse_enter)
+            self.connect("leave-notify-event", self.on_mouse_leave)
+
         self.connect("clicked", self.show_power_profiles_menu)
         self.add(self.box)
         self.update_ui()

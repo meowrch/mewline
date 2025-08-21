@@ -32,7 +32,8 @@ COMPILED_STYLE = DIST_FOLDER / "main.css"
 ##==> Settings of other modules
 ##############################################################
 DEFAULT_WALLPAPERS_DIR = XDG_DATA_HOME / "wallpapers"
-LIST_WALLPAPERS_PATHS = [DEFAULT_WALLPAPERS_DIR]
+PAWLETTE_THEME_WALLPAPERS_DIR = XDG_DATA_HOME / "pawlette" / "theme_wallpapers"
+LIST_WALLPAPERS_PATHS = [DEFAULT_WALLPAPERS_DIR, PAWLETTE_THEME_WALLPAPERS_DIR]
 DEFAULT_CURRENT_WALL_PATH = DEFAULT_WALLPAPERS_DIR / ".current.wall"
 WALLPAPERS_THUMBS_DIR = APP_CACHE_DIRECTORY / "thumbs"
 CACHE_MAPPING_FILEPATH = WALLPAPERS_THUMBS_DIR / "cache_mapping.json"
@@ -80,7 +81,7 @@ DEFAULT_CONFIG = {
     "modules": {
         "osd": {"timeout": 1500, "anchor": "bottom-center"},
         "workspaces": {
-            "count": 8,
+            "count": 10,
             "hide_unoccupied": True,
             "ignored": [-99],
             "reverse_scroll": False,
@@ -101,31 +102,15 @@ DEFAULT_CONFIG = {
         "system_tray": {"icon_size": 16, "ignore": []},
         "power": {"icon": "", "icon_size": "16px", "tooltip": True},
         "datetime": {"format": "%d-%m-%y %H:%M"},
-        "speakers": {
-            "icon_size": "16px",
-            "tooltip": True,
-            "step_size": 5,
-        },
-        "microphone": {
-            "icon_size": "16px",
-            "tooltip": True,
-            "step_size": 5,
-        },
         "battery": {
-            "label": True,
+            "show_label": False,
             "tooltip": True,
-        },
-        "brightness": {
-            "icon_size": "14px",
-            "label": True,
-            "tooltip": True,
-            "step_size": 5,
         },
         "ocr": {
             "icon": "󰴑",
             "icon_size": "20px",
             "tooltip": True,
-            "default_lang": "eng",
+            "default_lang": "rus+eng",
         },
         "dynamic_island": {
             "power_menu": {
