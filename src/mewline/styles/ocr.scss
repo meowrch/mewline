@@ -15,14 +15,12 @@
             background-color: theme.$background-highlight;
         }
 
-        #ocr-menu-item {
-            color: theme.$text-color;
+        color: theme.$text-color;
 
-            &.selected {
-                font-weight: bold;
-                color: theme.$text-on-accent;
-                background-color: theme.$accent-color;
-            }
+        &.selected {
+            font-weight: bold;
+            color: theme.$text-on-accent;
+            background-color: theme.$accent-color;
         }
     }
 }

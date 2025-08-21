@@ -180,7 +180,7 @@ class OCRWidget(ButtonWidget):
                 label = item.get_child()
                 label.set_name("ocr-menu-item")  # For CSS targeting
                 if lang == self.current_lang:
-                    label.get_style_context().add_class("selected")
+                    item.get_style_context().add_class("selected")
                 item.connect("activate", self.on_language_selected, lang)
                 menu.append(item)
 
@@ -195,7 +195,7 @@ class OCRWidget(ButtonWidget):
                 label = item.get_child()
                 label.set_name("ocr-menu-item")  # For CSS targeting
                 if lang_combo == self.current_lang:
-                    label.get_style_context().add_class("selected")
+                    item.get_style_context().add_class("selected")
                 item.connect("activate", self.on_language_selected, lang_combo)
                 menu.append(item)
 
