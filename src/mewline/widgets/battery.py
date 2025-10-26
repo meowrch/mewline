@@ -98,14 +98,31 @@ class Battery(ButtonWidget):
         else:
             self.label.set_text("AC")
 
-        self.icon = (
-            text_icon(icon="󰐧", size="18px")
-            if not is_present
-            else Image(
-                icon_name=self.client.get_property("IconName"),
-                icon_size=14,
-            )
-        )
+        if not is_present:
+            # Если батарея отсутствует, показываем AC адаптер
+            if hasattr(self.icon, 'set_icon_name'):
+                self.box.remove(self.icon)
+                self.icon = text_icon(icon="󰐧", size="18px")
+                self.box.pack_start(self.icon, False, False, 0)
+                self.box.reorder_child(self.icon, 0)
+            else:
+                self.icon = text_icon(icon="󰐧", size="18px")
+        else:
+            # Если батарея присутствует, обновляем иконку батареи
+            if hasattr(self.icon, 'set_icon_name'):
+                new_icon_name = self.client.get_property("IconName")
+                self.icon.set_from_icon_name(new_icon_name, Gtk.IconSize.from_name("14"))
+            else:
+                self.box.remove(self.icon)
+                new_icon_name = self.client.get_property("IconName")
+                self.icon = Image(
+                    icon_name=new_icon_name,
+                    icon_size=14,
+                )
+                self.box.pack_start(self.icon, False, False, 0)
+                self.box.reorder_child(self.icon, 0)
+
+        self.icon.show_all()
 
         if self.config.tooltip:
             if not is_present:
