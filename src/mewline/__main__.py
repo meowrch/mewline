@@ -10,6 +10,7 @@ from mewline import constants as cnst
 from mewline.config import cfg
 from mewline.config import change_hypr_config
 from mewline.config import generate_default_config
+from mewline.config import load_config
 from mewline.utils.capture_output import start_output_capture
 from mewline.utils.glib_debug import enable_all_glib_debug
 from mewline.utils.setup_loguru import setup_loguru
@@ -186,8 +187,28 @@ def main(debug_mode=False):
     ##############################
     copy_theme(path=cnst.APP_THEMES_FOLDER / (cfg.theme.name + ".scss"))
 
+    # Recompile and apply CSS whenever style files change
     main_css_file = monitor_file(str(cnst.STYLES_FOLDER))
     main_css_file.connect("changed", lambda *_: process_and_apply_css(app))
+
+    # Monitor config.json to hot-swap theme on change
+    current_theme = cfg.theme.name
+    config_file = monitor_file(str(cnst.APP_CONFIG_PATH))
+
+    def _on_config_changed(*_):
+        nonlocal current_theme
+        try:
+            new_cfg = load_config(cnst.APP_CONFIG_PATH)
+            new_theme = new_cfg.theme.name
+        except Exception:
+            return
+
+        if new_theme != current_theme:
+            current_theme = new_theme
+            copy_theme(path=cnst.APP_THEMES_FOLDER / (new_theme + ".scss"))
+            # CSS will be recompiled by the styles monitor above
+
+    config_file.connect("changed", _on_config_changed)
 
     process_and_apply_css(app)
 
