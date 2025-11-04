@@ -303,6 +303,7 @@
     .calendar {
       @extend %widget;
       background-color: theme.$background-highlight;
+      font-weight: bold;
 
       padding: variable.$padding * 2 variable.$padding * 2 0;
 
@@ -312,7 +313,7 @@
         &.button {
           transition: 200ms;
           border-radius: variable.$radius;
-          color: theme.$text-color;
+          color: theme.$accent-color;
         }
 
         &:hover {
