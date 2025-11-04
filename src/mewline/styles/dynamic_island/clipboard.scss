@@ -67,7 +67,9 @@
     background-color: theme.$accent-color;
     padding-left: 24px;
 
-    #clipboard-item-label {
+
+    label {
+      font-weight: bold;
       color: theme.$text-on-accent;
     }
   }

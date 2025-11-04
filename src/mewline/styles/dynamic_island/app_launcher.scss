@@ -64,8 +64,9 @@
     background-color: theme.$accent-color;
     padding-left: 24px;
 
-    #app-label {
-      color: theme.$background-base;
+    label {
+      font-weight: bold;
+      color: theme.$text-on-accent;
     }
   }
 }

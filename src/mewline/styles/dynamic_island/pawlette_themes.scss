@@ -18,6 +18,8 @@
 #theme-icons:selected {
   background-color: theme.$accent-color;
   border-radius: 15px;
+  color: theme.$text-on-accent;
+  font-weight: bold;
 }
 
 #search-entry-themes {

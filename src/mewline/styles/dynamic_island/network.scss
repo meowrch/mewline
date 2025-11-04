@@ -33,14 +33,15 @@
 
     label {
       font-weight: bold;
+      color: theme.$text-on-accent;
     }
 
     &.enabled {
-      color: theme.$background-base;
+      color: theme.$text-on-accent;
       background-color: theme.$accent-success;
     }
     &.disabled {
-      color: theme.$background-base;
+      color: theme.$text-on-accent;
       background-color: theme.$accent-error;
     }
   }
