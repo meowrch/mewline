@@ -7,6 +7,16 @@
       padding-bottom: 8px;
     }
 
+    // Use text color for all icons inside the Bluetooth menu
+    // Textual icons (Label name: #nerd-icon)
+    #nerd-icon {
+      color: theme.$text-color;
+    }
+    // Symbolic GTK icons (device images)
+    image {
+      color: theme.$text-color;
+    }
+
     &-device {
       background-color: theme.$background-highlight;
       border-radius: 16px;
@@ -29,12 +39,6 @@
       &:hover {
         background-color: color.scale(theme.$background-element, $lightness: 10%);
         border-color: color.scale(theme.$accent-color, $alpha: -70%);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
-
-      // Active/pressed effect
-      &:active {
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
       }
     }
 
@@ -56,12 +60,6 @@
       &:hover {
         background-color: color.scale(theme.$background-element, $lightness: 10%);
         border-color: color.scale(theme.$accent-color, $alpha: -70%);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
-
-      // Active/pressed effect
-      &:active {
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
       }
     }
 

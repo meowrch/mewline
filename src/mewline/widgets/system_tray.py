@@ -87,10 +87,25 @@ class SystemTray(BoxWidget):
             item.get_icon_pixmaps(), 24
         )
 
-        icon = item.get_icon_name()
-        if not icon:
-            icon = "image-missing"
+        icon = item.get_icon_name() or "image-missing"
 
+        # Prefer a symbolic variant if available to allow CSS recoloring
+        theme = Gtk.IconTheme.get_default()
+        symbolic_icon = None
+        if icon:
+            if icon.endswith("-symbolic"):
+                symbolic_icon = icon
+            elif theme.has_icon(f"{icon}-symbolic"):
+                symbolic_icon = f"{icon}-symbolic"
+
+        # If we have a symbolic icon name, render by name so GTK can tint it via CSS
+        if symbolic_icon is not None:
+            item_button.set_image(
+                Image(icon_name=symbolic_icon, icon_size=self.config.icon_size)
+            )
+            return
+
+        # Fallback: render provided pixmap or load by name as pixbuf, then tint it
         try:
             pixbuf: GdkPixbuf.Pixbuf = (
                 pixmap.as_pixbuf(
@@ -98,24 +113,17 @@ class SystemTray(BoxWidget):
                     GdkPixbuf.InterpType.HYPER,
                 )
                 if pixmap is not None
-                else Gtk.IconTheme()
-                .get_default()
-                .load_icon(
+                else theme.load_icon(
                     icon,
                     self.config.icon_size,
                     Gtk.IconLookupFlags.FORCE_SIZE,
                 )
             )
-
         except GLib.GError:
-            pixbuf = (
-                Gtk.IconTheme()
-                .get_default()
-                .load_icon(
-                    "image-missing",
-                    self.config.icon_size,
-                    Gtk.IconLookupFlags.FORCE_SIZE,
-                )
+            pixbuf = theme.load_icon(
+                "image-missing",
+                self.config.icon_size,
+                Gtk.IconLookupFlags.FORCE_SIZE,
             )
 
         item_button.set_image(

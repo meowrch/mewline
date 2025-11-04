@@ -11,6 +11,10 @@
         padding: 0.25em 1em;
         border-radius: variable.$radius;
 
+        image {
+            color: theme.$text-color;
+        }
+
         label {
             font-weight: bold;
         }
@@ -21,6 +25,10 @@
 
         &.selected {
             background-color: theme.$accent-color;
+
+            image {
+                color: theme.$text-on-accent;
+            }
 
             label {
                 color: theme.$text-on-accent;

@@ -16,11 +16,15 @@
         }
 
         color: theme.$text-color;
+        font-weight: bold;
 
         &.selected {
-            font-weight: bold;
-            color: theme.$text-on-accent;
             background-color: theme.$accent-color;
+
+            label {
+                font-weight: bold;
+                color: theme.$text-on-accent;
+            }
         }
     }
 }

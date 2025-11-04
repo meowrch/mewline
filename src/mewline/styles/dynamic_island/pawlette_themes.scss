@@ -4,6 +4,8 @@
 #theme-icons {
   opacity: 1;
   animation: fade-in 0.25s ease-in-out;
+  color: theme.$text-color;
+  font-weight: bold;
 }
 
 @keyframes fade-in {

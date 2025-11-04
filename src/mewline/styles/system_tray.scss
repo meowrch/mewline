@@ -6,6 +6,12 @@
   padding: 0.125em 0.7em;
   color: theme.$text-color;
 
+  // Recolor tray icons (symbolic via CSS, raster are tinted in code)
+  image,
+  .tray-icon {
+    color: theme.$text-color;
+  }
+
   & > button {
     margin: 0 0.1em;
     padding: 0 0.15em;
@@ -26,6 +32,7 @@
   border-radius: 1em;
   padding: functions.toEm(10);
   min-width: 100px;
+  font-weight: bold;
 }
 
 #system-tray-menu > menuitem menu > menuitem,
@@ -47,4 +54,9 @@
 #submenu-button:hover {
   background-color: theme.$background-highlight;
   color: theme.$accent-color;
+}
+
+// Ensure symbolic icons inside tray menus also get the accent color
+#system-tray-menu image {
+  color: theme.$text-color;
 }

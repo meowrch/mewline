@@ -13,6 +13,12 @@
     padding-bottom: 8px;
   }
 
+  // Text color for all glyph icons inside the Network menu
+  // This targets labels created via text_icon (name: #nerd-icon)
+  #nerd-icon {
+    color: theme.$text-color;
+  }
+
   &-refresh-btn,
   &-view-toggle-btn {
     border-radius: 16px;
@@ -67,7 +73,7 @@
     padding: 4px 12px;
 
     &:hover {
-      color: theme.$accent-error;
+      color: theme.$text-color;
     }
   }
 
@@ -82,7 +88,7 @@
       color: theme.$text-color;
 
       &:hover {
-        color: theme.$accent-success;
+        color: theme.$text-color;
       }
     }
     &.disconnect {
@@ -90,7 +96,7 @@
       color: theme.$text-color;
 
       &:hover {
-        color: theme.$accent-error;
+        color: theme.$text-color;
       }
     }
   }
