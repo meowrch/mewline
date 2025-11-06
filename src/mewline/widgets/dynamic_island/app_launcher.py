@@ -1,4 +1,4 @@
-import operator
+import contextlib
 from collections.abc import Iterator
 from threading import Lock
 from typing import TYPE_CHECKING
@@ -36,7 +36,12 @@ class AppLauncher(BaseDiWidget, Box):
         self.selected_index = -1  # Track the selected item index
 
         self._arranger_handler: int = 0
+        self._arrange_token = None  # generation token to cancel stale updates
         self._all_apps = get_desktop_applications()
+
+        # Width guardrails for the scrolled area to prevent runaway expansion
+        self._min_content_width = 480
+        self._max_content_width = 680
 
         self.viewport = Box(name="viewport", spacing=4, orientation="v")
         self.search_entry = Entry(
@@ -56,6 +61,12 @@ class AppLauncher(BaseDiWidget, Box):
             child=self.viewport,
             v_expand=True,
         )
+        # Clamp width so CSS stays respected even under rapid updates
+        with contextlib.suppress(Exception):
+            self.scrolled_window.set_min_content_width(self._min_content_width)
+        with contextlib.suppress(Exception):
+            # Gtk.ScrolledWindow has max-content-width in GTK 3
+            self.scrolled_window.set_max_content_width(self._max_content_width)
 
         self.header_box = Box(
             spacing=10,
@@ -95,7 +106,7 @@ class AppLauncher(BaseDiWidget, Box):
         self.show_all()
 
     def close_launcher(self) -> None:
-        self.viewport.children = []
+        self._clear_box_children(self.viewport)
         self.selected_index = -1  # Reset selection
         self.di.close()
 
@@ -120,43 +131,70 @@ class AppLauncher(BaseDiWidget, Box):
                 return
 
     def arrange_viewport(self, query: str = "") -> None:
+        # Create a new generation token;
+        # any previously scheduled updates will be ignored
+        token = object()
+        self._arrange_token = token
         GLib.Thread.new(
             "app_launcher_arrange_viewport",
             self._arrange_viewport,
             query,
+            token,
         )
 
-    def _arrange_viewport(self, query: str = "") -> None:
+    def _arrange_viewport(self, query: str = "", token=None) -> None:
+        # NOTE: GTK widgets must only be touched from the main thread.
+        # This worker thread prepares data, then schedules all UI updates via idle_add.
         with self.arranging_viewport_lock:
-            remove_handler(self._arranger_handler) if self._arranger_handler else None
-            self.viewport.children = []
-            self.selected_index = -1  # Clear selection when viewport changes
+            # Prepare filtered apps on the worker thread (no GTK usage here)
+            filtered_apps = sorted(
+                [
+                    app
+                    for app in self._all_apps
+                    if query.casefold()
+                    in (
+                        (app.display_name or "")
+                        + (" " + app.name + " ")
+                        + (app.generic_name or "")
+                    ).casefold()
+                ],
+                key=lambda app: (app.display_name or "").casefold(),
+            )
+            should_resize = len(filtered_apps) == len(self._all_apps)
 
-            filtered_apps_iter = iter(
-                sorted(
-                    [
-                        app
-                        for app in self._all_apps
-                        if query.casefold()
-                        in (
-                            (app.display_name or "")
-                            + (" " + app.name + " ")
-                            + (app.generic_name or "")
-                        ).casefold()
-                    ],
-                    key=lambda app: (app.display_name or "").casefold(),
+            prev_handler = self._arranger_handler
+            self._arranger_handler = 0
+
+            def start_ui_update():
+                # Ignore if a newer arrange request superseded us
+                if token is not None and token is not self._arrange_token:
+                    return False
+                # Safely remove previous source from the main loop
+                if prev_handler:
+                    with contextlib.suppress(Exception):
+                        remove_handler(prev_handler)
+                # Clear viewport on the main thread using safe removal
+                self._clear_box_children(self.viewport)
+                self.selected_index = -1  # Clear selection when viewport changes
+                # Re-assert width bounds to avoid temporary expansion
+                with contextlib.suppress(Exception):
+                    self.scrolled_window.set_min_content_width(self._min_content_width)
+                with contextlib.suppress(Exception):
+                    self.scrolled_window.set_max_content_width(self._max_content_width)
+
+                filtered_apps_iter = iter(filtered_apps)
+                current_token = token
+                self._arranger_handler = idle_add(
+                    lambda apps_iter, _tok=current_token: self._add_next_application(
+                        apps_iter, _tok
+                    )
+                    or self.handle_arrange_complete(should_resize, query),
+                    filtered_apps_iter,
+                    pin=True,
                 )
-            )
-            should_resize = operator.length_hint(filtered_apps_iter) == len(
-                self._all_apps
-            )
+                return False
 
-            self._arranger_handler = idle_add(
-                lambda apps_iter: self.add_next_application(apps_iter)
-                or self.handle_arrange_complete(should_resize, query),
-                filtered_apps_iter,
-                pin=True,
-            )
+            GLib.idle_add(start_ui_update)
 
     def handle_arrange_complete(self, should_resize, query) -> bool:
         if should_resize:
@@ -168,18 +206,47 @@ class AppLauncher(BaseDiWidget, Box):
 
         return False
 
-    def add_next_application(self, apps_iter: Iterator[DesktopApp]) -> bool:
+    def _add_next_application(self, apps_iter: Iterator[DesktopApp], token) -> bool:
+        # Stop if outdated
+        if token is not None and token is not self._arrange_token:
+            return False
         if not (app := next(apps_iter, None)):
             return False
-
+        # Adding a child must happen on the main thread (we are in idle handler)
         self.viewport.add(self.bake_application_slot(app))
         return True
 
     def resize_viewport(self) -> bool:
-        self.scrolled_window.set_min_content_width(self.viewport.get_allocation().width)
+        # Keep sizing under strict guardrails; do not derive from current allocation
+        with contextlib.suppress(Exception):
+            self.scrolled_window.set_min_content_width(self._min_content_width)
+        with contextlib.suppress(Exception):
+            self.scrolled_window.set_max_content_width(self._max_content_width)
         return False
 
     def bake_application_slot(self, app: DesktopApp, **kwargs) -> Button:
+        # Be defensive with icon loading; fall back to a standard icon on failure
+        try:
+            icon_pixbuf = app.get_icon_pixbuf(size=24)
+            if icon_pixbuf is not None:
+                icon_widget = Image(pixbuf=icon_pixbuf)
+            else:
+                icon_widget = Image(
+                    icon_name=check_icon_exists(
+                        "application-x-executable-symbolic",
+                        cnst.icons["fallback"]["notification"],
+                    ),
+                    icon_size=16,
+                )
+        except Exception:
+            icon_widget = Image(
+                icon_name=check_icon_exists(
+                    "application-x-executable-symbolic",
+                    cnst.icons["fallback"]["notification"],
+                ),
+                icon_size=16,
+            )
+
         button = Button(
             name="app-launcher-app-slot-button",
             child=Box(
@@ -187,7 +254,7 @@ class AppLauncher(BaseDiWidget, Box):
                 orientation="h",
                 spacing=10,
                 children=[
-                    Image(pixbuf=app.get_icon_pixbuf(size=24)),
+                    icon_widget,
                     Label(
                         name="app-label",
                         label=app.display_name or "Unknown",
@@ -284,3 +351,15 @@ class AppLauncher(BaseDiWidget, Box):
 
         new_index = max(0, min(new_index, len(children) - 1))
         self.update_selection(new_index)
+
+    def _clear_box_children(self, box: Box) -> None:
+        try:
+            for child in list(box.get_children()):
+                with contextlib.suppress(Exception):
+                    box.remove(child)
+                with contextlib.suppress(Exception):
+                    child.destroy()
+        except Exception:
+            # Fallback to direct property clear if available in Fabric
+            with contextlib.suppress(Exception):
+                box.children = []
