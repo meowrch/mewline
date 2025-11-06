@@ -62,6 +62,8 @@
       margin-right: 6px;
 
       label#button-label {
+        font-weight: bold;
+        color: theme.$text-color;
         font-size: 12px;
       }
 

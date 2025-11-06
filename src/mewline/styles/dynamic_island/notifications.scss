@@ -15,6 +15,11 @@
       background-color: theme.$accent-color;
     }
 
+    label {
+      color: theme.$text-on-accent;
+      font-weight: bold;
+    }
+
     &.action {
       border-radius: variable.$radius;
     }
@@ -24,6 +29,11 @@
 #notify-close-button {
   border-radius: variable.$radius-large;
   padding: 3px;
+
+  .close-icon {
+    @extend %clear_icon;
+    color: theme.$text-color;
+  }
 
   &:hover {
     box-shadow: none;
