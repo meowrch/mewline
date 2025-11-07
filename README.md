@@ -52,7 +52,7 @@ An elegant, extensible status bar for the [meowrch](https://github.com/meowrch/m
 - [X] Keyboard control
 
 ## ⚙️ Configuration
-See [documentation](docs/configuration.md) for detailed configuration info.
+See [English configuration docs](docs/configuration.md) for detailed configuration info.
 
 ## 🧩 Install dependencies
 ```bash

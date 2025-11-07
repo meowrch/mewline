@@ -1,129 +1,129 @@
-# Конфигурация mewline
+# Mewline configuration
 
-Файл конфигурации `mewline` находится по пути `~/.config/mewline/config.json`.
-Если файл отсутствует, будет использована конфигурация по умолчанию.
-Вы можете сгенерировать конфигурационный файл по умолчанию, выполнив команду `generate_default_config`.
+The `mewline` configuration file is located at `~/.config/mewline/config.json`.
+If the file is missing, the default configuration will be used.
+You can generate a default configuration file by running `mewline --generate-default-config`.
 
-Приложение `mewline` разработано с гибкой системой конфигурации. Если пользовательский файл конфигурации содержит ошибки или неполные данные, система автоматически заполнит недостающие или неверные поля значениями из конфигурации по умолчанию. Это обеспечивает стабильную работу приложения, даже если пользовательские настройки некорректны.
+Mewline uses a resilient configuration system. If your config contains errors or missing fields, they will be automatically filled or corrected with values from the default configuration to keep the app stable.
 
-## Структура конфигурации
+## Configuration structure
 
 ### `theme`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `name` | `str` | Название темы. |
+| `name` | `str` | Theme name. |
 
 ### `options`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `screen_corners` | `bool` | Включить или выключить закругление углов экрана. |
-| `intercept_notifications` | `bool` | Включить или выключить перехват уведомлений. |
-| `osd_enabled` | `bool` | Включить или выключить OSD (On-Screen Display). |
+| `screen_corners` | `bool` | Enable rounded screen corners. |
+| `intercept_notifications` | `bool` | Intercept system notifications. |
+| `osd_enabled` | `bool` | Enable OSD (On-Screen Display). |
 
 ### `modules`
 
 #### `osd`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `timeout` | `int` | Время в миллисекундах, через которое OSD скроется. |
-| `anchor` | `str` | Позиция OSD на экране (например, `top`, `bottom`, `left`, `right`). |
+| `timeout` | `int` | Time in milliseconds before OSD hides. |
+| `anchor` | `str` | OSD anchor on screen (e.g. `bottom-center`). |
 
 #### `workspaces`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `count` | `int` | Количество рабочих столов. |
-| `hide_unoccupied` | `bool` | Скрывать неиспользуемые рабочие столы. |
-| `ignored` | `list[int]` | Список игнорируемых рабочих столов. |
-| `reverse_scroll` | `bool` | Инвертировать направление прокрутки. |
-| `empty_scroll` | `bool` | Разрешить прокрутку пустых рабочих столов. |
-| `icon_map` | `dict[str, str]` | Соответствие иконок и рабочих столов. |
+| `count` | `int` | Number of workspaces. |
+| `hide_unoccupied` | `bool` | Hide empty workspaces. |
+| `ignored` | `list[int]` | Workspace IDs to ignore. |
+| `reverse_scroll` | `bool` | Invert scroll direction. |
+| `empty_scroll` | `bool` | Allow scrolling through empty workspaces. |
+| `navigate_empty` | `bool` | Allow switching to empty workspaces during navigation. |
+| `icon_map` | `dict[str, str]` | Mapping of workspace to icon/label. |
 
 #### `system_tray`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `icon_size` | `int` | Размер иконок в системном трее. |
-| `ignore` | `list[str]` | Список приложений, которые следует игнорировать. |
+| `icon_size` | `int` | System tray icon size. |
+| `ignore` | `list[str]` | Applications to ignore. |
 
 #### `power`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `icon` | `str` | Иконка для кнопки выключения. |
-| `icon_size` | `str` | Размер иконки. |
-| `tooltip` | `bool` | Включить или выключить подсказку. |
+| `icon` | `str` | Icon for the power button. |
+| `icon_size` | `str` | Icon size. |
+| `tooltip` | `bool` | Show tooltip. |
 
 #### `dynamic_island`
 
 ##### `power_menu`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `lock_icon` | `str` | Иконка для блокировки. |
-| `lock_icon_size` | `str` | Размер иконки. |
-| `suspend_icon` | `str` | Иконка для режима сна. |
-| `suspend_icon_size` | `str` | Размер иконки. |
-| `logout_icon` | `str` | Иконка для выхода из системы. |
-| `logout_icon_size` | `str` | Размер иконки. |
-| `reboot_icon` | `str` | Иконка для перезагрузки. |
-| `reboot_icon_size` | `str` | Размер иконки. |
-| `shutdown_icon` | `str` | Иконка для выключения. |
-| `shutdown_icon_size` | `str` | Размер иконки. |
+| `lock_icon` | `str` | Icon for lock. |
+| `lock_icon_size` | `str` | Icon size. |
+| `suspend_icon` | `str` | Icon for suspend. |
+| `suspend_icon_size` | `str` | Icon size. |
+| `logout_icon` | `str` | Icon for logout. |
+| `logout_icon_size` | `str` | Icon size. |
+| `reboot_icon` | `str` | Icon for reboot. |
+| `reboot_icon_size` | `str` | Icon size. |
+| `shutdown_icon` | `str` | Icon for shutdown. |
+| `shutdown_icon_size` | `str` | Icon size. |
 
 ##### `compact`
 
-Этот модуль управляет компактным представлением "динамического острова", которое отображает информацию о текущем активном окне и проигрываемой музыке.
+This module controls the compact view of the Dynamic Island that shows the active window and currently playing music.
 
 ###### `window_titles`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `enable_icon` | `bool` | Включить или выключить иконку окна. |
-| `truncation` | `bool` | Включить или выключить обрезку заголовка. |
-| `truncation_size` | `int` | Максимальная длина заголовка. |
-| `title_map` | `list[tuple[str, str, str]]` | Карта для замены заголовков. |
+| `enable_icon` | `bool` | Show window icon. |
+| `truncation` | `bool` | Truncate window title. |
+| `truncation_size` | `int` | Max title length. |
+| `title_map` | `list[tuple[str, str, str]]` | Title replacement map. |
 
 ###### `music`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `enabled` | `bool` | Включить или выключить модуль музыки. |
-| `truncation` | `bool` | Включить или выключить обрезку названия. |
-| `truncation_size` | `int` | Максимальная длина названия. |
-| `default_album_logo` | `str` | Путь к обложке альбома по умолчанию. |
+| `enabled` | `bool` | Enable music module. |
+| `truncation` | `bool` | Truncate track title. |
+| `truncation_size` | `int` | Max title length. |
+| `default_album_logo` | `str` | Default album cover URL. |
 
 ##### `wallpapers`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `wallpapers_dirs` | `list[str]` | Список директорий с обоями. |
-| `method` | `str` | Метод установки обоев. |
-| `save_current_wall` | `bool` | Сохранять текущие обои. |
-| `current_wall_path` | `str` | Путь к текущим обоям. |
+| `wallpapers_dirs` | `list[str]` | Directories with wallpapers. |
+| `method` | `str` | Wallpaper set method (supported: `swww`). |
+| `save_current_wall` | `bool` | Save currently set wallpaper. |
+| `current_wall_path` | `str` | Path to file storing the current wallpaper. |
 
 #### `datetime`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `format` | `str` | Формат даты и времени. |
+| `format` | `str` | Datetime format string. |
 
 #### `battery`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `show_label` | `bool` | Показывать или скрывать текстовую метку. |
-| `tooltip` | `bool` | Включить или выключить подсказку. |
+| `show_label` | `bool` | Show text label. |
+| `tooltip` | `bool` | Show tooltip. |
 
 #### `ocr`
 
-| Ключ | Тип | Описание |
+| Key | Type | Description |
 |---|---|---|
-| `icon` | `str` | Иконка для OCR. |
-| `icon_size` | `str` | Размер иконки. |
-| `tooltip` | `bool` | Включить или выключить подсказку. |
-| `default_lang` | `str` | Язык по умолчанию. |
-
+| `icon` | `str` | Icon for OCR. |
+| `icon_size` | `str` | Icon size. |
+| `tooltip` | `bool` | Show tooltip. |
+| `default_lang` | `str` | Default language(s). |
