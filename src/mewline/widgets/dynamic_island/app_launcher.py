@@ -17,6 +17,8 @@ from gi.repository import Gdk
 from gi.repository import GLib
 
 from mewline import constants as cnst
+from mewline.utils.icon_resolver import load_pixbuf_from_theme
+from mewline.utils.icon_resolver import resolve_icon_name
 from mewline.utils.misc import check_icon_exists
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
@@ -225,20 +227,25 @@ class AppLauncher(BaseDiWidget, Box):
         return False
 
     def bake_application_slot(self, app: DesktopApp, **kwargs) -> Button:
-        # Be defensive with icon loading; fall back to a standard icon on failure
+        # Cache-aware themed icon resolution (same resolver approach as workspaces)
+        icon_widget = None
         try:
-            icon_pixbuf = app.get_icon_pixbuf(size=24)
-            if icon_pixbuf is not None:
-                icon_widget = Image(pixbuf=icon_pixbuf)
-            else:
-                icon_widget = Image(
-                    icon_name=check_icon_exists(
-                        "application-x-executable-symbolic",
-                        cnst.icons["fallback"]["notification"],
-                    ),
-                    icon_size=16,
-                )
+            app_id = (app.window_class or app.name or app.display_name or "").lower()
+            icon_name = resolve_icon_name(app_id)
+            if icon_name:
+                pix = load_pixbuf_from_theme(icon_name, 24)
+                if pix:
+                    icon_widget = Image(pixbuf=pix)
         except Exception:
+            ...
+        if icon_widget is None:
+            try:
+                icon_pixbuf = app.get_icon_pixbuf(size=24)
+                if icon_pixbuf is not None:
+                    icon_widget = Image(pixbuf=icon_pixbuf)
+            except Exception:
+                ...
+        if icon_widget is None:
             icon_widget = Image(
                 icon_name=check_icon_exists(
                     "application-x-executable-symbolic",
@@ -247,6 +254,9 @@ class AppLauncher(BaseDiWidget, Box):
                 icon_size=16,
             )
 
+        # Wrap icon with badge for hover glow
+        icon_badge = Box(name="launcher-icon-badge", children=[icon_widget])
+
         button = Button(
             name="app-launcher-app-slot-button",
             child=Box(
@@ -254,7 +264,7 @@ class AppLauncher(BaseDiWidget, Box):
                 orientation="h",
                 spacing=10,
                 children=[
-                    icon_widget,
+                    icon_badge,
                     Label(
                         name="app-label",
                         label=app.display_name or "Unknown",
@@ -268,7 +278,15 @@ class AppLauncher(BaseDiWidget, Box):
             on_clicked=lambda *_: (app.launch(), self.close_launcher()),
             **kwargs,
         )
+        # Hover glow handling
+        try:
+            button.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
+            button.connect("enter-notify-event", lambda _w, _e, b=icon_badge: (b.add_style_class("hover"), False)[1])
+            button.connect("leave-notify-event", lambda _w, _e, b=icon_badge: (b.remove_style_class("hover"), False)[1])
+        except Exception:
+            ...
         return button
+
 
     def update_selection(self, new_index: int) -> None:
         # Unselect current

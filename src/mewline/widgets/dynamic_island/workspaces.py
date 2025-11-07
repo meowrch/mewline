@@ -6,6 +6,7 @@ import gi
 from fabric.hyprland import Hyprland
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
+from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 from gi.repository import Gdk
 from gi.repository import GLib
@@ -13,6 +14,7 @@ from gi.repository import Gtk
 
 from mewline.config import cfg
 from mewline.constants import WINDOW_TITLE_MAP
+from mewline.utils.icon_resolver import get_icon_pixbuf_for_app
 from mewline.utils.widget_utils import text_icon
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
@@ -183,6 +185,8 @@ class WorkspacesOverview(BaseDiWidget, Box):
         except Exception:
             clients = []
 
+        # Icon resolver handles caching itself; no per-refresh registry needed
+
         used_ws: set[int] = set()
         # Place clients into their workspace containers
         for c in clients:
@@ -211,18 +215,31 @@ class WorkspacesOverview(BaseDiWidget, Box):
                 gy = origin_y + rel_y
 
                 # Create window miniature as a button
-                glyph = (
-                    self._resolve_icon_for_class(
-                        (c.get("initialClass") or c.get("class") or "").lower()
-                    )
-                    or "󰣆"
+                # Resolve real app icon pixbuf
+                app_id = (c.get("initialClass") or c.get("class") or "").lower()
+                icon_size = max(12, min(22, int(min(bw, bh) * 0.6)))
+                pixbuf, _source, _iname = get_icon_pixbuf_for_app(app_id, icon_size)
+                if pixbuf is not None:
+                    icon_child = Image(pixbuf=pixbuf)
+                else:
+                    # Fallback to mapping glyph icon
+                    glyph = self._resolve_icon_for_class(app_id) or "󰣆"
+                    icon_child = text_icon(glyph, size=f"{max(12, min(20, icon_size))}px")
+
+                # Badge holder to apply glow; size ~ icon size to reduce square look
+                icon_badge = Box(
+                    name="app-icon-badge",
+                    h_align="center",
+                    v_align="center",
+                    children=[icon_child],
                 )
-                glyph_label = text_icon(glyph, size="14px")
+                with contextlib.suppress(Exception):
+                    icon_badge.set_size_request(icon_size, icon_size)
                 btn = Button(
                     name="overview-client-box",
                     tooltip_text=(c.get("title") or c.get("class") or "")[:128],
-                    child=glyph_label,
-                    on_clicked=lambda *_a, addr=c.get["address"]: self._focus(addr),
+                    child=icon_badge,
+                    on_clicked=lambda *_a, addr=c["address"]: self._focus(addr),
                     on_button_press_event=(
                         lambda _w, event, addr=c["address"]: self._maybe_close(
                             event, addr
@@ -344,8 +361,8 @@ class WorkspacesOverview(BaseDiWidget, Box):
         with contextlib.suppress(Exception):
             self.show_all()
 
-        # Restore focus preference: by address, then workspace (placeholder first),
-        # else first
+        # Restore focus preference:
+        # by address, then workspace (placeholder first), else first
         if self._mini:
             focused = False
             if sel_addr is not None:
@@ -423,7 +440,6 @@ class WorkspacesOverview(BaseDiWidget, Box):
                 continue
         return None
 
-    # Navigation helpers
     def _on_key_press(self, _widget, event):
         key = getattr(event, "keyval", None)
         if key in (Gdk.KEY_Left, Gdk.KEY_Right, Gdk.KEY_Up, Gdk.KEY_Down):
@@ -449,9 +465,7 @@ class WorkspacesOverview(BaseDiWidget, Box):
         if self._focus_idx is not None and 0 <= self._focus_idx < len(self._mini):
             with contextlib.suppress(Exception):
                 self._mini[self._focus_idx]["btn"].remove_style_class("focused")
-
         self._focus_idx = idx
-
         with contextlib.suppress(Exception):
             self._mini[self._focus_idx]["btn"].add_style_class("focused")
 

@@ -1,20 +1,26 @@
+import contextlib
+import json
 import os
 import re
 from typing import TYPE_CHECKING
 
 from fabric.hyprland.widgets import ActiveWindow
+from fabric.hyprland.widgets import get_hyprland_connection
 from fabric.utils import FormattedString
 from fabric.utils import truncate
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.centerbox import CenterBox
+from fabric.widgets.image import Image
 from fabric.widgets.label import Label
 
 from mewline.config import cfg
 from mewline.constants import WINDOW_TITLE_MAP
 from mewline.services.mpris import MprisPlayer
 from mewline.services.mpris import MprisPlayerManager
+from mewline.utils.icon_resolver import get_icon_pixbuf_for_app
 from mewline.utils.widget_utils import setup_cursor_hover
+from mewline.utils.widget_utils import text_icon
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 if TYPE_CHECKING:
@@ -42,8 +48,13 @@ class Compact(BaseDiWidget, CenterBox):
             ),
         )
 
+        # Real app icon next to title (slot that can hold Image or glyph Label)
+        self.window_icon_slot = Box(name="di-compact-icon-slot")
+        self.window_row = Box(orientation="h", spacing=6)
+        self._apply_icon_enablement()
+
         self.main_container = Box(
-            name="di-compact-main-container", children=[self.window_title]
+            name="di-compact-main-container", children=[self.window_row]
         )
         compact_button = Button(
             name="compact-label",
@@ -64,6 +75,13 @@ class Compact(BaseDiWidget, CenterBox):
             self.mpris_manager.connect("player-appeared", self._on_player_changed)
             self.mpris_manager.connect("player-vanished", self._on_player_changed)
             self._init_players()
+
+        # Update app icon when title changes (only if enabled)
+        try:
+            self.window_title.connect("notify::label", lambda *_: self._update_window_icon())
+            self._update_window_icon()
+        except Exception:
+            ...
 
     def _init_players(self):
         if not self.config.music.enabled or not self.mpris_manager.players:
@@ -89,21 +107,14 @@ class Compact(BaseDiWidget, CenterBox):
         )
 
         if not matched:
-            return f"󰣆 {win_class.lower()}"
+            return win_class.lower()
 
         if matched[0] == "^$" or win_class == "undefined":
             base = f"{os.getlogin()}@{os.uname().nodename}"
-            return (
-                f"{matched[1]} {base}"
-                if self.config.window_titles.enable_icon
-                else base
-            )
+            return base
 
-        return (
-            f"{matched[1]} {matched[2]}"
-            if self.config.window_titles.enable_icon
-            else matched[2]
-        )
+        # Only text here; visual icon is handled via self.window_icon
+        return matched[2]
 
     def _on_player_changed(self, manager, player):
         if not self.config.music.enabled:
@@ -138,6 +149,61 @@ class Compact(BaseDiWidget, CenterBox):
             and self.current_mpris_player.playback_status.lower() == "playing"
         )
 
+    def _apply_icon_enablement(self):
+        enabled = bool(getattr(self.config.window_titles, "enable_icon", True))
+
+        try:
+            for ch in list(self.window_row.get_children()):
+                self.window_row.remove(ch)
+        except Exception:
+            ...
+
+        if enabled:
+            with contextlib.suppress(Exception):
+                self.window_row.add(self.window_icon_slot)
+
+        with contextlib.suppress(Exception):
+            self.window_row.add(self.window_title)
+
+    def _update_window_icon(self):
+        if not bool(getattr(self.config.window_titles, "enable_icon", True)):
+            return
+        try:
+            conn = get_hyprland_connection()
+
+            if not conn:
+                return
+
+            active_window_json = conn.send_command("j/activewindow").reply.decode()
+            active_window_data = json.loads(active_window_json)
+            app_id = active_window_data.get("initialClass", "") or active_window_data.get("class", "")
+
+            try:
+                for ch in list(self.window_icon_slot.get_children()):
+                    self.window_icon_slot.remove(ch)
+                    ch.destroy()
+            except Exception:
+                ...
+
+            if app_id == "":
+                self.window_icon_slot.add(text_icon("󰣆", size="14px"))
+                return
+
+            pixbuf, _source, _name = get_icon_pixbuf_for_app(app_id, 16)
+            if pixbuf:
+                self.window_icon_slot.add(Image(pixbuf=pixbuf))
+            else:
+                self.window_icon_slot.add(text_icon("󰣆", size="14px"))
+        except Exception:
+            try:
+                for ch in list(self.window_icon_slot.get_children()):
+                    self.window_icon_slot.remove(ch)
+                    ch.destroy()
+            except Exception:
+                ...
+
+            self.window_icon_slot.add(text_icon("󰣆", size="14px"))
+
     def _show_music_info(self):
         artist = self.current_mpris_player.artist or "Unknown Artist"
         title = self.current_mpris_player.title or "Unknown Track"
@@ -164,6 +230,8 @@ class Compact(BaseDiWidget, CenterBox):
         self.music_label.show()
 
     def _show_window_title(self):
-        self.main_container.children = [self.window_title]
+        # Ensure icon enablement applied before showing row
+        self._apply_icon_enablement()
+        self.main_container.children = [self.window_row]
         self.cover.hide()
         self.music_label.hide()
