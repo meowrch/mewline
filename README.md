@@ -1,159 +1,181 @@
-# ✨ MewLine
-Элегантный и расширяемый статус-бар для дистрибутива [meowrch](https://github.com/meowrch/meowrch), написанный на Python с использованием фреймворка [Fabric](https://github.com/Fabric-Development/fabric). Сочетает в себе минималистичный дизайн с мощной функциональностью.
+<div align="center">
+	<h1> ✨ Mewline </h1>
+	<a href="https://github.com/meowrch/mewline/issues">
+		<img src="https://img.shields.io/github/issues/meowrch/mewline?color=ffb29b&labelColor=1C2325&style=for-the-badge">
+	</a>
+	<a href="https://github.com/meowrch/mewline/stargazers">
+		<img src="https://img.shields.io/github/stars/meowrch/mewline?color=fab387&labelColor=1C2325&style=for-the-badge">
+	</a>
+	<a href="./LICENSE">
+		<img src="https://img.shields.io/github/license/meowrch/mewline?color=FCA2AA&labelColor=1C2325&style=for-the-badge">
+	</a>
+	<br>
+	<br>
+	<a href="./README.ru.md">
+		<img src="https://img.shields.io/badge/README-RU-blue?color=cba6f7&labelColor=1C2325&style=for-the-badge">
+	</a>
+	<a href="./README.md">
+		<img src="https://img.shields.io/badge/README-ENG-blue?color=C9CBFF&labelColor=C9CBFF&style=for-the-badge">
+	</a>
+</div>
+<br>
+<br>
 
-> [!Warning]
-> Проект находится в активной разработке.
->Некоторые функции могут работать нестабильно
-
+An elegant, extensible status bar for the [meowrch](https://github.com/meowrch/meowrch) distribution, written in Python using the [Fabric](https://github.com/Fabric-Development/fabric) framework. It combines a minimalist design with powerful functionality.
 
 <table align="center">
   <tr>
-    <td colspan="4"><img src="./assets/default.png"></td>
+    <td colspan="3"><img src="./assets/preview.png"></td>
   </tr>
   <tr>
-    <td colspan="1"><img src="./assets/date_notification.png"></td>
-    <td colspan="1"><img src="./assets/power.png"></td>
-    <td colspan="1" align="center"><img src="./assets/notify.png"></td>
+    <td colspan="1"><img src="./assets/preview1.png"></td>
+    <td colspan="1"><img src="./assets/preview2.png"></td>
+    <td colspan="1"><img src="./assets/preview3.png"></td>
+  </tr>
+  <tr>
+    <td colspan="1"><img src="./assets/preview4.png"></td>
+    <td colspan="1"><img src="./assets/preview5.png"></td>
+    <td colspan="1"><img src="./assets/preview6.png"></td>
+  </tr>
+  <tr>
+    <td colspan="3"><img src="./assets/preview7.png"></td>
   </tr>
 </table>
 
+## 🌟 Features
+- [X] **Modular architecture**
+- [X] **Customization** via a JSON config
+- [X] **Theme** support
+- [X] Full integration with the [meowrch](https://github.com/meowrch/meowrch) distribution
+- [X] Animated transitions and effects
+- [X] Low resource usage
+- [X] Keyboard control
 
-## 🌟 Особенности
-- [X] **Модульная архитектура**
-- [X] **Кастомизация** на любой вкус через JSON-конфиг
-- [X] Поддержка **тем**
-- [X] Полная интеграция с дистрибутивом [meowrch](https://github.com/meowrch/meowrch)
-- [X] Анимированные переходы и эффекты
-- [X] Низкое потребление ресурсов
-- [X] Управление с клавиатуры
+## ⚙️ Configuration
+See [documentation](docs/configuration.md) for detailed configuration info.
 
-## ⚙️ Конфигурация
-
-Подробную информацию о конфигурации можно найти в [документации](docs/configuration.md).
-
-## 🧩 Установка зависимостей
+## 🧩 Install dependencies
 ```bash
 sudo pacman -S dart-sass tesseract tesseract-data-eng tesseract-data-rus slurp grim cliphist
 yay -S gnome-bluetooth-3.0 gray-git fabric-cli-git
 ```
 
-## ⚡ Быстрый старт
+## ⚡ Quick start
 ```bash
-# Установите пакет
+# Install the package
 yay -S mewline-git
 
-# Сгенерируйте конфиг по умолчанию
+# Generate the default config
 mewline --generate-default-config
 
-# Сгенерируйте сочетания клавиш для hyprland
+# Generate keybindings for Hyprland
 mewline --create-keybindings
 
-# Настройте config.json под свои нужды
+# Tweak config.json to your liking
 micro ~/.config/mewline/config.json
 
-# Запустите MewLine
+# Run MewLine
 mewline
 ```
 
-## 🛠 Для разработчиков
+## 🛠 For developers
 ```bash
-# Склонируйте репозиторий
+# Clone the repo
 git clone https://github.com/meowrch/mewline && cd mewline
 
-# Установите пакетный менеджер
-pip install uv # Или sudo pacman -S uv
+# Install the package manager
+pip install uv # Or: sudo pacman -S uv
 
-# Установите зависимости
+# Install dependencies
 uv sync
 
-# Сгенерируйте конфиг по умолчанию
+# Generate the default config
 uv run generate_default_config
 
-# Сгенерируйте сочетания клавиш для hyprland
+# Generate keybindings for Hyprland
 uv run create_keybindings
 
-# Настройте config.json под свои нужды
+# Tweak config.json to your liking
 micro ~/.config/mewline/config.json
 
-# Запустите MewLine
+# Run MewLine
 uv run mewline
 ```
 
+## 🎨 Widgets
+### ℹ️ Status Bar
 
-## 🎨 Виджеты
-### ℹ️ Статус Бар
-| Компонент          | Описание                           |
-| ------------------ | ---------------------------------- |
-| `tray`             | Системный трей                     |
-| `workspaces`       | Управление рабочими пространствами |
-| `datetime`         | Отображение даты и времени         |
-| `brightness`       | Управление яркостью                |
-| `volume`           | Управление громкостью звука        |
-| `battry`           | Информация о заряде аккумулятора   |
-| `power`            | Кнопка для вызова `power_menu`     |
-| `ocr`              | Распознавание текста с скриншота   |
+| Component    | Description                            |
+| ------------ | -------------------------------------- |
+| `tray`       | System tray                             |
+| `workspaces` | Workspace management                    |
+| `datetime`   | Date and time display                   |
+| `brightness` | Screen brightness control               |
+| `volume`     | Audio volume control                    |
+| `battry`     | Battery charge information              |
+| `power`      | Button to open the `power_menu`         |
+| `ocr`        | Text recognition from a screenshot      |
 
-## 🏝 Динамический остров
-| Компонент          | Описание                                                  | Сочетание клавиш   |
-| ------------------ | ----------------------------------------------------------| ------------------ |
-| `compact`          | Отображает информацию о активном окне и включенной музыке | -                  |
-| `notifications`    | Уведомления                                               | -                  |
-| `power_menu`       | Меню для управления питанием                              | `Super+Alt+P`      |
-| `date_notification`| Меню с календарем и историей уведомлений                  | `Super+Alt+D`      |
-| `bluetooth`        | Меню для управления bluetooth                             | `Super+Alt+B`      |
-| `app_launcher`     | Лаунчер приложений                                        | `Super+Alt+A`      |
-| `wallpapers`       | Выбор обоев                                               | `Super+Alt+W`      |
-| `emoji`            | Выбор emoji                                               | `Super+Alt+.`      |
-| `clipbpard`        | Управление Буфером обмена                                 | `Super+Alt+V`      |
-| `network`          | Управление wifi сетями и Ethernet                         | `Super+Alt+N`      |
-| `workspaces`       | Управление открытыми окнами                               | `Super+Alt+Tab`    |
+## 🏝 Dynamic Island
 
-### ⌨️ Сочетания клавиш
-Динамическим островом можно управлять с помощью сочетаний клавиш.
-Если вы еще не сгенерировали конфигурацию для hyprland, то выполните:
+| Component           | Description                                                 | Keybinding        |
+| ------------------- | ----------------------------------------------------------- | ----------------- |
+| `compact`           | Shows active window and currently playing music             | -                 |
+| `notifications`     | Notifications                                               | -                 |
+| `power_menu`        | Power management menu                                       | `Super+Alt+P`     |
+| `date_notification` | Calendar and notifications history                          | `Super+Alt+D`     |
+| `bluetooth`         | Bluetooth manager                                           | `Super+Alt+B`     |
+| `app_launcher`      | Application launcher                                        | `Super+Alt+A`     |
+| `wallpapers`        | Wallpaper picker                                            | `Super+Alt+W`     |
+| `emoji`             | Emoji picker                                                | `Super+Alt+.`     |
+| `clipbpard`         | Clipboard manager                                           | `Super+Alt+V`     |
+| `network`           | Wi-Fi and Ethernet manager                                  | `Super+Alt+N`     |
+| `workspaces`        | Open windows/workspaces manager                             | `Super+Alt+Tab`   |
+
+### ⌨️ Keybindings
+You can control the Dynamic Island using keybindings. If you haven't generated the Hyprland config yet, run:
 ```bash
 mewline --create-keybindings
 ```
 
-## ❓ Другое
-| Компонент          | Описание                                             |
-| ------------------ | -----------------------------------------------------|
-| `osd`              | Уведомления о событиях изменения громкости/яркости   |
+## ❓ Other
 
+| Component | Description                                             |
+| --------- | ------------------------------------------------------- |
+| `osd`     | On-screen display for volume/brightness change events   |
 
-## 🐾 Особые Благодарности
-Проект вдохновлён и использует лучшие идеи из:
+## 🐾 Special Thanks
+This project is inspired by and borrows great ideas from:
 
 - **[HyDePanel](https://github.com/rubiin/HyDePanel)** \
-    Архитектура модульной системы, некоторые стили и виджеты.
+  Modular system architecture, some styles and widgets.
 
 - **[Ax-Shell](https://github.com/Axenide/Ax-Shell)** \
-    Подход к обработке системных событий, IPC-механизмы, некоторые стили и виджеты.
+  Approach to handling system events, IPC mechanisms, some styles and widgets.
 
-Мы глубоко признательны авторам этих проектов за их вклад в open-source сообщество.
-Отдельные компоненты были адаптированы и улучшены для интеграции с MewLine.
+We are grateful to the authors of these projects for their contribution to the open-source community. Some components were adapted and improved to integrate with MewLine.
 
-## 🚀 Развитие проекта
-Хотите добавить новый виджет или улучшить существующий?
+## 🚀 Contributing
+Want to add a new widget or improve an existing one?
 
-1. Форкните репозиторий
-2. Создайте ветку с фичей: `git checkout -b feature/amazing-widget`
-3. Залейте изменения: `git push origin feature/amazing-widget`
-4. Откройте Pull Request
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-widget`
+3. Push your changes: `git push origin feature/amazing-widget`
+4. Open a Pull Request
 
-Рекомендуем сначала обсудить идею в Issues.
+We recommend discussing the idea in Issues first.
 
-## ☕ Поддержать проект
-Если вам нравится MewLine, вы можете помочь его развитию:
-| Криптовалюта | Адрес                                              |
-| ------------ | -------------------------------------------------- |
-| **TON**      | `UQB9qNTcAazAbFoeobeDPMML9MG73DUCAFTpVanQnLk3BHg3` |
-| **Ethereum** | `0x56e8bf8Ec07b6F2d6aEdA7Bd8814DB5A72164b13`       |
-| **Bitcoin**  | `bc1qt5urnw7esunf0v7e9az0jhatxrdd0smem98gdn`       |
-| **Tron**     | `TBTZ5RRMfGQQ8Vpf8i5N8DZhNxSum2rzAs`               |
+## ☕ Support the project
+If you like MewLine, you can support its development:
 
+| Cryptocurrency | Address                                              |
+| -------------- | ---------------------------------------------------- |
+| **TON**        | `UQB9qNTcAazAbFoeobeDPMML9MG73DUCAFTpVanQnLk3BHg3` |
+| **Ethereum**   | `0x56e8bf8Ec07b6F2d6aEdA7Bd8814DB5A72164b13`       |
+| **Bitcoin**    | `bc1qt5urnw7esunf0v7e9az0jhatxrdd0smem98gdn`       |
+| **Tron**       | `TBTZ5RRMfGQQ8Vpf8i5N8DZhNxSum2rzAs`               |
 
-Ваша поддержка мотивирует нас делать больше крутых фич! ❤️
+Your support motivates us to build more great features! ❤️
 
-## 📊 Статистика
+## 📊 Stats
 [![Star History Chart](https://api.star-history.com/svg?repos=meowrch/mewline&type=Date)](https://star-history.com/#meowrch/mewline&Date)
