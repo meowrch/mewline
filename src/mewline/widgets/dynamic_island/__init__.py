@@ -27,6 +27,7 @@ from mewline.widgets.dynamic_island.notifications import NotificationContainer
 from mewline.widgets.dynamic_island.pawlette_themes import PawletteThemes
 from mewline.widgets.dynamic_island.power import PowerMenu
 from mewline.widgets.dynamic_island.wallpapers import WallpaperSelector
+from mewline.widgets.dynamic_island.workspaces import WorkspacesOverview
 from mewline.widgets.screen_corners import MyCorner
 
 
@@ -60,6 +61,7 @@ class DynamicIsland(Window):
         self.clipboard = Clipboard(self)
         self.network = NetworkConnections()
         self.pawlette_themes = PawletteThemes()
+        self.workspaces_overview = WorkspacesOverview()
 
         self.widgets: dict[str, type[BaseDiWidget]] = {
             "compact": self.compact,
@@ -73,6 +75,7 @@ class DynamicIsland(Window):
             "clipboard": self.clipboard,
             "network": self.network,
             "pawlette-themes": self.pawlette_themes,
+            "workspaces": self.workspaces_overview,
         }
         self.current_widget: str | None = None
 

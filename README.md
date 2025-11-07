@@ -106,6 +106,7 @@ uv run mewline
 | `emoji`            | Выбор emoji                                               | `Super+Alt+.`      |
 | `clipbpard`        | Управление Буфером обмена                                 | `Super+Alt+V`      |
 | `network`          | Управление wifi сетями и Ethernet                         | `Super+Alt+N`      |
+| `workspaces`       | Управление открытыми окнами                               | `Super+Alt+Tab`    |
 
 ### ⌨️ Сочетания клавиш
 Динамическим островом можно управлять с помощью сочетаний клавиш.

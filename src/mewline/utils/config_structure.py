@@ -25,6 +25,7 @@ class WorkspacesModule(BaseModel):
     reverse_scroll: bool
     empty_scroll: bool
     icon_map: dict[str, str]
+    navigate_empty: bool
 
 
 class TrayModule(BaseModel):

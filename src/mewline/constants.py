@@ -67,6 +67,11 @@ KEYBINDINGS = {
         "T",
         kb_di_open.format(module="pawlette-themes"),
     ),
+    "workspaces": (
+        kb_prefix,
+        "Tab",
+        kb_di_open.format(module="workspaces"),
+    ),
 }
 
 ##==> Default settings
@@ -86,6 +91,7 @@ DEFAULT_CONFIG = {
             "ignored": [-99],
             "reverse_scroll": False,
             "empty_scroll": False,
+            "navigate_empty": False,
             "icon_map": {
                 "1": "1",
                 "2": "2",

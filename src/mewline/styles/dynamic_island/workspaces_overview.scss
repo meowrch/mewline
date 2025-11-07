@@ -1,0 +1,58 @@
+@use "../theme.scss";
+
+#workspaces-overview {
+  padding: 6px;
+}
+
+#workspaces-overview > #overview-workspace-box,
+#workspaces-overview > .overview-workspace-box {
+}
+
+#overview-workspace-box {
+  padding: 6px 8px;
+  border-radius: 12px;
+  background-color: theme.$background-highlight;
+  outline: 1px solid theme.$background-element;
+}
+
+/* Workspace header label not rendered; keep rule empty for safety */
+#overview-workspace-label {
+}
+
+#overview-client-box {
+  background-color: theme.$background-element;
+  border-radius: 6px;
+  min-width: 8px;
+  min-height: 8px;
+  transition: background-color 0.15s ease, outline-color 0.15s ease;
+  outline: 1px solid transparent;
+  #nerd-icon {
+    color: theme.$text-color;
+  }
+}
+
+#overview-client-box.hover,
+#overview-client-box.focused {
+  background-color: theme.$accent-color;
+  outline-color: theme.$accent-color;
+}
+
+#overview-client-box.hover #nerd-icon,
+#overview-client-box.focused #nerd-icon {
+  color: theme.$text-on-accent;
+}
+
+#overview-workspace-bg {
+  background-color: theme.$background-base;
+}
+
+#ws-number {
+  font-weight: 700;
+  font-size: 18px;
+  color: theme.$text-color;
+}
+
+#overview-client-box.hover #ws-number,
+#overview-client-box.focused #ws-number {
+  color: theme.$text-on-accent;
+}

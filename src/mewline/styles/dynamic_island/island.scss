@@ -11,6 +11,7 @@
 @use "./clipboard.scss";
 @use "./network.scss";
 @use "./pawlette_themes.scss";
+@use "./workspaces_overview.scss";
 
 #dynamic-island-box {
   margin: 10px;
@@ -96,6 +97,13 @@
     border-radius: 0 0 36px 36px;
   }
 
+  &.workspaces {
+    padding: 12px;
+    min-height: 280px;
+    min-width: 980px; // 5 tiles ~0.1*1920 each
+    border-radius: 0 0 36px 36px;
+  }
+
   &.pawlette-themes {
     padding: 16px;
     min-height: 420px;
@@ -113,7 +121,8 @@
 #emoji,
 #app-launcher,
 #clipboard,
-#pawlette-themes {
+#pawlette-themes,
+#workspaces-overview {
   opacity: 1;
   margin: -800px;
   transition: all 0.25s cubic-bezier(0.5, 0.25, 0, 1);
