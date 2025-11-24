@@ -17,7 +17,7 @@ from fabric.widgets.label import Label
 from mewline.config import cfg
 from mewline.constants import WINDOW_TITLE_MAP
 from mewline.services.mpris import MprisPlayer
-from mewline.services.priority_audio import PriorityAudioManager
+from mewline.services.mpris import MprisPlayerManager
 from mewline.utils.icon_resolver import get_icon_pixbuf_for_app
 from mewline.utils.widget_utils import setup_cursor_hover
 from mewline.utils.widget_utils import text_icon
@@ -33,7 +33,7 @@ class Compact(BaseDiWidget, CenterBox):
     def __init__(self, di: "DynamicIsland"):
         super().__init__()
         self.config = cfg.modules.dynamic_island.compact
-        self.priority_audio_manager = PriorityAudioManager()
+        self.mpris_manager = MprisPlayerManager()
         self.current_mpris_player = None
 
         self.cover = Box(style_classes="cover", visible=False)
@@ -72,17 +72,9 @@ class Compact(BaseDiWidget, CenterBox):
         )
 
         if self.config.music.enabled:
-            self.priority_audio_manager.connect(
-                "active-player-changed", self._on_active_player_changed
-            )
-            # Also listen to audio stream changes (volume changes in PulseAudio)
-            if self.priority_audio_manager.audio_monitor.enabled:
-                self.priority_audio_manager.audio_monitor.connect(
-                    "active-stream-changed", self._on_audio_stream_changed
-                )
-            # Initialize current player if available
-            if self.priority_audio_manager.active_player:
-                self._set_active_player(self.priority_audio_manager.active_player)
+            self.mpris_manager.connect("player-appeared", self._on_player_changed)
+            self.mpris_manager.connect("player-vanished", self._on_player_changed)
+            self._init_players()
 
         # Update app icon when title changes (only if enabled)
         try:
@@ -91,23 +83,15 @@ class Compact(BaseDiWidget, CenterBox):
         except Exception:
             ...
 
-    def _set_active_player(self, player: MprisPlayer | None):
-        """Set the active player and connect to its signals."""
-        # Disconnect from old player
-        if self.current_mpris_player:
-            with contextlib.suppress(Exception):
-                self.current_mpris_player.disconnect_by_func(self._update_display)
-        # Set new player
-        self.current_mpris_player = player
+    def _init_players(self):
+        if not self.config.music.enabled or not self.mpris_manager.players:
+            return
 
-        # Connect to new player
-        if self.current_mpris_player:
-            self.current_mpris_player.connect(
-                "notify::playback-status", self._update_display
-            )
-            self.current_mpris_player.connect("notify::metadata", self._update_display)
-
-        # Update display
+        self.current_mpris_player = MprisPlayer(self.mpris_manager.players[0])
+        self.current_mpris_player.connect(
+            "notify::playback-status", self._update_display
+        )
+        self.current_mpris_player.connect("notify::metadata", self._update_display)
         self._update_display()
 
     def _format_window_title(self, win_title, win_class):
@@ -132,24 +116,23 @@ class Compact(BaseDiWidget, CenterBox):
         # Only text here; visual icon is handled via self.window_icon
         return matched[2]
 
-    def _on_active_player_changed(self, manager, player: MprisPlayer | None):
-        """Handle active player changes from PriorityAudioManager."""
+    def _on_player_changed(self, manager, player):
         if not self.config.music.enabled:
             return
 
-        self._set_active_player(player)
+        if self.current_mpris_player:
+            self.current_mpris_player.disconnect_by_func(self._update_display)
 
-    def _on_audio_stream_changed(self, monitor, stream):
-        """Handle audio stream changes (e.g., volume changes in PulseAudio)."""
-        if not self.config.music.enabled:
-            return
+        if manager.players:
+            self.current_mpris_player = MprisPlayer(manager.players[0])
+            self.current_mpris_player.connect(
+                "notify::playback-status", self._update_display
+            )
+            self.current_mpris_player.connect("notify::metadata", self._update_display)
+        else:
+            self.current_mpris_player = None
 
-        # Re-evaluate active player based on new audio stream
-        # This handles cases where multiple players are playing
-        # and you change volume in one of them
-        new_active = self.priority_audio_manager.active_player
-        if new_active != self.current_mpris_player:
-            self._set_active_player(new_active)
+        self._update_display()
 
     def _update_display(self, *args):
         if not self.config.music.enabled:
