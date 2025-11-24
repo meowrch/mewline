@@ -24,6 +24,7 @@ makedepends=(
   'git'
   'python-virtualenv'
 )
+options=('!debug')
 source=("$url/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')  # Автоматическая замена в workflow
 
