@@ -30,6 +30,9 @@ class CombinedControlsMenu(Popover):
         self.config = cfg.modules
         self.osd_widget = osd_widget
 
+        self._updating_brightness_from_service = False
+        self._updating_brightness = False
+
         # Check if brightness control is available
         self.brightness_available = self._is_brightness_available()
 
@@ -253,7 +256,7 @@ class CombinedControlsMenu(Popover):
             self._update_mic_from_service()
 
     def _on_brightness_service(self, *_):
-        if not self.brightness_available or self._brightness_apply_src:
+        if not self.brightness_available or self._brightness_apply_src or self._updating_brightness_from_service:
             return  # Don't update while we have a pending change
         val = self._get_brightness()
         self.brightness_scale.set_value(val)
@@ -346,6 +349,8 @@ class CombinedControlsMenu(Popover):
     def _apply_brightness(self):
         if not self.brightness_available:
             return False
+
+        self._updating_brightness_from_service = True
         val = int(self.brightness_scale.value)
         val = max(0, min(100, val))
         # translate percent back to raw units
@@ -355,6 +360,12 @@ class CombinedControlsMenu(Popover):
         if self.osd_widget:
             self.osd_widget.show_brightness()
         self._brightness_apply_src = None
+
+        GLib.timeout_add(100, self.unblock_service_updates)
+        return False
+
+    def _unblock_service_updates(self):
+        self._updating_brightness_from_service = False
         return False
 
 
@@ -513,10 +524,13 @@ class CombinedControlsButton(Overlay):
                 if self.osd_widget:
                     self.osd_widget.show_audio_microphone()
             elif device == "brightness" and self._is_brightness_available():
+                self._updating_brightness = True
                 target = int((value / 100.0) * self.brightness.max_brightness_level)
                 self.brightness.screen_brightness = target
                 if self.osd_widget:
                     self.osd_widget.show_brightness()
+
+                GLib.timeout_add(100, lambda: setattr(self, '_updating_brightness', False))
 
         self._pending_scroll_updates.clear()
         self._scroll_debounce_src = None
@@ -564,7 +578,7 @@ class CombinedControlsButton(Overlay):
             self._update_mic_icon()
 
     def _on_brightness_changed(self, *_):
-        if self._is_brightness_available():
+        if self._is_brightness_available() and not self._updating_brightness:
             self.icon_brightness.set_text(get_brightness_icon(self._get_brightness()))
 
     def _update_speaker_icon(self, *_):
