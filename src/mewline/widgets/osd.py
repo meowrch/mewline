@@ -174,7 +174,7 @@ class OSDContainer(Window):
     def __init__(
         self,
         transition_duration=200,
-        keyboard_mode: Literal["none", "exclusive", "on-demand"] = "on-demand",
+        keyboard_mode: Literal["none", "exclusive", "on-demand"] = "none",
         **kwargs,
     ):
         self.config = cfg.modules.osd
