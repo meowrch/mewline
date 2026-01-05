@@ -27,7 +27,7 @@ from mewline.widgets.network_status import NetworkStatus
 from mewline.widgets.ocr import OCRWidget
 from mewline.widgets.power import PowerButton
 from mewline.widgets.system_tray import SystemTray
-from mewline.widgets.workspaces import HyprlandWorkSpacesWidget
+from mewline.widgets.workspaces import create_workspaces_widget
 
 
 class StatusBarBase:
@@ -48,7 +48,7 @@ class StatusBarBase:
             start_children=Box(
                 spacing=4,
                 orientation="h",
-                children=[SystemTray(), HyprlandWorkSpacesWidget()],
+                children=[SystemTray(), create_workspaces_widget()],
             ),
             center_children=Box(
                 spacing=4,
@@ -177,7 +177,7 @@ class BspwmStatusBar(Gtk.Window, StatusBarBase):
         self._apply_struts(screen_width)
         logger.info("Initialized BspwmStatusBar with X11 STRUT support")
 
-    def _on_screen_changed(self, widget, old_screen):
+    def _on_screen_changed(self, _widget, _old_screen):
         """Update visual when screen changes.
 
         Args:

@@ -15,7 +15,7 @@ from mewline.widgets.power import PowerButton
 from mewline.widgets.status_bar import BspwmStatusBar
 from mewline.widgets.status_bar import WaylandStatusBar
 from mewline.widgets.system_tray import SystemTray
-from mewline.widgets.workspaces import HyprlandWorkSpacesWidget
+from mewline.widgets.workspaces import create_workspaces_widget
 
 # Detect window manager and set StatusBar accordingly
 _wm = detect_window_manager()
@@ -36,6 +36,7 @@ else:
 __all__ = [
     "Battery",
     "Bluetooth",
+    "BspwmStatusBar",
     "CombinedControlsButton",
     "DateTimeWidget",
     "LanguageWidget",
@@ -44,7 +45,6 @@ __all__ = [
     "PowerButton",
     "StatusBar",
     "SystemTray",
-    "HyprlandWorkSpacesWidget",
-    "BspwmStatusBar",
     "WaylandStatusBar",
+    "create_workspaces_widget",
 ]

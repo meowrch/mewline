@@ -3,7 +3,6 @@
 import os
 import subprocess
 from enum import Enum
-from typing import Optional
 
 from loguru import logger
 
@@ -58,7 +57,7 @@ def detect_window_manager() -> WindowManager:
     return WindowManager.UNKNOWN
 
 
-def get_display_backend() -> Optional[str]:
+def get_display_backend() -> str | None:
     """Get the display backend (wayland or x11).
 
     Returns:
