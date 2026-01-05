@@ -6,8 +6,8 @@ from fabric.utils import invoke_repeater
 from fabric.widgets.box import Box
 from fabric.widgets.label import Label
 from fabric.widgets.revealer import Revealer
-from fabric.widgets.wayland import WaylandWindow as Window
 from gi.repository import GObject
+from loguru import logger
 
 from mewline import constants as cnst
 from mewline.config import cfg
@@ -18,6 +18,7 @@ from mewline.utils.widget_utils import create_scale
 from mewline.utils.widget_utils import get_audio_icon
 from mewline.utils.widget_utils import get_brightness_icon
 from mewline.utils.widget_utils import text_icon
+from mewline.utils.window_manager import create_adaptive_window
 
 
 class GenericOSDContainer(Box):
@@ -168,8 +169,11 @@ class AudioOSDContainer(GenericOSDContainer):
         self.sync_with_audio("speaker")
 
 
-class OSDContainer(Window):
-    """A widget to display the OSD for audio and brightness."""
+class OSDContainer:
+    """A widget to display the OSD for audio and brightness.
+
+    This class uses adaptive windows to work on both Wayland and X11.
+    """
 
     def __init__(
         self,
@@ -190,15 +194,29 @@ class OSDContainer(Window):
             child_revealed=False,
         )
 
-        super().__init__(
-            layer="overlay",
-            anchor=self.config.anchor,
-            child=self.revealer,
-            visible=False,
-            pass_through=True,
-            keyboard_mode=keyboard_mode,
-            **kwargs,
-        )
+        # Create adaptive window that works on both Wayland and X11
+        try:
+            self.window = create_adaptive_window(
+                wayland_kwargs={
+                    "layer": "overlay",
+                    "anchor": self.config.anchor,
+                    "pass_through": True,
+                    "keyboard_mode": keyboard_mode,
+                },
+                x11_kwargs={
+                    "type_hint": "dock",
+                    "geometry": "bottom",
+                },
+                visible=False,
+                all_visible=False,
+                child=self.revealer,
+                **kwargs,
+            )
+            logger.info("Created OSD window with adaptive window system")
+        except Exception as e:
+            logger.error(f"Failed to create OSD window: {e}")
+            raise
+
         self.last_activity_time = time.time()
 
         self.audio_container.audio.connect("notify::speaker", self.show_audio)
@@ -232,7 +250,7 @@ class OSDContainer(Window):
         self.reset_inactivity_timer()
 
     def show_box(self, box_to_show: Literal["audio", "brightness"]):
-        self.set_visible(True)
+        self.window.set_visible(True)
         if box_to_show == "audio":
             self.revealer.children = self.audio_container
         elif box_to_show == "brightness":
@@ -241,7 +259,7 @@ class OSDContainer(Window):
         self.reset_inactivity_timer()
 
     def start_hide_timer(self):
-        self.set_visible(False)
+        self.window.set_visible(False)
 
     def reset_inactivity_timer(self):
         self.last_activity_time = time.time()
