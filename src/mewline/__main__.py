@@ -5,6 +5,7 @@ import sys
 import setproctitle
 from fabric import Application
 from fabric.utils import monitor_file
+from loguru import logger
 
 from mewline import constants as cnst
 from mewline.config import cfg
@@ -17,6 +18,8 @@ from mewline.utils.setup_loguru import setup_loguru
 from mewline.utils.temporary_fixes import *  # noqa: F403
 from mewline.utils.theming import copy_theme
 from mewline.utils.theming import process_and_apply_css
+from mewline.utils.window_manager import WindowManagerContext
+from mewline.utils.window_manager import detect_window_manager
 from mewline.widgets import StatusBar
 from mewline.widgets.dynamic_island import DynamicIsland
 from mewline.widgets.osd import OSDContainer
@@ -36,8 +39,6 @@ setup_loguru(
 def _log_system_info():
     """Логируем детальную информацию о системе для отладки."""
     import platform
-
-    from loguru import logger
 
     try:
         logger.info("=== SYSTEM DEBUG INFO ===")
@@ -160,6 +161,12 @@ def main(debug_mode=False):
     # Запускаем захват всего вывода (включая GTK сообщения)
     start_output_capture()
 
+    ##===> Detect and set window manager context
+    ##############################
+    wm = detect_window_manager()
+    WindowManagerContext.set_wm(wm)
+    logger.info(f"Window manager detected and context set to: {wm.value}")
+
     ##===> Creating App
     ##############################
     widgets = []
@@ -170,7 +177,7 @@ def main(debug_mode=False):
 
     if cfg.options.osd_enabled:
         osd_widget = OSDContainer()
-        widgets.append(osd_widget)
+        widgets.append(osd_widget.window)
 
     status_bar = StatusBar()
     if osd_widget:
