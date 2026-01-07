@@ -34,18 +34,11 @@ from mewline.widgets.dynamic_island.workspaces import WorkspacesOverview
 from mewline.widgets.screen_corners import MyCorner
 
 
-class DynamicIslandContent(Box):
-    """Container for all dynamic island content."""
-
-    def __init__(self, parent):
-        super().__init__(name="dynamic-island-root-column", orientation="v", v_expand=False, h_expand=True)
-        self.parent_island = parent
-
-
 class DynamicIsland:
     """A dynamic island window for the status bar.
 
     Works on both Wayland (Hyprland) and X11 (bspwm).
+    This is a wrapper that creates and manages the actual window.
     """
 
     def __init__(self):
@@ -366,13 +359,42 @@ class DynamicIsland:
             logger.error(f"Failed to create Dynamic Island window: {e}")
             raise
 
-        # Add keybinding for escape only after window is created
-        if hasattr(self.window, "add_keybinding"):
-            self.window.add_keybinding("Escape", lambda *_: self.close())
+        # Add keybinding for escape - must be after window creation
+        self._setup_keybindings()
 
         ##==> Show the dynamic island
         ######################################
         self.window.show()
+
+    def _setup_keybindings(self):
+        """Setup keyboard bindings for the window."""
+        try:
+            if hasattr(self.window, "add_keybinding"):
+                # For Wayland windows with keybinding support
+                self.window.add_keybinding("Escape", lambda *_: self.close())
+                logger.debug("Added ESC keybinding via add_keybinding")
+            elif hasattr(self.window, "connect_key_press_event"):
+                # For X11 windows - connect to key-press-event
+                def on_key_press(widget, event):
+                    if event.keyval == Gdk.KEY_Escape:
+                        self.close()
+                        return True
+                    return False
+
+                self.window.connect("key-press-event", on_key_press)
+                logger.debug("Added ESC keybinding via key-press-event")
+            else:
+                # Fallback: try generic GTK key-press-event
+                def on_key_press(widget, event):
+                    if event.keyval == Gdk.KEY_Escape:
+                        self.close()
+                        return True
+                    return False
+
+                self.window.connect("key-press-event", on_key_press)
+                logger.debug("Added ESC keybinding via generic key-press-event")
+        except Exception as e:
+            logger.warning(f"Failed to setup keybindings: {e}")
 
     def _setup_x11_window(self):
         """Configure X11-specific window properties for bspwm."""
@@ -383,8 +405,8 @@ class DynamicIsland:
             self.window.set_keep_above(True)  # Stay above other windows
             self.window.stick()  # Show on all workspaces
 
-            # Set initial compact size
-            self.window.set_default_size(400, 60)  # Compact size
+            # Set initial compact size - smaller for compact mode
+            self.window.set_default_size(200, 50)  # Smaller compact size
             self.window.set_resizable(True)  # Allow resizing for expansion
 
             # Enable transparency
@@ -974,7 +996,7 @@ class DynamicIsland:
         # Resume timers for inline notifications
         try:
             for notif_box in self._inline_items:
-                if hasattr(notif_box, "resume_timeout"):
+                if hasattr(notif_box, "pause_timeout"):
                     notif_box.resume_timeout()
         except Exception:
             ...
