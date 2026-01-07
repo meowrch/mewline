@@ -183,7 +183,9 @@ def main(debug_mode=False):
     if osd_widget:
         status_bar.set_osd_widget(osd_widget)
 
-    widgets.extend((status_bar, DynamicIsland()))
+    # Create DynamicIsland instance and add its window to widgets
+    dynamic_island = DynamicIsland()
+    widgets.extend((status_bar, dynamic_island.window))
     app = Application(cnst.APPLICATION_NAME, *widgets)
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)
