@@ -14,8 +14,11 @@ from gi.repository import Gtk
 
 from mewline.config import cfg
 from mewline.constants import WINDOW_TITLE_MAP
+from mewline.custom_fabric.bspwm import get_bspwm_connection
 from mewline.utils.icon_resolver import get_icon_pixbuf_for_app
 from mewline.utils.widget_utils import text_icon
+from mewline.utils.window_manager import WindowManager
+from mewline.utils.window_manager import detect_window_manager
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 BASE_SCALE = 0.10  # target scale per monitor (approx like competitor)
@@ -37,8 +40,15 @@ class WorkspacesOverview(BaseDiWidget, Box):
 
         gi.require_version("Gtk", "3.0")
 
-        # Hypr connection
-        self._hypr = Hyprland()
+        # Detect WM and init connections
+        self._wm = detect_window_manager()
+        self._hypr = Hyprland() if self._wm == WindowManager.HYPRLAND else None
+        try:
+            self._bspwm = (
+                get_bspwm_connection() if self._wm == WindowManager.BSPWM else None
+            )
+        except Exception:
+            self._bspwm = None
 
         # Workspace config
         self._ws_start = 1
@@ -70,7 +80,7 @@ class WorkspacesOverview(BaseDiWidget, Box):
         # Build tiles and initial content
         self._build_grid()
         self.refresh()
-        self._hook_hypr_events()
+        self._hook_wm_events()
 
     def open_widget_from_di(self):
         # Refresh when opened to ensure fresh layout
@@ -78,12 +88,21 @@ class WorkspacesOverview(BaseDiWidget, Box):
         # Ensure widget grabs focus so arrow keys work
         GLib.idle_add(lambda: (self.grab_focus(), False)[1])
 
-    def _hook_hypr_events(self):
+    def _hook_wm_events(self):
         try:
-            self._hypr.connect("event::openwindow", lambda *_: self._queue_refresh())
-            self._hypr.connect("event::closewindow", lambda *_: self._queue_refresh())
-            self._hypr.connect("event::movewindow", lambda *_: self._queue_refresh())
-            self._hypr.connect("event::workspace", lambda *_: self._queue_refresh())
+            if self._wm == WindowManager.HYPRLAND and self._hypr:
+                self._hypr.connect(
+                    "event::openwindow", lambda *_: self._queue_refresh()
+                )
+                self._hypr.connect(
+                    "event::closewindow", lambda *_: self._queue_refresh()
+                )
+                self._hypr.connect(
+                    "event::movewindow", lambda *_: self._queue_refresh()
+                )
+                self._hypr.connect("event::workspace", lambda *_: self._queue_refresh())
+            elif self._wm == WindowManager.BSPWM and self._bspwm:
+                self._bspwm.connect("event::report", lambda *_: self._queue_refresh())
         except Exception:
             ...
 
@@ -93,8 +112,38 @@ class WorkspacesOverview(BaseDiWidget, Box):
 
     def _monitor_dims(self) -> tuple[int, int, dict[int, dict]]:
         """Return (width,height) of focused monitor and monitors map."""
+        if self._wm == WindowManager.BSPWM and self._bspwm:
+            state = self._bspwm.get_state() or {}
+            mons = state.get("monitors", [])
+            focused_id = state.get("focusedMonitorId")
+            focused = next(
+                (
+                    m
+                    for m in mons
+                    if m.get("id") == focused_id or m.get("name") == focused_id
+                ),
+                mons[0] if mons else {},
+            )
+            rect = focused.get("rectangle", {})
+            width = int(rect.get("width", focused.get("width", 1920)))
+            height = int(rect.get("height", focused.get("height", 1080)))
+            monmap: dict[int | str, dict] = {}
+            for i, m in enumerate(mons):
+                key = m.get("id", m.get("name", i))
+                rect_m = m.get("rectangle", {})
+                m.setdefault("x", rect_m.get("x", 0))
+                m.setdefault("y", rect_m.get("y", 0))
+                m.setdefault("width", rect_m.get("width", width))
+                m.setdefault("height", rect_m.get("height", height))
+                monmap[key] = m
+            return width, height, monmap
+
         try:
-            mons = json.loads(self._hypr.send_command("j/monitors").reply.decode())
+            mons = (
+                json.loads(self._hypr.send_command("j/monitors").reply.decode())
+                if self._hypr
+                else []
+            )
         except Exception:
             mons = []
         focused = next((m for m in mons if m.get("focused")), mons[0] if mons else {})
@@ -179,27 +228,26 @@ class WorkspacesOverview(BaseDiWidget, Box):
             except Exception:
                 ...
 
-        # Fetch clients
-        try:
-            clients = json.loads(self._hypr.send_command("j/clients").reply.decode())
-        except Exception:
-            clients = []
-
-        # Icon resolver handles caching itself; no per-refresh registry needed
+        # Fetch clients in WM-agnostic form
+        clients = self._get_clients()
 
         used_ws: set[int] = set()
         # Place clients into their workspace containers
         for c in clients:
             try:
-                ws = int(c.get("workspace", {}).get("id", -1))
+                ws = int(c.get("ws", -1))
                 if ws < self._ws_start or ws > self._ws_end:
                     continue
+
                 mon_id = c.get("monitor")
                 mon = monmap.get(mon_id, {})
                 mon_x = int(mon.get("x", 0))
                 mon_y = int(mon.get("y", 0))
-                cx, cy = c.get("at", [0, 0])
-                cw, ch = c.get("size", [80, 60])
+                cx = int(c.get("x", 0))
+                cy = int(c.get("y", 0))
+                cw = int(c.get("w", 80))
+                ch = int(c.get("h", 60))
+
                 # Relative position within monitor, then scale
                 rel_x = max(0, int((cx - mon_x) * eff_scale))
                 rel_y = max(0, int((cy - mon_y) * eff_scale))
@@ -215,8 +263,7 @@ class WorkspacesOverview(BaseDiWidget, Box):
                 gy = origin_y + rel_y
 
                 # Create window miniature as a button
-                # Resolve real app icon pixbuf
-                app_id = (c.get("initialClass") or c.get("class") or "").lower()
+                app_id = (c.get("class") or "").lower()
                 icon_size = max(12, min(22, int(min(bw, bh) * 0.6)))
                 pixbuf, _source, _iname = get_icon_pixbuf_for_app(app_id, icon_size)
                 if pixbuf is not None:
@@ -224,7 +271,9 @@ class WorkspacesOverview(BaseDiWidget, Box):
                 else:
                     # Fallback to mapping glyph icon
                     glyph = self._resolve_icon_for_class(app_id) or "󰣆"
-                    icon_child = text_icon(glyph, size=f"{max(12, min(20, icon_size))}px")
+                    icon_child = text_icon(
+                        glyph, size=f"{max(12, min(20, icon_size))}px"
+                    )
 
                 # Badge holder to apply glow; size ~ icon size to reduce square look
                 icon_badge = Box(
@@ -235,15 +284,16 @@ class WorkspacesOverview(BaseDiWidget, Box):
                 )
                 with contextlib.suppress(Exception):
                     icon_badge.set_size_request(icon_size, icon_size)
+
+                addr_val = c.get("addr")
+                tooltip_title = (c.get("title") or c.get("class") or "")[:128]
                 btn = Button(
                     name="overview-client-box",
-                    tooltip_text=(c.get("title") or c.get("class") or "")[:128],
+                    tooltip_text=tooltip_title,
                     child=icon_badge,
-                    on_clicked=lambda *_a, addr=c["address"]: self._focus(addr),
+                    on_clicked=lambda *_a, addr=addr_val: self._focus(addr),
                     on_button_press_event=(
-                        lambda _w, event, addr=c["address"]: self._maybe_close(
-                            event, addr
-                        )
+                        lambda _w, event, addr=addr_val: self._maybe_close(event, addr)
                     ),
                 )
                 # Hover highlight
@@ -283,7 +333,7 @@ class WorkspacesOverview(BaseDiWidget, Box):
                         "gy": gy,
                         "w": bw,
                         "h": bh,
-                        "addr": c.get("address"),
+                        "addr": addr_val,
                     }
                 )
             except Exception:
@@ -313,7 +363,9 @@ class WorkspacesOverview(BaseDiWidget, Box):
                         name="overview-client-box",
                         tooltip_text=f"Switch to workspace {ws}",
                         child=ws_num_label,
-                        on_clicked=lambda *_a, wid=ws: self._on_placeholder_clicked(wid),
+                        on_clicked=lambda *_a, wid=ws: self._on_placeholder_clicked(
+                            wid
+                        ),
                     )
                     try:
                         placeholder.set_size_request(tile_w, tile_h)
@@ -367,7 +419,9 @@ class WorkspacesOverview(BaseDiWidget, Box):
             focused = False
             if sel_addr is not None:
                 try:
-                    idx = next(i for i, m in enumerate(self._mini) if m.get("addr") == sel_addr)
+                    idx = next(
+                        i for i, m in enumerate(self._mini) if m.get("addr") == sel_addr
+                    )
                     self._set_focus(idx)
                     focused = True
                 except StopIteration:
@@ -376,14 +430,18 @@ class WorkspacesOverview(BaseDiWidget, Box):
                 # Prefer placeholder for that workspace
                 try:
                     idx = next(
-                        i for i, m in enumerate(self._mini) if m.get("ws") == sel_ws and m.get("addr") is None
+                        i
+                        for i, m in enumerate(self._mini)
+                        if m.get("ws") == sel_ws and m.get("addr") is None
                     )
                     self._set_focus(idx)
                     focused = True
                 except StopIteration:
                     # Fallback to any item in that workspace
                     try:
-                        idx = next(i for i, m in enumerate(self._mini) if m.get("ws") == sel_ws)
+                        idx = next(
+                            i for i, m in enumerate(self._mini) if m.get("ws") == sel_ws
+                        )
                         self._set_focus(idx)
                         focused = True
                     except StopIteration:
@@ -395,17 +453,112 @@ class WorkspacesOverview(BaseDiWidget, Box):
         self._pending_focus_ws = None
         self._pending_focus_addr = None
 
+    def _get_clients(self) -> list[dict]:
+        if self._wm == WindowManager.BSPWM and self._bspwm:
+            return self._get_clients_bspwm()
+        return self._get_clients_hypr()
+
+    def _get_clients_hypr(self) -> list[dict]:
+        try:
+            raw_clients = (
+                json.loads(self._hypr.send_command("j/clients").reply.decode())
+                if self._hypr
+                else []
+            )
+        except Exception:
+            return []
+
+        clients: list[dict] = []
+        for c in raw_clients:
+            try:
+                ws = int(c.get("workspace", {}).get("id", -1))
+                at = c.get("at", [0, 0])
+                size = c.get("size", [80, 60])
+                clients.append(
+                    {
+                        "ws": ws,
+                        "monitor": c.get("monitor"),
+                        "x": at[0] if len(at) > 0 else 0,
+                        "y": at[1] if len(at) > 1 else 0,
+                        "w": size[0] if len(size) > 0 else 80,
+                        "h": size[1] if len(size) > 1 else 60,
+                        "class": c.get("initialClass") or c.get("class") or "",
+                        "addr": c.get("address"),
+                        "title": c.get("title"),
+                    }
+                )
+            except Exception:
+                ...
+        return clients
+
+    def _get_clients_bspwm(self) -> list[dict]:
+        state = self._bspwm.get_state() if self._bspwm else None
+        if not state:
+            return []
+
+        clients: list[dict] = []
+        for monitor in state.get("monitors", []):
+            mon_id = monitor.get("id") or monitor.get("name")
+            for desktop in monitor.get("desktops", []):
+                name = desktop.get("name")
+                try:
+                    ws_id = int(name)
+                except (TypeError, ValueError):
+                    continue
+                root = desktop.get("root")
+                self._walk_bspwm_tree(root, ws_id, mon_id, clients)
+        return clients
+
+    def _walk_bspwm_tree(
+        self, node: dict | None, ws_id: int, mon_id: int | str | None, acc: list[dict]
+    ) -> None:
+        if not node:
+            return
+
+        client = node.get("client") or {}
+        if client:
+            rect = node.get("rectangle") or client.get("rectangle") or {}
+            acc.append(
+                {
+                    "ws": ws_id,
+                    "monitor": mon_id,
+                    "x": rect.get("x", 0),
+                    "y": rect.get("y", 0),
+                    "w": rect.get("width", 80),
+                    "h": rect.get("height", 60),
+                    "class": client.get("className")
+                    or client.get("instanceName")
+                    or "",
+                    "addr": node.get("id") or client.get("id"),
+                    "title": client.get("name") or client.get("className"),
+                }
+            )
+
+        for child_key in ("firstChild", "secondChild"):
+            child = node.get(child_key)
+            if child:
+                self._walk_bspwm_tree(child, ws_id, mon_id, acc)
+
+        for child in node.get("children", []) or []:
+            self._walk_bspwm_tree(child, ws_id, mon_id, acc)
+
     def _focus(self, address: str | None):
         if not address:
             return
 
         with contextlib.suppress(Exception):
-            self._hypr.send_command(f"/dispatch focuswindow address:{address}")
+            if self._wm == WindowManager.BSPWM and self._bspwm:
+                self._bspwm.send_command(f"node -f {address}")
+            elif self._hypr:
+                self._hypr.send_command(f"/dispatch focuswindow address:{address}")
 
     def _maybe_close(self, event, address: str | None):
         try:
             if getattr(event, "button", 1) == 3 and address:
-                self._hypr.send_command(f"/dispatch closewindow address:{address}")
+                if self._wm == WindowManager.BSPWM and self._bspwm:
+                    self._bspwm.send_command(f"node -c {address}")
+                elif self._hypr:
+                    self._hypr.send_command(f"/dispatch closewindow address:{address}")
                 return True
         except Exception:
             ...
@@ -422,7 +575,10 @@ class WorkspacesOverview(BaseDiWidget, Box):
             return
 
         with contextlib.suppress(Exception):
-            self._hypr.send_command(f"/dispatch workspace {int(ws_id)}")
+            if self._wm == WindowManager.BSPWM and self._bspwm:
+                self._bspwm.send_command(f"desktop -f {int(ws_id)}")
+            elif self._hypr:
+                self._hypr.send_command(f"/dispatch workspace {int(ws_id)}")
 
     def _resolve_icon_for_class(self, win_class: str) -> str | None:
         # Try user-defined title_map first (same map as compact view)
@@ -565,7 +721,7 @@ class WorkspacesOverview(BaseDiWidget, Box):
                 new_col, new_row = col, row
 
         target_idx0 = new_row * cols + new_col
-        max_idx0 = (self._ws_end - self._ws_start)
+        max_idx0 = self._ws_end - self._ws_start
         if target_idx0 > max_idx0:
             target_idx0 = max_idx0
         target_ws = self._ws_start + target_idx0
@@ -577,7 +733,11 @@ class WorkspacesOverview(BaseDiWidget, Box):
             return
         # Prefer placeholder (addr None) when available
         try:
-            idx = next(i for i, m in enumerate(self._mini) if m.get("ws") == ws and m.get("addr") is None)
+            idx = next(
+                i
+                for i, m in enumerate(self._mini)
+                if m.get("ws") == ws and m.get("addr") is None
+            )
             self._set_focus(idx)
             return
         except StopIteration:
