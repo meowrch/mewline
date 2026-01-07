@@ -1,5 +1,6 @@
 import contextlib
 
+import cairo
 from fabric import Application
 from fabric.widgets.box import Box
 from fabric.widgets.box import Box as FabricBox
@@ -10,11 +11,13 @@ from fabric.widgets.image import Image as FabricImage
 from fabric.widgets.revealer import Revealer
 from fabric.widgets.stack import Stack
 from fabric.widgets.stack import Stack as FabricStack
-from fabric.widgets.wayland import WaylandWindow as Window
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gtk
+from loguru import logger
 
+from mewline.utils.window_manager import create_adaptive_window
+from mewline.utils.window_manager import WindowManagerContext
 from mewline.widgets.dynamic_island.app_launcher import AppLauncher
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 from mewline.widgets.dynamic_island.bluetooth import BluetoothConnections
@@ -31,21 +34,21 @@ from mewline.widgets.dynamic_island.workspaces import WorkspacesOverview
 from mewline.widgets.screen_corners import MyCorner
 
 
-class DynamicIsland(Window):
-    """A dynamic island window for the status bar."""
+class DynamicIslandContent(Box):
+    """Container for all dynamic island content."""
+
+    def __init__(self, parent):
+        super().__init__(name="dynamic-island-root-column", orientation="v", v_expand=False, h_expand=True)
+        self.parent_island = parent
+
+
+class DynamicIsland:
+    """A dynamic island window for the status bar.
+
+    Works on both Wayland (Hyprland) and X11 (bspwm).
+    """
 
     def __init__(self):
-        super().__init__(
-            name="dynamic_island",
-            layer="top",
-            anchor="top",
-            margin="-41px 10px 10px 41px",
-            keyboard_mode="none",
-            exclusivity="normal",
-            visible=False,
-            all_visible=False,
-        )
-
         self.hidden = False
 
         ##==> Defining the widgets
@@ -217,6 +220,7 @@ class DynamicIsland(Window):
 
         # Add hover support for simple container too
         try:
+
             def _simple_pause(*_a):
                 for item in self._inline_items:
                     if hasattr(item, "pause_timeout"):
@@ -290,7 +294,6 @@ class DynamicIsland(Window):
         ########################################################
         Application.action("dynamic-island-open")(self.open)
         Application.action("dynamic-island-close")(self.close)
-        self.add_keybinding("Escape", lambda *_: self.close())
 
         self.di_box = CenterBox(
             name="dynamic-island-box",
@@ -334,10 +337,131 @@ class DynamicIsland(Window):
         # Fallback pointer polling (silent) to ensure hover works across backends
         self._start_island_pointer_polling()
 
+        # Create adaptive window that works on both Wayland and X11
+        try:
+            self.window = create_adaptive_window(
+                name="dynamic_island",
+                wayland_kwargs={
+                    "layer": "top",
+                    "anchor": "top",
+                    "margin": "-41px 10px 10px 41px",
+                    "keyboard_mode": "none",
+                    "exclusivity": "normal",
+                },
+                x11_kwargs={
+                    "type_hint": "notification",  # Stay above other windows
+                    "geometry": "top",  # Position at top
+                },
+                visible=False,
+                all_visible=False,
+                child=self.di_root_column,
+            )
+            logger.info("Created Dynamic Island window with adaptive window system")
+
+            # For X11: set up window properly
+            if WindowManagerContext.is_x11():
+                self._setup_x11_window()
+
+        except Exception as e:
+            logger.error(f"Failed to create Dynamic Island window: {e}")
+            raise
+
+        # Add keybinding for escape only after window is created
+        if hasattr(self.window, "add_keybinding"):
+            self.window.add_keybinding("Escape", lambda *_: self.close())
+
         ##==> Show the dynamic island
         ######################################
-        self.add(self.di_root_column)
-        self.show()
+        self.window.show()
+
+    def _setup_x11_window(self):
+        """Configure X11-specific window properties for bspwm."""
+        try:
+            # Set window properties for X11/bspwm
+            self.window.set_decorated(False)
+            self.window.set_accept_focus(False)
+            self.window.set_keep_above(True)  # Stay above other windows
+            self.window.stick()  # Show on all workspaces
+
+            # Set initial compact size
+            self.window.set_default_size(400, 60)  # Compact size
+            self.window.set_resizable(True)  # Allow resizing for expansion
+
+            # Enable transparency
+            screen = self.window.get_screen()
+            visual = screen.get_rgba_visual()
+            if visual:
+                self.window.set_visual(visual)
+            self.window.set_app_paintable(True)
+            self.window.connect("draw", self._on_x11_draw)
+
+            # Connect to size-allocate to keep window centered
+            self.window.connect("size-allocate", self._on_x11_size_allocate)
+
+            # Position window at top center initially
+            GLib.idle_add(self._position_x11_window)
+
+            logger.info("Configured Dynamic Island for X11/bspwm")
+        except Exception as e:
+            logger.error(f"Failed to setup X11 window: {e}")
+
+    def _on_x11_draw(self, widget, context):
+        """Draw handler for X11 transparency."""
+        context.set_source_rgba(0, 0, 0, 0)
+        context.set_operator(cairo.OPERATOR_SOURCE)
+        context.paint()
+        context.set_operator(cairo.OPERATOR_OVER)
+        return False
+
+    def _on_x11_size_allocate(self, widget, allocation):
+        """Keep window centered horizontally when size changes."""
+        if WindowManagerContext.is_x11():
+            GLib.idle_add(self._position_x11_window)
+
+    def _position_x11_window(self):
+        """Position the X11 window at top center of screen."""
+        try:
+            display = Gdk.Display.get_default()
+            if not display:
+                return False
+
+            # Get primary monitor geometry
+            monitor = display.get_primary_monitor()
+            if not monitor:
+                monitor = display.get_monitor(0)
+
+            if monitor:
+                geometry = monitor.get_geometry()
+                screen_width = geometry.width
+
+                # Get window width
+                window_width = self.window.get_allocated_width()
+
+                # Calculate center position
+                x = (screen_width - window_width) // 2
+                y = 10  # Small margin from top
+
+                self.window.move(x, y)
+                logger.debug(f"Positioned Dynamic Island at ({x}, {y}), width={window_width}")
+
+        except Exception as e:
+            logger.error(f"Failed to position X11 window: {e}")
+
+        return False
+
+    def set_keyboard_mode(self, mode: str):
+        """Set keyboard mode (Wayland only)."""
+        if hasattr(self.window, "set_keyboard_mode"):
+            self.window.set_keyboard_mode(mode)
+
+    def set_visible(self, visible: bool):
+        """Set window visibility."""
+        self.window.set_visible(visible)
+
+    def add_keybinding(self, key: str, callback):
+        """Add keybinding if supported."""
+        if hasattr(self.window, "add_keybinding"):
+            self.window.add_keybinding(key, callback)
 
     def _inline_prev(self):
         if not self._inline_items:
@@ -796,7 +920,7 @@ class DynamicIsland(Window):
 
     def _poll_pointer_inside(self):
         try:
-            gdk_window = self.get_window()
+            gdk_window = self.window.get_window()
             if not gdk_window:
                 return True
             display = gdk_window.get_display()
