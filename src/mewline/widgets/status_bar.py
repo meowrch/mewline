@@ -108,7 +108,7 @@ class WaylandStatusBar(WaylandWindow, StatusBarBase):
 class BspwmStatusBar(Gtk.Window, StatusBarBase):
     """Status bar for bspwm (X11) with transparency and STRUT support."""
 
-    BAR_HEIGHT = 40
+    BAR_HEIGHT = 35
 
     def __init__(self, **kwargs) -> None:
         StatusBarBase.__init__(self, **kwargs)
@@ -121,7 +121,7 @@ class BspwmStatusBar(Gtk.Window, StatusBarBase):
         screen = Gdk.Screen.get_default()
         visual = screen.get_rgba_visual()
 
-        Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
+        Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL, valign="start")
 
         # Set visual and app_paintable immediately
         if visual is not None:
