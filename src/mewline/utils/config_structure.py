@@ -13,6 +13,22 @@ class Options(BaseModel):
     osd_enabled: bool
 
 
+class MonitorsConfig(BaseModel):
+    """Configuration for multi-monitor support.
+
+    mode:
+      - "all"    – show the bar and dynamic island on every connected monitor
+      - "active" – show only on the monitor that currently holds the pointer
+      - "list"   – show only on the monitors explicitly listed in *list*
+    monitors_list:
+      List of Hyprland monitor names (e.g. ["DP-1", "HDMI-A-1"]) used when
+      mode == "list".
+    """
+
+    mode: Literal["all", "active", "list"] = "all"
+    monitors_list: list[str] = []
+
+
 class OSDModule(BaseModel):
     timeout: int
     anchor: str
@@ -115,3 +131,4 @@ class Config(BaseModel):
     theme: Theme
     options: Options
     modules: Modules
+    monitors: MonitorsConfig = MonitorsConfig()

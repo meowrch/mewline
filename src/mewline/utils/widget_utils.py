@@ -12,21 +12,50 @@ from mewline.shared.scale import AnimatedScale
 
 gi.require_version("Gtk", "3.0")
 
+# Map CSS cursor names to GDK cursor-type enums.
+# Using new_for_display(CursorType) instead of new_from_name avoids the
+# "Unable to load <name> from the cursor theme" GDK warning that is printed
+# *before* PyGObject raises TypeError, making it impossible to suppress with
+# a try/except alone.
+_CURSOR_TYPE_MAP: dict[str, Gdk.CursorType] = {
+    "pointer": Gdk.CursorType.HAND2,
+    "crosshair": Gdk.CursorType.CROSSHAIR,
+    "grab": Gdk.CursorType.FLEUR,
+    "default": Gdk.CursorType.LEFT_PTR,
+}
 
-# Function to setup cursor hover
+
 def setup_cursor_hover(
     button,
     cursor_name: Literal["pointer", "crosshair", "grab"] = "pointer",
 ):
-    display = Gdk.Display.get_default()
+    cursor_type = _CURSOR_TYPE_MAP.get(cursor_name, Gdk.CursorType.HAND2)
 
     def on_enter_notify_event(widget, _):
-        cursor = Gdk.Cursor.new_from_name(display, cursor_name)
-        widget.get_window().set_cursor(cursor)
+        try:
+            win = widget.get_window()
+            if win is None:
+                return False
+            cursor = Gdk.Cursor.new_for_display(win.get_display(), cursor_type)
+            if cursor is not None:
+                win.set_cursor(cursor)
+        except Exception:  # noqa: S110
+            pass
+        return False
 
     def on_leave_notify_event(widget, _):
-        cursor = Gdk.Cursor.new_from_name(display, "default")
-        widget.get_window().set_cursor(cursor)
+        try:
+            win = widget.get_window()
+            if win is None:
+                return False
+            cursor = Gdk.Cursor.new_for_display(
+                win.get_display(), Gdk.CursorType.LEFT_PTR
+            )
+            if cursor is not None:
+                win.set_cursor(cursor)
+        except Exception:  # noqa: S110
+            pass
+        return False
 
     button.connect("enter-notify-event", on_enter_notify_event)
     button.connect("leave-notify-event", on_leave_notify_event)
@@ -64,11 +93,11 @@ def get_icon(app_icon, size=25) -> Image:
 
 def text_icon(icon: str, size: str = "16px", **kwargs):
     label_props = {
-        "label": str(icon),  # Directly use the provided icon name
+        "label": str(icon),
         "name": "nerd-icon",
         "style": f"font-size: {size}; ",
-        "h_align": "center",  # Align horizontally
-        "v_align": "center",  # Align vertically
+        "h_align": "center",
+        "v_align": "center",
     }
 
     label_props.update(kwargs)
@@ -104,25 +133,22 @@ def create_scale(
     )
 
 
-
 def get_audio_icon(volume: int, is_muted: bool) -> str:
-        if is_muted:
-            return cnst.icons["volume"]["muted"]
+    if is_muted:
+        return cnst.icons["volume"]["muted"]
 
-        # Define volume ranges and their corresponding values
-        volume_levels = {
-            (0, 0): cnst.icons["volume"]["low"],
-            (1, 31): cnst.icons["volume"]["low"],
-            (32, 65): cnst.icons["volume"]["medium"],
-            (66, 100): cnst.icons["volume"]["high"],
-        }
+    volume_levels = {
+        (0, 0): cnst.icons["volume"]["low"],
+        (1, 31): cnst.icons["volume"]["low"],
+        (32, 65): cnst.icons["volume"]["medium"],
+        (66, 100): cnst.icons["volume"]["high"],
+    }
 
-        for (min_volume, max_volume), icon in volume_levels.items():
-            if min_volume <= volume <= max_volume:
-                return icon
+    for (min_volume, max_volume), icon in volume_levels.items():
+        if min_volume <= volume <= max_volume:
+            return icon
 
-        # If the volume exceeds 100
-        return cnst.icons["volume"]["overamplified"]
+    return cnst.icons["volume"]["overamplified"]
 
 
 def get_brightness_icon(level: int) -> str:

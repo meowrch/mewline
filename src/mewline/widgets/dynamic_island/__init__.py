@@ -1,6 +1,5 @@
 import contextlib
 
-from fabric import Application
 from fabric.widgets.box import Box
 from fabric.widgets.box import Box as FabricBox
 from fabric.widgets.button import Button as FabricButton
@@ -32,9 +31,14 @@ from mewline.widgets.screen_corners import MyCorner
 
 
 class DynamicIsland(Window):
-    """A dynamic island window for the status bar."""
+    """A dynamic island window for the status bar.
 
-    def __init__(self):
+    monitor:
+        GDK monitor index to pin this island to.  Pass `None` to let the
+        compositor decide.
+    """
+
+    def __init__(self, monitor: int | None = None):
         super().__init__(
             name="dynamic_island",
             layer="top",
@@ -42,6 +46,7 @@ class DynamicIsland(Window):
             margin="-41px 10px 10px 41px",
             keyboard_mode="none",
             exclusivity="normal",
+            monitor=monitor,
             visible=False,
             all_visible=False,
         )
@@ -288,8 +293,6 @@ class DynamicIsland(Window):
 
         ##==> Customizing the hotkeys
         ########################################################
-        Application.action("dynamic-island-open")(self.open)
-        Application.action("dynamic-island-close")(self.close)
         self.add_keybinding("Escape", lambda *_: self.close())
 
         self.di_box = CenterBox(
