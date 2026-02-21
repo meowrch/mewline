@@ -5,6 +5,7 @@ import sys
 import setproctitle
 from fabric import Application
 from fabric.utils import monitor_file
+from loguru import logger
 
 from mewline import constants as cnst
 from mewline.config import cfg
@@ -13,6 +14,7 @@ from mewline.config import generate_default_config
 from mewline.config import load_config
 from mewline.utils.capture_output import start_output_capture
 from mewline.utils.glib_debug import enable_all_glib_debug
+from mewline.utils.hyprland_monitors import HyprlandMonitors
 from mewline.utils.setup_loguru import setup_loguru
 from mewline.utils.temporary_fixes import *  # noqa: F403
 from mewline.utils.theming import copy_theme
@@ -36,8 +38,6 @@ setup_loguru(
 def _log_system_info():
     """Логируем детальную информацию о системе для отладки."""
     import platform
-
-    from loguru import logger
 
     try:
         logger.info("=== SYSTEM DEBUG INFO ===")
@@ -172,11 +172,52 @@ def main(debug_mode=False):
         osd_widget = OSDContainer()
         widgets.append(osd_widget)
 
-    status_bar = StatusBar()
-    if osd_widget:
-        status_bar.set_osd_widget(osd_widget)
+    ##=> Multi-monitor: create one StatusBar + one DynamicIsland per output
+    ###########################################################################
+    hypr_monitors = HyprlandMonitors()
+    monitor_ids = hypr_monitors.get_configured_gdk_monitor_ids(cfg)
 
-    widgets.extend((status_bar, DynamicIsland()))
+    if not monitor_ids:
+        # Fallback: let the compositor decide (show on all outputs)
+        logger.warning(
+            "[monitors] Could not resolve any monitor IDs – "
+            "falling back to monitor=None (compositor default)."
+        )
+        monitor_ids = [None]
+
+    logger.info(f"[monitors] mode={cfg.monitors.mode!r}  ids={monitor_ids}")
+
+    ##=> Build (monitor_id -> DynamicIsland) map so the dispatcher can route
+    # open/close actions to the island that lives on the cursor's monitor.
+    ##########################################################################
+    islands: dict[int | None, DynamicIsland] = {}
+    for mid in monitor_ids:
+        bar = StatusBar(monitor=mid)
+        if osd_widget:
+            bar.set_osd_widget(osd_widget)
+        island = DynamicIsland(monitor=mid)
+        widgets.append(bar)
+        widgets.append(island)
+        islands[mid] = island
+
+    ##==>
+    # Register application-level DI actions ONCE as a cursor-aware
+    # dispatcher.  Each DynamicIsland no longer registers these actions
+    # itself to avoid "already registered" errors in multi-monitor mode.
+    ##########################################################################
+    def _get_active_island() -> DynamicIsland:
+        """Return the island whose monitor currently holds the pointer."""
+        cursor_mid = hypr_monitors.get_cursor_gdk_monitor_id()
+        # Exact match -> fallback to first island if cursor monitor is unknown
+        return islands.get(cursor_mid) or next(iter(islands.values()))
+
+    Application.action("dynamic-island-open")(
+        lambda widget="date-notification": _get_active_island().open(widget)
+    )
+    Application.action("dynamic-island-close")(
+        lambda: _get_active_island().close()
+    )
+
     app = Application(cnst.APPLICATION_NAME, *widgets)
 
     setproctitle.setproctitle(cnst.APPLICATION_NAME)

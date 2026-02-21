@@ -85,6 +85,14 @@ DEFAULT_CONFIG = {
         "intercept_notifications": True,
         "osd_enabled": True,
     },
+    "monitors": {
+        "mode": "all",
+        "monitors_list": [],
+    },
+    "notifications_monitors": {
+        "mode": "all",
+        "monitors_list": [],
+    },
     "modules": {
         "osd": {"timeout": 1500, "anchor": "bottom-center"},
         "workspaces": {

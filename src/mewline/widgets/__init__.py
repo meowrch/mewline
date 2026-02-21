@@ -2,7 +2,6 @@ from fabric.widgets.box import Box
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.wayland import WaylandWindow
 
-from mewline.utils.hyprland_monitors import HyprlandMonitors
 from mewline.widgets.battery import Battery
 from mewline.widgets.bluetooth import Bluetooth
 from mewline.widgets.combined_controls import CombinedControlsButton
@@ -16,9 +15,14 @@ from mewline.widgets.workspaces import HyprlandWorkSpacesWidget
 
 
 class StatusBar(WaylandWindow):
-    """A widget to display the status bar panel."""
+    """A widget to display the status bar panel.
 
-    def __init__(self, **kwargs):
+    monitor:
+        GDK monitor index to pin this bar to.  Pass `None` to let the
+        compositor decide (usually means the bar appears on every output).
+    """
+
+    def __init__(self, monitor: int | None = None, **kwargs):
         self.combined_controls = CombinedControlsButton()
 
         box = CenterBox(
@@ -55,7 +59,7 @@ class StatusBar(WaylandWindow):
             layer="top",
             anchor="left top right",
             pass_through=False,
-            monitor=HyprlandMonitors().get_current_gdk_monitor_id(),
+            monitor=monitor,
             exclusivity="auto",
             visible=True,
             all_visible=False,

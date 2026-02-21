@@ -15,13 +15,27 @@ gi.require_version("Gtk", "3.0")
 
 
 class SystemTray(BoxWidget):
-    """A widget to display the system tray items."""
+    """A widget to display the system tray items.
+
+    Multiple instances (one per monitor) share a single ``Gray.Watcher``
+    because only one process can claim the StatusNotifierWatcher D-Bus name.
+    All instances are connected to that shared watcher and therefore each
+    renders the same set of tray items independently.
+    """
+
+    # Class-level singleton – created once, shared across all monitors.
+    _shared_watcher: "Gray.Watcher | None" = None
 
     def __init__(self, **kwargs) -> None:
         super().__init__(name="system-tray", **kwargs)
 
         self.config = cfg.modules.system_tray
-        self.watcher = Gray.Watcher()
+
+        # Lazily create the shared watcher on first use.
+        if SystemTray._shared_watcher is None:
+            SystemTray._shared_watcher = Gray.Watcher()
+        self.watcher = SystemTray._shared_watcher
+
         self.watcher.connect("item-added", self.on_item_added)
         self.count_items = 0
         self.hide()
