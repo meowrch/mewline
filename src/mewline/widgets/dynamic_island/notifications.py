@@ -89,6 +89,12 @@ class ActionButton(Button):
 
 class NotificationBox(Box):
     def __init__(self, notification: Notification, timeout_ms=5000, **kwargs):
+        # FIX: Normalize urgency type (some backends return a list)
+        if isinstance(notification.urgency, list):
+            notification.urgency = (
+                notification.urgency[0] if notification.urgency else 1
+            )
+
         urgency_class = {
             0: ("low-urgency", False),
             1: ("normal-urgency", False),
@@ -792,6 +798,12 @@ class NotificationContainer(BaseDiWidget, Box):
 
     def on_new_notification(self, fabric_notif, id):
         notification: Notification = fabric_notif.get_notification_from_id(id)
+
+        # FIX: Ensure urgency is normalized locally (some backends return list)
+        if isinstance(notification.urgency, list):
+            notification.urgency = (
+                notification.urgency[0] if notification.urgency else 1
+            )
 
         # Multi-monitor filtering logic
         allowed_ids = self.hypr_monitors.get_notifications_gdk_monitor_ids(cfg)
