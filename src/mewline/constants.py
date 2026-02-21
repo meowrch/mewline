@@ -89,6 +89,10 @@ DEFAULT_CONFIG = {
         "mode": "all",
         "monitors_list": [],
     },
+    "notifications_monitors": {
+        "mode": "all",
+        "monitors_list": [],
+    },
     "modules": {
         "osd": {"timeout": 1500, "anchor": "bottom-center"},
         "workspaces": {

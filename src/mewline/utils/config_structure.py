@@ -29,6 +29,22 @@ class MonitorsConfig(BaseModel):
     monitors_list: list[str] = []
 
 
+class NotificationsMonitorConfig(BaseModel):
+    """Configuration for notifications display across monitors.
+
+    mode:
+      - "all"    – show notifications on every connected monitor (default)
+      - "cursor" – show only on the monitor that currently holds the pointer
+      - "list"   – show only on the monitors explicitly listed in *list*
+    monitors_list:
+      List of Hyprland monitor names (e.g. ["DP-1", "HDMI-A-1"]) used when
+      mode == "list".
+    """
+
+    mode: Literal["all", "cursor", "list"] = "all"
+    monitors_list: list[str] = []
+
+
 class OSDModule(BaseModel):
     timeout: int
     anchor: str
@@ -132,3 +148,4 @@ class Config(BaseModel):
     options: Options
     modules: Modules
     monitors: MonitorsConfig = MonitorsConfig()
+    notifications_monitors: NotificationsMonitorConfig = NotificationsMonitorConfig()

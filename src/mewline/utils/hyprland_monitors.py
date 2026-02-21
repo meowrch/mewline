@@ -146,3 +146,35 @@ class HyprlandMonitors(Hyprland):
 
         # mode == "all"  (default)
         return self.get_all_gdk_monitor_ids()
+
+    def get_notifications_gdk_monitor_ids(self, cfg) -> list[int]:
+        """Return monitor GDK IDs according to *cfg.notifications_monitors*.
+
+        Parameters:
+        ----------
+        cfg:
+            The loaded :class:`~mewline.utils.config_structure.Config` object.
+
+        Returns:
+        -------
+        list[int]
+            Ordered list of GDK monitor indices to show notifications on.
+            Falls back to all monitors if nothing matches.
+        """
+        mode = cfg.notifications_monitors.mode
+
+        if mode == "cursor":
+            mid = self.get_cursor_gdk_monitor_id()
+            return [mid] if mid is not None else self.get_all_gdk_monitor_ids()
+
+        if mode == "list":
+            ids: list[int] = []
+            for name in cfg.notifications_monitors.monitors_list:
+                gdk_id = self.get_gdk_monitor_id_from_name(name)
+                if gdk_id is not None:
+                    ids.append(gdk_id)
+            # If the list is empty or none matched, fall back to all monitors.
+            return ids if ids else self.get_all_gdk_monitor_ids()
+
+        # mode == "all"  (default)
+        return self.get_all_gdk_monitor_ids()

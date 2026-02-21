@@ -20,9 +20,11 @@ from gi.repository import Gtk
 from loguru import logger
 
 from mewline import constants as cnst
+from mewline.config import cfg
 from mewline.services import cache_notification_service
 from mewline.services import notification_service
 from mewline.shared.rounded_image import CustomImage
+from mewline.utils.hyprland_monitors import HyprlandMonitors
 from mewline.utils.misc import check_icon_exists
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
@@ -374,6 +376,7 @@ class NotificationContainer(BaseDiWidget, Box):
             h_expand=True,
         )
         self.dynamic_island = di
+        self.hypr_monitors = HyprlandMonitors()
         self._boxes_by_id: dict[int, NotificationBox] = {}
         notification_service.connect("notification-added", self.on_new_notification)
 
@@ -789,6 +792,16 @@ class NotificationContainer(BaseDiWidget, Box):
 
     def on_new_notification(self, fabric_notif, id):
         notification: Notification = fabric_notif.get_notification_from_id(id)
+
+        # Multi-monitor filtering logic
+        allowed_ids = self.hypr_monitors.get_notifications_gdk_monitor_ids(cfg)
+        current_monitor = self.dynamic_island.monitor
+        # If current_monitor is None (compositor decided), we usually skip check
+        # unless user config expects specific filtering.
+        # But if user wants specific monitor (list/cursor), we must ensure it matches.
+        if current_monitor is not None and current_monitor not in allowed_ids:
+            return
+
         cache_notification_service.cache_notification(notification)
 
         if cache_notification_service.dont_disturb:
