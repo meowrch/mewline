@@ -131,7 +131,7 @@ class HyprlandMonitors(Hyprland):
         """
         mode = cfg.monitors.mode
 
-        if mode == "active":
+        if mode == "cursor":
             mid = self.get_active_gdk_monitor_id()
             return [mid] if mid is not None else self.get_all_gdk_monitor_ids()
 
