@@ -495,7 +495,7 @@ class CombinedControlsButton(Overlay):
             lines.append(f"󰹑 Screen: {apps}")
         if self.privacy.loc_active:
             apps = ", ".join(self.privacy.loc_apps) or "unknown"
-            lines.append(f" Location: {apps}")
+            lines.append(f" Location: {apps}")
         if not lines:
             lines = ["No active privacy accesses"]
         tooltip.set_text("\n".join(lines))
