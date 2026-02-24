@@ -69,9 +69,16 @@ class CombinedControlsMenu(Popover):
         self.speaker_mute_btn.connect("clicked", self._on_speaker_mute_clicked)
         self.mic_mute_btn.connect("clicked", self._on_mic_mute_clicked)
 
-        # Percentage labels
-        self.speaker_label = text_icon("0%", size="14px")
-        self.mic_label = text_icon("0%", size="14px")
+        # Percentage labels - set fixed width class to prevent jumping
+        self.speaker_label = text_icon(
+            "0%", size="14px", style_classes="cc-percent-label"
+        )
+        self.mic_label = text_icon("0%", size="14px", style_classes="cc-percent-label")
+
+        # Manually force a minimum width so it doesn't shift the layout
+        # when moving from 9% to 100%
+        self.speaker_label.set_size_request(38, -1)
+        self.mic_label.set_size_request(38, -1)
 
         # Build slider children list (mute buttons as main icons on the left)
         slider_children = [
@@ -93,14 +100,28 @@ class CombinedControlsMenu(Popover):
 
         # Add brightness only if available (no mute button for brightness)
         if self.brightness_available:
-            brightness_icon = text_icon(get_brightness_icon(self._get_brightness()))
-            self.brightness_label = text_icon("0%", size="14px")
+            brightness_icon = text_icon(
+                get_brightness_icon(self._get_brightness()), size="16px"
+            )
+
+            brightness_icon_box = ButtonWidget()
+            brightness_icon_box.children = brightness_icon
+            brightness_icon_box.add_style_class("cc-mute-btn")
+            brightness_icon_box.set_can_focus(
+                False
+            )  # make it not react to clicks visually if possible
+
+            self.brightness_label = text_icon(
+                "0%", size="14px", style_classes="cc-percent-label"
+            )
+            self.brightness_label.set_size_request(38, -1)
+
             slider_children.append(
                 Box(
                     orientation="h",
                     spacing=8,
                     children=(
-                        brightness_icon,
+                        brightness_icon_box,
                         self.brightness_scale,
                         self.brightness_label,
                     ),
@@ -109,7 +130,7 @@ class CombinedControlsMenu(Popover):
 
         sliders_box = Box(
             orientation="v",
-            spacing=8,
+            spacing=12,  # increased spacing between rows to make menu taller
             style_classes="cc-menu",
             children=slider_children,
             all_visible=True,
@@ -256,7 +277,11 @@ class CombinedControlsMenu(Popover):
             self._update_mic_from_service()
 
     def _on_brightness_service(self, *_):
-        if not self.brightness_available or self._brightness_apply_src or self._updating_brightness_from_service:
+        if (
+            not self.brightness_available
+            or self._brightness_apply_src
+            or self._updating_brightness_from_service
+        ):
             return  # Don't update while we have a pending change
         val = self._get_brightness()
         self.brightness_scale.set_value(val)
@@ -361,7 +386,7 @@ class CombinedControlsMenu(Popover):
             self.osd_widget.show_brightness()
         self._brightness_apply_src = None
 
-        GLib.timeout_add(100, self.unblock_service_updates)
+        GLib.timeout_add(100, self._unblock_service_updates)
         return False
 
     def _unblock_service_updates(self):
@@ -385,6 +410,8 @@ class CombinedControlsButton(Overlay):
         # Scroll debouncing
         self._scroll_debounce_src: int | None = None
         self._pending_scroll_updates = {}
+
+        self._updating_brightness = False
 
         self.icon_speaker = text_icon(get_audio_icon(0, False))
         self.icon_mic = text_icon(cnst.icons["microphone"]["active"])  # simplified
@@ -530,7 +557,9 @@ class CombinedControlsButton(Overlay):
                 if self.osd_widget:
                     self.osd_widget.show_brightness()
 
-                GLib.timeout_add(100, lambda: setattr(self, '_updating_brightness', False))
+                GLib.timeout_add(
+                    100, lambda: setattr(self, "_updating_brightness", False)
+                )
 
         self._pending_scroll_updates.clear()
         self._scroll_debounce_src = None
