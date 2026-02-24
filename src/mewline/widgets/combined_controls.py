@@ -394,14 +394,13 @@ class CombinedControlsButton(Overlay):
         for dot in (self.dot_mic, self.dot_cam, self.dot_screen, self.dot_loc):
             dot.set_opacity(_DOT_DIM_OPACITY)
 
-        # Use negative margins to force the boxes to overlap closer by ~2px
         dots_top = Box(
             orientation="h",
             spacing=3,
             children=[self.dot_mic, self.dot_cam],
             h_align="center",
             v_align="center",
-            style="margin-bottom: -2px;",  # Pull the top down
+            style="margin-bottom: -2px;",
         )
         dots_bot = Box(
             orientation="h",
@@ -409,7 +408,7 @@ class CombinedControlsButton(Overlay):
             children=[self.dot_screen, self.dot_loc],
             h_align="center",
             v_align="center",
-            style="margin-top: -2px;",  # Pull the bottom up
+            style="margin-top: -2px;",
         )
 
         dots_grid = Box(
@@ -464,7 +463,7 @@ class CombinedControlsButton(Overlay):
 
         inner = Box(
             orientation="h",
-            spacing=8,
+            spacing=4,
             children=capsule_children,
             style_classes="panel-box",
         )
