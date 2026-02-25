@@ -41,6 +41,23 @@ class DynamicIsland:
     This is a wrapper that creates and manages the actual window.
     """
 
+    # Target dimensions for each widget state on X11
+    # Matches min-width/min-height in island.scss
+    TARGET_SIZES = {
+        "compact": (256, 40),
+        "notification": (300, 80),
+        "date-notification": (500, 300),
+        "power-menu": (320, 80),
+        "bluetooth": (500, 300),
+        "app-launcher": (480, 220),
+        "wallpapers": (620, 420),
+        "emoji": (574, 238),
+        "clipboard": (500, 300),
+        "network": (500, 300),
+        "pawlette-themes": (620, 420),
+        "workspaces": (980, 280),
+    }
+
     def __init__(self):
         self.hidden = False
 
@@ -366,6 +383,39 @@ class DynamicIsland:
         ######################################
         self.window.show()
 
+    def _update_x11_constraints(self, widget_name: str):
+        """Update window geometry hints for BSPWM/X11 to prevent unwanted expansion."""
+        try:
+            if not WindowManagerContext.is_x11():
+                return
+            
+            # Get target dimensions from map, default to compact
+            width, height = self.TARGET_SIZES.get(widget_name, (256, 40))
+            
+            # Create geometry struct
+            geom = Gdk.Geometry()
+            geom.min_width = width
+            geom.min_height = height
+            geom.max_width = width
+            geom.max_height = height
+            
+            # Apply geometry hints to strictly enforce size
+            # This is crucial for tiling WMs like bspwm that might try to expand the window
+            self.window.set_geometry_hints(
+                None, 
+                geom, 
+                Gdk.WindowHints.MIN_SIZE | Gdk.WindowHints.MAX_SIZE
+            )
+            
+            # Force resize to target dimensions
+            self.window.resize(width, height)
+            
+            # Re-center the window since size changed
+            GLib.idle_add(self._position_x11_window)
+            
+        except Exception as e:
+            logger.warning(f"Failed to update X11 constraints: {e}")
+
     def _setup_keybindings(self):
         """Setup keyboard bindings for the window."""
         try:
@@ -405,9 +455,9 @@ class DynamicIsland:
             self.window.set_keep_above(True)  # Stay above other windows
             self.window.stick()  # Show on all workspaces
 
-            # Set initial compact size - smaller for compact mode
-            self.window.set_default_size(200, 50)  # Smaller compact size
+            # Set initial compact size using constraints helper
             self.window.set_resizable(True)  # Allow resizing for expansion
+            self._update_x11_constraints("compact")
 
             # Enable transparency
             screen = self.window.get_screen()
@@ -1123,6 +1173,7 @@ class DynamicIsland:
 
         self.current_widget = None
         self.stack.set_visible_child(self.compact)
+        self._update_x11_constraints("compact")
 
     def open(self, widget: str = "date-notification") -> None:
         if widget == "compact":
@@ -1147,6 +1198,10 @@ class DynamicIsland:
 
         self.stack.add_style_class(widget)
         self.stack.set_visible_child(self.widgets[widget])
+        
+        # Enforce X11 geometry constraints for the new widget
+        self._update_x11_constraints(widget)
+        
         self.widgets[widget].add_style_class("open")
 
         # Sync inline container styling with current widget to mirror width constraints
