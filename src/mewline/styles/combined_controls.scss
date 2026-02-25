@@ -79,3 +79,8 @@
   }
 }
 
+/* Privacy indicator dots - colours defined in theme variables */
+.privacy-dot-mic    { color: theme.$privacy-dot-mic; }
+.privacy-dot-cam    { color: theme.$privacy-dot-cam; }
+.privacy-dot-screen { color: theme.$privacy-dot-screen; }
+.privacy-dot-loc    { color: theme.$privacy-dot-loc; }

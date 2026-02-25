@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 from fabric import Application
@@ -7,6 +8,14 @@ from loguru import logger
 import mewline.constants as cnst
 from mewline.errors.settings import ExecutableNotFoundError
 from mewline.utils.misc import executable_exists
+
+# Matches top-level SCSS variable declarations: $name: value;
+_SCSS_VAR_RE = re.compile(r"^\$([a-zA-Z0-9_-]+)\s*:\s*(.+?)\s*;", re.MULTILINE)
+
+
+def _parse_scss_vars(content: str) -> dict[str, str]:
+    """Return {var_name: value} for every SCSS variable declaration in *content*."""
+    return {m.group(1): m.group(2) for m in _SCSS_VAR_RE.finditer(content)}
 
 
 def process_and_apply_css(app: Application):
@@ -21,27 +30,40 @@ def process_and_apply_css(app: Application):
 
 
 def copy_theme(path: Path):
-    """Function to get the system icon theme.
+    """Merge default theme variables with user overrides and write to theme.scss.
 
-    Args:
-        path (Path): path to theme
+    Variables present in the user theme file override the defaults; any
+    variable not defined by the user falls back to the value from
+    default_theme.scss.  This guarantees that newly-introduced variables
+    (e.g. $privacy-dot-*) work correctly for existing themes that were
+    created before those variables existed.
     """
     if path.stem == "default":
         path = cnst.DEFAULT_THEME_STYLE
 
     if not path.exists():
         logger.warning(
-            f"Warning: The theme file '{path}' was not found.Using default theme."
+            f"Warning: The theme file '{path}' was not found. Using default theme."
         )
         path = cnst.DEFAULT_THEME_STYLE
 
     try:
-        with open(path) as f:
-            content = f.read()
+        with open(cnst.DEFAULT_THEME_STYLE) as f:
+            default_vars = _parse_scss_vars(f.read())
+
+        user_vars: dict[str, str] = {}
+        if path != cnst.DEFAULT_THEME_STYLE:
+            with open(path) as f:
+                user_vars = _parse_scss_vars(f.read())
+
+        # User values take priority; missing keys fall back to defaults
+        merged = {**default_vars, **user_vars}
 
         with open(cnst.THEME_STYLE, "w") as f:
-            f.write(content)
-            logger.info(f"[THEME] '{path}' applied successfully.")
+            for name, value in merged.items():
+                f.write(f"${name}: {value};\n")
+
+        logger.info(f"[THEME] '{path}' applied successfully.")
 
     except FileNotFoundError:
         logger.error(f"Error: The theme file '{path}' was not found.")

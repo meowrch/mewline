@@ -81,11 +81,6 @@ class HyprlandMonitors(Hyprland):
             self.get_active_hypr_monitor_name()
         )
 
-    # Keep the old name around so nothing else breaks.
-    def get_current_gdk_monitor_id(self) -> int | None:
-        """Alias for get_active_gdk_monitor_id (backwards-compat)."""
-        return self.get_active_gdk_monitor_id()
-
     # ------------------------------------------------------------------
     # Cursor monitor
     # ------------------------------------------------------------------

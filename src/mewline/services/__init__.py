@@ -5,6 +5,7 @@ from mewline.services.battery import BatteryService
 from mewline.services.brightness import BrightnessService
 from mewline.services.cache_notification import NotificationCacheService
 from mewline.services.notifications import MyNotifications
+from mewline.services.privacy import PrivacyService
 
 audio_service = Audio()
 
@@ -12,6 +13,7 @@ notification_service = MyNotifications()
 cache_notification_service = NotificationCacheService()
 brightness_service = BrightnessService()
 battery_service = BatteryService()
+privacy_service = PrivacyService()
 
 bluetooth_client = BluetoothClient()
 # to run notify closures thus display the status

@@ -20,12 +20,15 @@ depends=(
   'tesseract-data-eng'
   'tesseract-data-rus'
   'cliphist'
+  'brightnessctl'
+  'ddcutil'
 )
 makedepends=(
   'python-uv'
   'git'
   'python-virtualenv'
 )
+install=mewline.install
 options=('!debug')
 source=("git+$url.git")
 sha256sums=('SKIP')
