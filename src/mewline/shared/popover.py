@@ -26,6 +26,7 @@ class PopoverManager:
             name="popover-overlay",
             style_classes="popover-overlay",
             anchor="left top right bottom",
+            margin="-50px 0px 0px 0px",
             exclusivity="auto",
             layer="overlay",
             type="top-level",
@@ -87,14 +88,14 @@ def popover_closed(widget: Widget): ...
 
 @GObject.type_register
 class Popover(Widget):
-    """Memory-efficient popover implementation (ported from Tsumiki style)."""
+    """Memory-efficient popover implementation"""
 
     __gsignals__: ClassVar = {
         "popover-opened": (GObject.SignalFlags.RUN_LAST, GObject.TYPE_NONE, ()),
         "popover-closed": (GObject.SignalFlags.RUN_LAST, GObject.TYPE_NONE, ()),
     }
 
-    def __init__(self, content=None, point_to=None, gap: int = 2):
+    def __init__(self, content=None, point_to=None, gap: int = 4):
         super().__init__()
         self._content_factory = None
         self._point_to = point_to
@@ -122,22 +123,30 @@ class Popover(Widget):
     def _calculate_margins(self):
         widget_allocation = self._point_to.get_allocation()
         popover_size = self._content_window.get_size()
+
         display = Gdk.Display.get_default()
         screen = display.get_default()
-        monitor_at_window = screen.get_monitor_at_window(self._point_to.get_window())
+        monitor_at_window = screen.get_monitor_at_window(
+            self._point_to.get_window()
+        )
         monitor_geometry = monitor_at_window.get_geometry()
-        # Center under widget horizontally
+
+        # Center horizontally under the widget
         x = (
             widget_allocation.x
-            + (widget_allocation.width / 2)
-            - (popover_size.width / 2)
+            + widget_allocation.width / 2
+            - popover_size.width / 2
         )
-        y = widget_allocation.y + widget_allocation.height + self._gap
+
+        y = widget_allocation.y + self._gap
+
+        # Horizontal bounds check
         if x <= 0:
             x = widget_allocation.x
         elif x + popover_size.width >= monitor_geometry.width:
             x = widget_allocation.x - popover_size.width + widget_allocation.width
-        return [y, 0, 0, int(x)]
+
+        return [int(y), 0, 0, int(x)]
 
     def set_position(self, position: tuple[int, int, int, int] | None = None):
         if position is None:
@@ -157,11 +166,8 @@ class Popover(Widget):
         self._content_window.add(
             Box(style_classes="popover-content", children=self._content)
         )
-        # Key and focus handling
         try:
             self._content_window.connect("key-press-event", self._on_key_press)
-            # Do not auto-close on focus-out to avoid closing
-            # while interacting with sliders
             self._content_window.set_can_focus(True)
         except Exception:
             ...
@@ -172,8 +178,6 @@ class Popover(Widget):
         with contextlib.suppress(Exception):
             self._content_window.grab_focus()
 
-        self._visible = True
-        self._content_window.show()
         self._visible = True
 
     def hide_popover(self):
@@ -195,7 +199,6 @@ class Popover(Widget):
 
         return False
 
-    # Compatibility helpers
     def close(self):
         return self.hide_popover()
 

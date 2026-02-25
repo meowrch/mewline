@@ -63,6 +63,7 @@ class WorkspacesModule(BaseModel):
 class TrayModule(BaseModel):
     icon_size: int
     ignore: list[str]
+    pinned: list[str]
 
 
 class PowerModule(BaseModel):

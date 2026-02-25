@@ -2,34 +2,81 @@
 @use "variable.scss";
 @use "common/functions.scss";
 
+// ── Status-bar toggle capsule ──────────────────────────────────────────────
 #system-tray {
-  padding: 0.125em 0.7em;
-  color: theme.$text-color;
+  padding: 0.2em 1em;
+  border-radius: variable.$radius-large;
 
-  // Recolor tray icons (symbolic via CSS, raster are tinted in code)
-  image,
-  .tray-icon {
-    color: theme.$text-color;
+  #system-tray-pinned {
+    // Pinned icons sit flush next to the chevron
   }
 
-  & > button {
-    margin: 0 0.1em;
-    padding: 0 0.15em;
-    border-radius: variable.$radius-large;
+  #nerd-icon.chevron-icon {
+    font-size: 0.75em;
+    color: theme.$text-color;
+    opacity: 0.8;
+  }
+
+  &.active,
+  &:active {
+    background-color: theme.$background-highlight;
+
+    #nerd-icon.chevron-icon {
+      color: theme.$accent-color;
+      opacity: 1;
+    }
+  }
+
+  &:hover {
+    background-color: theme.$background-highlight;
+  }
+
+  // Pinned icon buttons
+  .tray-item-btn {
+    padding: 0 0.1em;
+    border-radius: variable.$radius;
+    background: transparent;
+    min-width: 0;
+    min-height: 0;
+
+    &:hover {
+      background-color: theme.$background-highlight;
+    }
+  }
+}
+
+// ── Popup grid ────────────────────────────────────────────────────────────
+#system-tray-popup {
+  background-color: theme.$background-base;
+  border-radius: variable.$radius; 
+  padding: 0; 
+
+  .tray-item-btn {
+    padding: 0.35em;
+    border-radius: variable.$radius;
+    background: transparent;
+    min-width: 32px;
+    min-height: 32px;
+
     &:hover {
       background-color: theme.$background-highlight;
     }
 
     &:active {
-      background-color: theme.$text-color;
+      opacity: 0.7;
+    }
+
+    image {
+      color: theme.$text-color;
     }
   }
 }
 
+// ── GTK context menus (right-click on a tray icon) ────────────────────────
 #system-tray-menu > menuitem menu,
 #system-tray-menu {
   background-color: theme.$background-highlight;
-  border-radius: 1em;
+  border-radius: variable.$radius;
   padding: functions.toEm(10);
   min-width: 100px;
   font-weight: bold;
@@ -37,7 +84,7 @@
 
 #system-tray-menu > menuitem menu > menuitem,
 #system-tray-menu > menuitem {
-  margin: 5px 0px;
+  margin: 5px 0;
   background-color: theme.$background-highlight;
   padding: 0.3em 0.5em;
   border-radius: variable.$radius;
@@ -50,13 +97,11 @@
 }
 
 #system-tray-menu > menuitem menu > menuitem:hover,
-#system-tray-menu > menuitem:hover,
-#submenu-button:hover {
+#system-tray-menu > menuitem:hover {
   background-color: theme.$background-highlight;
   color: theme.$accent-color;
 }
 
-// Ensure symbolic icons inside tray menus also get the accent color
 #system-tray-menu image {
   color: theme.$text-color;
 }
