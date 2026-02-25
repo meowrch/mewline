@@ -115,7 +115,11 @@ DEFAULT_CONFIG = {
                 "10": "10",
             },
         },
-        "system_tray": {"icon_size": 16, "ignore": []},
+        "system_tray": {
+            "icon_size": 16, 
+            "ignore": [],
+            "pinned": ["Telegram"]
+        },
         "power": {"icon": "", "icon_size": "16px", "tooltip": True},
         "datetime": {"format": "%d-%m-%y %H:%M"},
         "battery": {
