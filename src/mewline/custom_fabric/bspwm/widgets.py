@@ -193,7 +193,7 @@ class BspwmActiveWindow(ActiveWindow):
         """Update the active window title."""
         try:
             # Get focused node ID
-            reply = self.connection.send_command("query -N -n focused")
+            reply = self.connection.send_command("query -N -n focused", silent=True)
             if not reply.is_ok or not reply.output:
                 self.window_activated("", "Desktop")
                 return

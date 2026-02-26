@@ -123,7 +123,7 @@ class Bspwm(Service):
             return False
 
     @staticmethod
-    def send_command(command: str) -> BspwmReply:
+    def send_command(command: str, silent: bool = False) -> "BspwmReply":
         """Execute a bspc command.
 
         Example:
@@ -134,6 +134,10 @@ class Bspwm(Service):
 
         :param command: The bspc command to execute (without 'bspc' prefix).
         :type command: str
+        :param silent: If True, do not log a WARNING on non-zero exit code.
+            Use this for queries that are expected to fail transiently
+            (e.g. ``query -N -n focused`` while DI holds keyboard grab).
+        :type silent: bool
         :return: A reply object containing the command output.
         :rtype: BspwmReply
         """
@@ -153,10 +157,16 @@ class Bspwm(Service):
             is_ok = result.returncode == 0
 
             if not is_ok:
-                logger.warning(
-                    f"[BspwmService] Command failed: {full_command}, "
-                    f"error: {result.stderr}"
-                )
+                if silent:
+                    logger.debug(
+                        f"[BspwmService] Command returned non-zero (silent): "
+                        f"{full_command}, stderr: {result.stderr.strip()!r}"
+                    )
+                else:
+                    logger.warning(
+                        f"[BspwmService] Command failed: {full_command}, "
+                        f"error: {result.stderr}"
+                    )
         except subprocess.TimeoutExpired:
             logger.error(f"[BspwmService] Command timeout: {command}")
         except Exception as e:

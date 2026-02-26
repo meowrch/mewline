@@ -1,4 +1,6 @@
 import contextlib
+import subprocess
+from typing import ClassVar
 
 import cairo
 from fabric import Application
@@ -16,8 +18,8 @@ from gi.repository import GLib
 from gi.repository import Gtk
 from loguru import logger
 
-from mewline.utils.window_manager import create_adaptive_window
 from mewline.utils.window_manager import WindowManagerContext
+from mewline.utils.window_manager import create_adaptive_window
 from mewline.widgets.dynamic_island.app_launcher import AppLauncher
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 from mewline.widgets.dynamic_island.bluetooth import BluetoothConnections
@@ -43,7 +45,7 @@ class DynamicIsland:
 
     # Target dimensions for each widget state on X11
     # Matches min-width/min-height in island.scss
-    TARGET_SIZES = {
+    TARGET_SIZES: ClassVar[dict[str, tuple[int, int]]] = {
         "compact": (256, 40),
         "notification": (300, 80),
         "date-notification": (500, 300),
@@ -159,7 +161,7 @@ class DynamicIsland:
             visible=False,
             h_expand=True,
             h_align="fill",
-            margin_bottom=6,  # Small margin to prevent line from touching container edge
+            margin_bottom=6,
         )
 
         # Center section of capsule: content expands,
@@ -169,16 +171,14 @@ class DynamicIsland:
             orientation="v",
             v_expand=True,
             h_expand=True,
-            spacing=16,  # Add spacing between notification content and dots
+            spacing=16,
             children=[
                 Box(v_expand=True, h_expand=True, children=[self.inline_stack]),
                 Box(
                     orientation="v",
-                    spacing=6,  # Small spacing between dots and urgency line, same as in view_center
+                    spacing=6,
                     children=[
                         self.inline_dots_revealer,
-                        # Urgency line with proper spacing - let CSS
-                        # handle the full styling
                         self.inline_urgency_line,
                     ],
                 ),
@@ -261,7 +261,6 @@ class DynamicIsland:
                 return False
 
             def _inline_resume(*_a):
-                # Only resume when pointer leaves the capsule entirely
                 for item in self._inline_items:
                     if hasattr(item, "resume_timeout"):
                         item.resume_timeout()
@@ -290,8 +289,6 @@ class DynamicIsland:
 
         # Root column holds the island box and (optionally)
         # the inline notifications BELOW the island
-        # This ensures inline notifications
-        # do NOT affect the size/shape of the island itself
         self.di_root_column = Box(
             name="dynamic-island-root-column",
             orientation="v",
@@ -359,8 +356,8 @@ class DynamicIsland:
                     "exclusivity": "normal",
                 },
                 x11_kwargs={
-                    "type_hint": "notification",  # Stay above other windows
-                    "geometry": "top",  # Position at top
+                    "type_hint": "notification",
+                    "geometry": "top",
                 },
                 visible=False,
                 all_visible=False,
@@ -388,31 +385,28 @@ class DynamicIsland:
         try:
             if not WindowManagerContext.is_x11():
                 return
-            
+
             # Get target dimensions from map, default to compact
             width, height = self.TARGET_SIZES.get(widget_name, (256, 40))
-            
+
             # Create geometry struct
             geom = Gdk.Geometry()
             geom.min_width = width
             geom.min_height = height
             geom.max_width = width
             geom.max_height = height
-            
-            # Apply geometry hints to strictly enforce size
-            # This is crucial for tiling WMs like bspwm that might try to expand the window
+
             self.window.set_geometry_hints(
-                None, 
-                geom, 
-                Gdk.WindowHints.MIN_SIZE | Gdk.WindowHints.MAX_SIZE
+                None,
+                geom,
+                Gdk.WindowHints.MIN_SIZE | Gdk.WindowHints.MAX_SIZE,
             )
-            
-            # Force resize to target dimensions
+
             self.window.resize(width, height)
-            
+
             # Re-center the window since size changed
             GLib.idle_add(self._position_x11_window)
-            
+
         except Exception as e:
             logger.warning(f"Failed to update X11 constraints: {e}")
 
@@ -420,21 +414,12 @@ class DynamicIsland:
         """Setup keyboard bindings for the window."""
         try:
             if hasattr(self.window, "add_keybinding"):
-                # For Wayland windows with keybinding support
+                # Wayland windows
                 self.window.add_keybinding("Escape", lambda *_: self.close())
-                logger.debug("Added ESC keybinding via add_keybinding")
-            elif hasattr(self.window, "connect_key_press_event"):
-                # For X11 windows - connect to key-press-event
-                def on_key_press(widget, event):
-                    if event.keyval == Gdk.KEY_Escape:
-                        self.close()
-                        return True
-                    return False
-
-                self.window.connect("key-press-event", on_key_press)
-                logger.debug("Added ESC keybinding via key-press-event")
             else:
-                # Fallback: try generic GTK key-press-event
+                # X11 windows: connect key-press-event directly.
+                # This fires whenever the window has keyboard focus
+                # (either via normal focus or after steal_input / steal_input_soft).
                 def on_key_press(widget, event):
                     if event.keyval == Gdk.KEY_Escape:
                         self.close()
@@ -442,21 +427,23 @@ class DynamicIsland:
                     return False
 
                 self.window.connect("key-press-event", on_key_press)
-                logger.debug("Added ESC keybinding via generic key-press-event")
         except Exception as e:
             logger.warning(f"Failed to setup keybindings: {e}")
 
     def _setup_x11_window(self):
         """Configure X11-specific window properties for bspwm."""
         try:
-            # Set window properties for X11/bspwm
             self.window.set_decorated(False)
-            self.window.set_accept_focus(False)
-            self.window.set_keep_above(True)  # Stay above other windows
-            self.window.stick()  # Show on all workspaces
+            self.window.set_keep_above(True)
+            self.window.stick()
+            self.window.set_resizable(True)
 
-            # Set initial compact size using constraints helper
-            self.window.set_resizable(True)  # Allow resizing for expansion
+            # Allow the window to receive focus so key-press-event fires.
+            # Actual focus stealing is done via steal_input_soft() / steal_input()
+            # inside set_keyboard_mode(); here we just tell the WM the window CAN
+            # be focused.
+            self.window.set_accept_focus(True)
+
             self._update_x11_constraints("compact")
 
             # Enable transparency
@@ -467,10 +454,7 @@ class DynamicIsland:
             self.window.set_app_paintable(True)
             self.window.connect("draw", self._on_x11_draw)
 
-            # Connect to size-allocate to keep window centered
             self.window.connect("size-allocate", self._on_x11_size_allocate)
-
-            # Position window at top center initially
             GLib.idle_add(self._position_x11_window)
 
             logger.info("Configured Dynamic Island for X11/bspwm")
@@ -514,15 +498,68 @@ class DynamicIsland:
                 y = 10  # Small margin from top
 
                 self.window.move(x, y)
-                logger.debug(f"Positioned Dynamic Island at ({x}, {y}), width={window_width}")
-
         except Exception as e:
             logger.error(f"Failed to position X11 window: {e}")
 
         return False
 
+    def _restore_x11_focus(self):
+        """Return X11 keyboard focus to the previously-focused bspwm node."""
+        try:
+            result = subprocess.run(
+                ["bspc", "node", "last", "--focus"],
+                capture_output=True,
+                text=True,
+                timeout=1,
+            )
+            if result.returncode != 0:
+                # 'last' can fail if there is no 'last' node (e.g. only one
+                # window open).  Try focusing any existing node instead.
+                subprocess.run(
+                    ["bspc", "node", "any.local", "--focus"],
+                    capture_output=True,
+                    timeout=1,
+                )
+        except Exception: ...
+
     def set_keyboard_mode(self, mode: str):
-        """Set keyboard mode (Wayland only)."""
+        """Set keyboard mode.
+
+        On Wayland: delegates to WaylandWindow.set_keyboard_mode().
+        On X11/bspwm:
+            "exclusive" - steal_input_soft() puts X11 focus on the DI window;
+                          steal_input() additionally does Gdk.keyboard_grab so
+                          ALL key events are routed here even if another X window
+                          nominally holds focus (needed for focuse_kb widgets).
+            "none"      - unsteal_input() releases Gdk.keyboard_grab, then
+                          _restore_x11_focus() hands focus back to the last
+                          bspwm node so the previous terminal/window regains
+                          keyboard input immediately.
+        """
+        if WindowManagerContext.is_x11():
+            try:
+                if mode == "exclusive":
+                    # First: soft focus via XSetInputFocus (Xlib)
+                    if hasattr(self.window, "steal_input_soft"):
+                        self.window.steal_input_soft(can_release=True)
+                        logger.debug("[X11] steal_input_soft() called")
+                    # Second: hard keyboard grab so events arrive even when
+                    # another window is focused by the WM
+                    if hasattr(self.window, "steal_input"):
+                        self.window.steal_input()
+                        logger.debug("[X11] steal_input() (Gdk.keyboard_grab) called")
+                else:
+                    # Release keyboard grab if any
+                    if hasattr(self.window, "unsteal_input"):
+                        self.window.unsteal_input()
+                        logger.debug("[X11] unsteal_input() called")
+                    # Return focus to the window that had it before DI opened
+                    self._restore_x11_focus()
+            except Exception as e:
+                logger.warning(f"[X11] set_keyboard_mode({mode!r}) failed: {e}")
+            return
+
+        # Wayland path
         if hasattr(self.window, "set_keyboard_mode"):
             self.window.set_keyboard_mode(mode)
 
@@ -604,7 +641,9 @@ class DynamicIsland:
 
                 # Set current visible child
                 if self._inline_items:
-                    self.inline_stack.set_visible_child(self._inline_items[self._inline_index])
+                    self.inline_stack.set_visible_child(
+                        self._inline_items[self._inline_index]
+                    )
 
                 self.inline_notification_container.add(self.inline_capsule)
 
@@ -637,7 +676,7 @@ class DynamicIsland:
             if i == self._inline_index:
                 dot.add_style_class("active")
             self.inline_dots.add(dot)
-        # Toggle nav visibility (prev/next) and dots
+
         show_nav = len(self._inline_items) > 1
         # Animate via revealers
         with contextlib.suppress(Exception):
@@ -679,7 +718,7 @@ class DynamicIsland:
 
     def _hide_internal_close_button(self, container: Box):
         try:
-            # Recursively search for button named "notify-close-button" and hide it
+
             def hide_in(widget):
                 try:
                     if (
@@ -1193,15 +1232,32 @@ class DynamicIsland:
 
         self.current_widget = widget
 
-        if self.widgets[widget].focuse_kb:
+        # On X11: always try to grab keyboard focus when DI opens any widget.
+        # steal_input_soft() uses XSetInputFocus which bypasses bspwm's
+        # focus-stealing prevention. For focuse_kb widgets we additionally
+        # do a full Gdk.keyboard_grab so all key events arrive even when
+        # another X window nominally holds WM focus.
+        if WindowManagerContext.is_x11() and widget != "notification":
+            if self.widgets[widget].focuse_kb:
+                # Full grab: routes ALL keyboard events to us
+                self.set_keyboard_mode("exclusive")
+            else:
+                # Soft grab: X11 focus only, no global event interception
+                try:
+                    if hasattr(self.window, "steal_input_soft"):
+                        self.window.steal_input_soft(can_release=True)
+                        logger.debug("[X11] steal_input_soft() on open (non-focuse_kb)")
+                except Exception as e:
+                    logger.warning(f"[X11] steal_input_soft failed on open: {e}")
+        elif self.widgets[widget].focuse_kb:
             self.set_keyboard_mode("exclusive")
 
         self.stack.add_style_class(widget)
         self.stack.set_visible_child(self.widgets[widget])
-        
+
         # Enforce X11 geometry constraints for the new widget
         self._update_x11_constraints(widget)
-        
+
         self.widgets[widget].add_style_class("open")
 
         # Sync inline container styling with current widget to mirror width constraints
