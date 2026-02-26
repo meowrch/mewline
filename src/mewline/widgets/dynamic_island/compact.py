@@ -273,7 +273,7 @@ class Compact(BaseDiWidget, CenterBox):
                 return ""
 
             # Get focused node ID
-            reply = conn.send_command("query -N -n focused")
+            reply = conn.send_command("query -N -n focused", silent=True)
             if not reply.is_ok or not reply.output:
                 return ""
 
