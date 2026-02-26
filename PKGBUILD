@@ -1,10 +1,10 @@
-# Maintainer: Dmitry <dimflix.official@gmail.com>
+# Maintainer: dimflix <dimflix.official@gmail.com>
 pkgname=mewline-git
 conflicts=('mewline')
 provides=('mewline')
 pkgver=r1.0.0
 pkgrel=1
-pkgdesc="😺 Elegant and extensible status bar for the meowrch distribution"
+pkgdesc="Status bar for the meowrch distribution. Supports hyprland/bspwm."
 arch=('any')
 url="https://github.com/meowrch/mewline"
 license=('MIT')
@@ -20,6 +20,8 @@ depends=(
   'tesseract-data-eng'
   'tesseract-data-rus'
   'cliphist'
+  'slop'
+  'scrot'
 )
 makedepends=(
   'python-uv'
