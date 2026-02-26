@@ -12,6 +12,7 @@ from mewline.shared.widget_container import ButtonWidget
 from mewline.utils.misc import check_tools_available
 from mewline.utils.misc import ttl_lru_cache
 from mewline.utils.widget_utils import text_icon
+from mewline.utils.window_manager import WindowManagerContext
 
 
 class OCRWidget(ButtonWidget):
@@ -69,60 +70,86 @@ class OCRWidget(ButtonWidget):
             self._cleanup_temp_files()
 
     def _check_prerequisites(self):
-        """Checking installed dependencies."""
-        if check_tools_available(["slurp", "grim"]):
-            return True
-
-        logger.error("Required tools (slurp/grim) are not installed")
-        return False
+        if WindowManagerContext.is_x11():
+            # Для X11 нужен scrot (или slop + import)
+            if check_tools_available(["scrot", "slop"]):
+                return True
+            logger.error("Required tool `scrot` is not installed")
+            return False
+        else:
+            if check_tools_available(["slurp", "grim"]):
+                return True
+            logger.error("Required tools (slurp/grim) are not installed")
+            return False
 
     def _get_selection_area(self, timeout=30):
-        """Obtaining the selection area from the user."""
+        if WindowManagerContext.is_x11():
+            return self._get_selection_area_x11(timeout)
+        return self._get_selection_area_wayland(timeout)
+
+    def _get_selection_area_wayland(self, timeout=30):
+        """Оригинальный метод через slurp."""
         try:
             result = subprocess.run(
-                ["slurp"],
-                capture_output=True,
-                text=True,
-                timeout=timeout,
+                ["slurp"], capture_output=True, text=True, timeout=timeout
             )
-
             if result.returncode == 1:
                 logger.debug("User cancelled area selection")
                 return None
             if result.returncode != 0:
-                logger.error(
-                    f"Slurp error [{result.returncode}]: {result.stderr.strip()}"
-                )
+                logger.error(f"Slurp error [{result.returncode}]: {result.stderr.strip()}")
                 return None
-
             if not (selection := result.stdout.strip()):
-                logger.debug("Empty selection area")
                 return None
-
             return selection
+        except subprocess.TimeoutExpired:
+            logger.error("Area selection timed out")
+            return None
 
+    def _get_selection_area_x11(self, timeout=30):
+        try:
+            result = subprocess.run(
+                ["slop", "-f", "%x %y %w %h"],
+                capture_output=True, text=True, timeout=timeout
+            )
+            if result.returncode != 0:
+                logger.debug("User cancelled area selection (slop)")
+                return None
+            return result.stdout.strip() or None
+        except FileNotFoundError:
+            logger.error("slop is not installed")
+            return None
         except subprocess.TimeoutExpired:
             logger.error("Area selection timed out")
             return None
 
     def _capture_screenshot(self, selection, timeout=10):
-        """Capture a screenshot of the selected area."""
         path_to_img = cnst.APP_CACHE_DIRECTORY / "ocr.png"
 
-        try:
-            subprocess.run(
-                ["grim", "-g", selection, str(path_to_img)],
-                check=True,
-                timeout=timeout,
-            )
-            return path_to_img if path_to_img.exists() else None
+        if WindowManagerContext.is_x11():
+            try:
+                x, y, w, h = selection.split()
+                subprocess.run(
+                    ["scrot", "-a", f"{x},{y},{w},{h}", str(path_to_img)],
+                    check=True, timeout=timeout,
+                )
+            except Exception as e:
+                logger.error(f"Failed to capture area (scrot): {e}")
+                return None
+        else:
+            try:
+                subprocess.run(
+                    ["grim", "-g", selection, str(path_to_img)],
+                    check=True, timeout=timeout,
+                )
+            except subprocess.CalledProcessError as e:
+                logger.error(f"Failed to capture area: {e}")
+                return None
+            except subprocess.TimeoutExpired:
+                logger.error("Screenshot capture timed out")
+                return None
 
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to capture area: {e}")
-        except subprocess.TimeoutExpired:
-            logger.error("Screenshot capture timed out")
-
-        return None
+        return path_to_img if path_to_img.exists() else None
 
     def _extract_text_from_image(self):
         """Extract text from an image."""

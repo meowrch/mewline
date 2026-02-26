@@ -27,7 +27,7 @@ from mewline.utils.widget_utils import text_icon
 _DOT_DIM_OPACITY = 0.12
 
 
-class CombinedControlsMenu(Popover):
+class CombinedControlsMenu:
     """Dropdown menu with sliders for speaker, microphone, brightness."""
 
     def __init__(self, anchor_widget: GObject.GObject, osd_widget=None, **kwargs):
@@ -136,7 +136,8 @@ class CombinedControlsMenu(Popover):
             child_revealed=True,
         )
 
-        super().__init__(
+        # Create popover instance using composition
+        self._popover = Popover(
             content=revealer,
             point_to=self.anchor_widget,
             gap=2,
@@ -161,9 +162,20 @@ class CombinedControlsMenu(Popover):
         if self.brightness_available:
             self.brightness.connect("screen", self._on_brightness_service)
 
+        # Bind when available
         self._bind_speaker()
         self._bind_microphone()
         self._sync_from_services()
+
+    # Proxy popover methods for API compatibility
+    def open(self, *args, **kwargs):
+        return self._popover.open(*args, **kwargs)
+
+    def close(self, *args, **kwargs):
+        return self._popover.close(*args, **kwargs)
+
+    def get_visible(self) -> bool:
+        return self._popover.get_visible()
 
     def _get_speaker_volume(self) -> int:
         return round(self.audio.speaker.volume) if self.audio.speaker else 0

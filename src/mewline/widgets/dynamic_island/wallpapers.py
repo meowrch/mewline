@@ -23,10 +23,23 @@ from PIL import ImageDraw
 
 from mewline import constants as cnst
 from mewline.config import cfg
+from mewline.utils.window_manager import WindowManagerContext
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 
 class WallpaperApply:
+    @staticmethod
+    def apply_with_feh(wallpaper: str):
+        try:
+            subprocess.run(
+                ["feh", "--no-fehbg", "--bg-fill", str(wallpaper)],
+                check=True,
+            )
+        except FileNotFoundError:
+            logger.error("feh is not installed")
+        except subprocess.CalledProcessError:
+            logger.error("Unknown error when installing wallpaper (feh)")
+
     @staticmethod
     def apply_with_swww(wallpaper: str):
         transition_fps = 60
@@ -356,13 +369,25 @@ class WallpaperSelector(BaseDiWidget, Box):
         if full_path is None:
             return
 
-        if self.config.method == "swww":
-            WallpaperApply.apply_with_swww(full_path)
+        method_not_supported_msg = (
+            "The {method} method is not supported. Wallpaper application canceled."
+        )
+
+        if WindowManagerContext.is_x11():
+            if self.config.x11_method == "feh":
+                WallpaperApply.apply_with_feh(full_path)
+            else:
+                logger.warning(method_not_supported_msg.format(method=self.config.wayland_method))
+                return
+        elif WindowManagerContext.is_wayland():
+            if self.config.method == "swww":
+                WallpaperApply.apply_with_swww(full_path)
+            else:
+                logger.warning(method_not_supported_msg.format(method=self.config.wayland_method))
+                return
         else:
-            logger.warning(
-                f"No implementation for method {self.config.method}, using swww"
-            )
-            WallpaperApply.apply_with_swww(full_path)
+            logger.warning("Unsupported window manager")
+            return
 
         if self.config.save_current_wall:
             try:

@@ -24,8 +24,8 @@ from mewline.config import cfg
 from mewline.services import cache_notification_service
 from mewline.services import notification_service
 from mewline.shared.rounded_image import CustomImage
-from mewline.utils.hyprland_monitors import HyprlandMonitors
 from mewline.utils.misc import check_icon_exists
+from mewline.utils.window_manager import create_monitor_manager
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 if TYPE_CHECKING:
@@ -382,7 +382,7 @@ class NotificationContainer(BaseDiWidget, Box):
             h_expand=True,
         )
         self.dynamic_island = di
-        self.hypr_monitors = HyprlandMonitors()
+        self.monitors = create_monitor_manager()
         self._boxes_by_id: dict[int, NotificationBox] = {}
         notification_service.connect("notification-added", self.on_new_notification)
 
@@ -806,7 +806,7 @@ class NotificationContainer(BaseDiWidget, Box):
             )
 
         # Multi-monitor filtering logic
-        allowed_ids = self.hypr_monitors.get_notifications_gdk_monitor_ids(cfg)
+        allowed_ids = self.monitors.get_notifications_gdk_monitor_ids(cfg)
         current_monitor = self.dynamic_island.monitor
         # If current_monitor is None (compositor decided), we usually skip check
         # unless user config expects specific filtering.

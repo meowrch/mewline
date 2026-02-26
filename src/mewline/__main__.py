@@ -14,11 +14,13 @@ from mewline.config import generate_default_config
 from mewline.config import load_config
 from mewline.utils.capture_output import start_output_capture
 from mewline.utils.glib_debug import enable_all_glib_debug
-from mewline.utils.hyprland_monitors import HyprlandMonitors
 from mewline.utils.setup_loguru import setup_loguru
 from mewline.utils.temporary_fixes import *  # noqa: F403
 from mewline.utils.theming import copy_theme
 from mewline.utils.theming import process_and_apply_css
+from mewline.utils.window_manager import WindowManagerContext
+from mewline.utils.window_manager import create_monitor_manager
+from mewline.utils.window_manager import detect_window_manager
 from mewline.widgets import StatusBar
 from mewline.widgets.dynamic_island import DynamicIsland
 from mewline.widgets.osd import OSDContainer
@@ -160,6 +162,12 @@ def main(debug_mode=False):
     # Запускаем захват всего вывода (включая GTK сообщения)
     start_output_capture()
 
+    ##===> Detect and set window manager context
+    ##############################
+    wm = detect_window_manager()
+    WindowManagerContext.set_wm(wm)
+    logger.info(f"Window manager detected and context set to: {wm.value}")
+
     ##===> Creating App
     ##############################
     widgets = []
@@ -170,18 +178,18 @@ def main(debug_mode=False):
 
     if cfg.options.osd_enabled:
         osd_widget = OSDContainer()
-        widgets.append(osd_widget)
+        widgets.append(osd_widget.window)
 
     ##=> Multi-monitor: create one StatusBar + one DynamicIsland per output
     ###########################################################################
-    hypr_monitors = HyprlandMonitors()
-    monitor_ids = hypr_monitors.get_configured_gdk_monitor_ids(cfg)
+    monitors = create_monitor_manager()
+    monitor_ids = monitors.get_configured_gdk_monitor_ids(cfg)
 
     if not monitor_ids:
-        # Fallback: let the compositor decide (show on all outputs)
+        # Fallback: let the compositor/WM decide (show on all outputs)
         logger.warning(
-            "[monitors] Could not resolve any monitor IDs – "
-            "falling back to monitor=None (compositor default)."
+            "[monitors] Could not resolve any monitor IDs - "
+            "falling back to monitor=None (compositor/WM default)."
         )
         monitor_ids = [None]
 
@@ -197,7 +205,7 @@ def main(debug_mode=False):
             bar.set_osd_widget(osd_widget)
         island = DynamicIsland(monitor=mid)
         widgets.append(bar)
-        widgets.append(island)
+        widgets.append(island.window)
         islands[mid] = island
 
     ##==>
@@ -207,7 +215,7 @@ def main(debug_mode=False):
     ##########################################################################
     def _get_active_island() -> DynamicIsland:
         """Return the island whose monitor currently holds the pointer."""
-        cursor_mid = hypr_monitors.get_cursor_gdk_monitor_id()
+        cursor_mid = monitors.get_cursor_gdk_monitor_id()
         # Exact match -> fallback to first island if cursor monitor is unknown
         return islands.get(cursor_mid) or next(iter(islands.values()))
 

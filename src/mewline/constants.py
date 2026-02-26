@@ -116,7 +116,7 @@ DEFAULT_CONFIG = {
             },
         },
         "system_tray": {
-            "icon_size": 16, 
+            "icon_size": 16,
             "ignore": [],
             "pinned": ["Telegram"]
         },
@@ -160,7 +160,8 @@ DEFAULT_CONFIG = {
                 },
             },
             "wallpapers": {
-                "method": "swww",
+                "x11_method": "feh",
+                "wayland_method": "swww",
                 "wallpapers_dirs": [*map(str, LIST_WALLPAPERS_PATHS)],
                 "save_current_wall": True,
                 "current_wall_path": str(DEFAULT_CURRENT_WALL_PATH)

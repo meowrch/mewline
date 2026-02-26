@@ -162,6 +162,11 @@ class BrightnessService(Service):
             # Reads from DDC are slow (~100 ms), so return the cached value.
             return self._ddc_cached_brightness
 
+        # Check if we have a backlight device at all
+        if not hasattr(self, "screen_backlight_path"):
+            logger.debug("No backlight device available")
+            return -1
+
         brightness_path = self.screen_backlight_path / "brightness"
         if brightness_path.exists():
             with open(brightness_path) as f:
@@ -194,6 +199,11 @@ class BrightnessService(Service):
             return
 
         # --- brightnessctl path (laptop) -----------------------------
+        # Check if we have a backlight device
+        if not self.screen_device or not hasattr(self, "screen_backlight_path"):
+            logger.debug("No backlight device available, cannot set brightness")
+            return
+
         try:
             if not executable_exists("brightnessctl"):
                 logger.error("Command brightnessctl not found")
