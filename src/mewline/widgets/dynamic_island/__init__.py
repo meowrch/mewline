@@ -63,6 +63,12 @@ class DynamicIsland:
     def __init__(self):
         self.hidden = False
 
+        # Stores the bspwm node ID that was focused just before DI stole input.
+        # Used by _restore_x11_focus() to return focus to the exact window,
+        # rather than relying on bspwm's 'last' history which can point to a
+        # different desktop or a different window among several.
+        self._focused_node_before_open: str | None = None
+
         ##==> Defining the widgets
         #########################################
         self.compact = Compact(self)
@@ -503,23 +509,62 @@ class DynamicIsland:
 
         return False
 
-    def _restore_x11_focus(self):
-        """Return X11 keyboard focus to the previously-focused bspwm node."""
+    def _get_focused_node_id(self) -> str | None:
+        """Return the bspwm node ID that currently holds keyboard focus.
+
+        Uses `bspc query -N -n focused` which returns the numeric XID of the
+        focused node (e.g. '0x02400007').  This is different from bspwm's
+        'last' selector, which tracks navigation history and may point to a
+        node on a different desktop.
+        """
         try:
             result = subprocess.run(
-                ["bspc", "node", "last", "--focus"],
+                ["bspc", "query", "-N", "-n", "focused"],
                 capture_output=True,
                 text=True,
                 timeout=1,
             )
-            if result.returncode != 0:
-                # 'last' can fail if there is no 'last' node (e.g. only one
-                # window open).  Try focusing any existing node instead.
-                subprocess.run(
-                    ["bspc", "node", "any.local", "--focus"],
+            if result.returncode == 0:
+                node_id = result.stdout.strip()
+                return node_id if node_id else None
+        except Exception:
+            ...
+        return None
+
+    def _restore_x11_focus(self):
+        """Return X11 keyboard focus to the node that was focused when DI opened.
+
+        Prefers the explicitly saved node ID over bspwm's 'last' selector so
+        that focus returns to the exact window and desktop, even when the user
+        was on an empty desktop or had multiple terminals open.
+        """
+        try:
+            if self._focused_node_before_open:
+                result = subprocess.run(
+                    ["bspc", "node", self._focused_node_before_open, "--focus"],
                     capture_output=True,
+                    text=True,
                     timeout=1,
                 )
+                if result.returncode == 0:
+                    logger.debug(
+                        f"[X11] Restored focus to node {self._focused_node_before_open}"
+                    )
+                    self._focused_node_before_open = None
+                    return
+                # Node no longer exists (window was closed while DI was open).
+                # Clear the saved ID and fall through to the fallback.
+                logger.debug(
+                    f"[X11] Saved node {self._focused_node_before_open} gone, using fallback"
+                )
+                self._focused_node_before_open = None
+
+            # Fallback: focus any node on the current desktop.
+            subprocess.run(
+                ["bspc", "node", "any.local", "--focus"],
+                capture_output=True,
+                timeout=1,
+            )
         except Exception: ...
 
     def set_keyboard_mode(self, mode: str):
@@ -532,9 +577,8 @@ class DynamicIsland:
                           ALL key events are routed here even if another X window
                           nominally holds focus (needed for focuse_kb widgets).
             "none"      - unsteal_input() releases Gdk.keyboard_grab, then
-                          _restore_x11_focus() hands focus back to the last
-                          bspwm node so the previous terminal/window regains
-                          keyboard input immediately.
+                          _restore_x11_focus() hands focus back to the node
+                          that was focused when DI opened.
         """
         if WindowManagerContext.is_x11():
             try:
@@ -1218,6 +1262,15 @@ class DynamicIsland:
         if widget == "compact":
             self.current_widget = None
             return
+
+        # Save the currently focused bspwm node BEFORE stealing keyboard input.
+        # This ensures _restore_x11_focus() can return focus to the exact window
+        # that was active when DI opened, regardless of bspwm's 'last' history.
+        if WindowManagerContext.is_x11() and widget != "notification":
+            node_id = self._get_focused_node_id()
+            if node_id:
+                self._focused_node_before_open = node_id
+                logger.debug(f"[X11] Saved focused node before open: {node_id}")
 
         if self.hidden:
             self.di_box.remove_style_class("hidden")
