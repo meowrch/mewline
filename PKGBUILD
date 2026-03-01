@@ -32,8 +32,8 @@ makedepends=(
 )
 install=mewline.install
 options=('!debug')
-source=("git+$url.git")
-sha256sums=('SKIP')
+source=("git+$url.git" "mewline.install")
+sha256sums=('SKIP' 'SKIP')
 
 pkgver() {
   cd "$srcdir/mewline"

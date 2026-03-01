@@ -32,8 +32,8 @@ makedepends=(
 )
 install=mewline.install
 options=('!debug')
-source=("$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP')  # Автоматическая замена в workflow
+source=("$url/archive/refs/tags/v$pkgver.tar.gz" "mewline.install")
+sha256sums=('SKIP' 'SKIP')  # Автоматическая замена в workflow
 
 package() {
   cd "$srcdir/mewline-$pkgver"
