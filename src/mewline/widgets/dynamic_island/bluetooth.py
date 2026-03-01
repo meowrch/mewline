@@ -51,7 +51,8 @@ class BluetoothDeviceSlot(CenterBox):
         )
         setup_cursor_hover(self.remove_button)
 
-        self.device_icon = Image(icon_name=self.device.icon_name + "-symbolic", size=32)
+        _icon = self.device.icon_name or "bluetooth"
+        self.device_icon = Image(icon_name=f"{_icon}-symbolic", size=32)
         self.paired_icon = text_icon(
             icon=cnst.icons["bluetooth"]["paired"],
             size="24px",
@@ -277,6 +278,12 @@ class BluetoothConnections(BaseDiWidget, Box):
         if not device.name or device.name.strip() == "":
             logger.debug(f"Skipping device with empty name: {address}")
             return
+
+        # Защита от NULL icon_name на C-уровне
+        try:
+            _ = device.icon_name
+        except Exception:
+            logger.warning(f"Device {address} has NULL icon_name, using fallback")
 
         logger.info(f'Device "{device.name}" ({device.address}) added.')
 
