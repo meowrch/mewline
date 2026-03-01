@@ -43,8 +43,10 @@ An elegant, extensible status bar for the [meowrch](https://github.com/meowrch/m
 </table>
 
 ## 🌟 Features
-- [X] **Modular architecture**
-- [X] **Customization** via a JSON config
+- [X] **Hyprland and bspwm support**: Full integration with modern tiling window managers.
+- [X] **Multi-monitor support**: Support for automatic panel deployment on all detected displays (currently only implemented for Hyprland).
+- [X] **Privacy indicators (Privacy Dots)**: Visual notification of microphone, camera, geolocation, or screen recording usage in real time.
+- [X] **Modular architecture and customization** via JSON config
 - [X] **Theme** support
 - [X] Full integration with the [meowrch](https://github.com/meowrch/meowrch) distribution
 - [X] Animated transitions and effects
@@ -110,8 +112,8 @@ uv run mewline
 | `tray`       | System tray                             |
 | `workspaces` | Workspace management                    |
 | `datetime`   | Date and time display                   |
-| `brightness` | Screen brightness control               |
-| `volume`     | Audio volume control                    |
+| `combined_controls` | A group control widget that combines sound, brightness, and Privacy Dots (notification dots that light up when apps access your media devices). |
+| `language`         | Keyboard layout information  |
 | `battry`     | Battery charge information              |
 | `power`      | Button to open the `power_menu`         |
 | `ocr`        | Text recognition from a screenshot      |
