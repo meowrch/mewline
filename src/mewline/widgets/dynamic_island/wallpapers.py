@@ -377,10 +377,10 @@ class WallpaperSelector(BaseDiWidget, Box):
             if self.config.x11_method == "feh":
                 WallpaperApply.apply_with_feh(full_path)
             else:
-                logger.warning(method_not_supported_msg.format(method=self.config.wayland_method))
+                logger.warning(method_not_supported_msg.format(method=self.config.x11_method))
                 return
         elif WindowManagerContext.is_wayland():
-            if self.config.method == "swww":
+            if self.config.wayland_method == "swww":
                 WallpaperApply.apply_with_swww(full_path)
             else:
                 logger.warning(method_not_supported_msg.format(method=self.config.wayland_method))
