@@ -144,6 +144,22 @@ DEFAULT_CONFIG = {
                 "reboot_icon_size": "20px",
                 "shutdown_icon": "",
                 "shutdown_icon_size": "20px",
+                "commands": {
+                    "hyprland": {
+                        "lock": "hyprlock",
+                        "logout": "hyprctl dispatch exit",
+                        "suspend": "systemctl suspend",
+                        "reboot": "systemctl reboot",
+                        "shutdown": "systemctl poweroff",
+                    },
+                    "bspwm": {
+                        "lock": "i3lock",
+                        "logout": "bspc quit",
+                        "suspend": "systemctl suspend",
+                        "reboot": "systemctl reboot",
+                        "shutdown": "systemctl poweroff",
+                    },
+                }
             },
             "compact": {
                 "window_titles": {

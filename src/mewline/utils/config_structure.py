@@ -1,6 +1,15 @@
+import re
 from typing import Literal
 
 from pydantic import BaseModel
+from pydantic import field_validator
+
+# Shell metacharacters that could enable command injection.
+# $( and backtick allow command substitution; |, ;, & chain commands;
+# <, > redirect I/O; ( ) start subshells.
+# Plain $VAR / ${VAR} references are intentionally allowed so users can
+# point to scripts via env-var paths (expanded at runtime, not here).
+_UNSAFE_SHELL_RE = re.compile(r"[|;&`<>()]|\$\(")
 
 
 class Theme(BaseModel):
@@ -72,6 +81,45 @@ class PowerModule(BaseModel):
     tooltip: bool
 
 
+class PowerMenuCommands(BaseModel):
+    """Commands executed for each power-menu action.
+
+    Keys of the ``commands`` dict in :class:`PowerMenu` must match the value
+    of ``XDG_CURRENT_DESKTOP`` (compared case-insensitively at runtime).
+
+    **Environment-variable substitution** – ``$VAR`` and ``${VAR}`` references
+    inside a command string are expanded at runtime via
+    :func:`os.path.expandvars` *before* the command is split and executed.
+    This lets you write paths like ``$HOME/.local/bin/screen-lock.sh``
+    without hard-coding your home directory.
+
+    **Security** – Commands are executed via :func:`subprocess.Popen` with
+    ``shell=False``, so no shell features (pipes, redirections, command
+    substitution, etc.) are available.  To enforce this, the validator rejects
+    any command string that contains the following characters or sequences:
+    ``|``, ``;``, ``&``, backtick, ``<``, ``>``, ``(``, ``)``, ``$(``.  If
+    you need complex logic, put it in a standalone script and reference that
+    script here.
+    """
+
+    lock: str = "hyprlock"
+    logout: str = "hyprctl dispatch exit"
+    suspend: str = "systemctl suspend"
+    reboot: str = "systemctl reboot"
+    shutdown: str = "systemctl poweroff"
+
+    @field_validator("lock", "logout", "suspend", "reboot", "shutdown", mode="before")
+    @classmethod
+    def _no_shell_metacharacters(cls, v: str) -> str:
+        if _UNSAFE_SHELL_RE.search(v):
+            raise ValueError(
+                f"Command contains unsafe shell metacharacters: {v!r}. "
+                "Shell features are not supported; use an absolute path to a "
+                "wrapper script instead (e.g. /home/user/.local/bin/lock.sh)."
+            )
+        return v
+
+
 class PowerMenu(BaseModel):
     lock_icon: str
     lock_icon_size: str
@@ -83,6 +131,7 @@ class PowerMenu(BaseModel):
     reboot_icon_size: str
     shutdown_icon: str
     shutdown_icon_size: str
+    commands: dict[str, PowerMenuCommands] = {}
 
 
 class DatetimeModule(BaseModel):

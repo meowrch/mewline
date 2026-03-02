@@ -1,11 +1,14 @@
+import os
+import shlex
+import subprocess
 from typing import TYPE_CHECKING
 
 from fabric.widgets.box import Box
 from fabric.widgets.button import Button
-from gi.repository import GLib
 from loguru import logger
 
 from mewline.config import cfg
+from mewline.utils.config_structure import PowerMenuCommands
 from mewline.utils.widget_utils import setup_cursor_hover
 from mewline.utils.widget_utils import text_icon
 from mewline.widgets.dynamic_island.base import BaseDiWidget
@@ -102,27 +105,83 @@ class PowerMenu(BaseDiWidget, Box):
     def close_menu(self):
         self.dynamic_island.close()
 
+    def _get_commands(self) -> PowerMenuCommands:
+        """Return commands for the current desktop environment.
+
+        Looks up ``XDG_CURRENT_DESKTOP`` in ``config.commands``
+        (case-insensitive).  Falls back to the first entry in the dict, or
+        to built-in defaults when the dict is empty.
+        """
+        desktop = os.environ.get("XDG_CURRENT_DESKTOP", "").lower()
+        commands_map = self.config.commands
+
+        for key, cmds in commands_map.items():
+            if key.lower() == desktop:
+                return cmds
+
+        if commands_map:
+            first_key = next(iter(commands_map))
+            logger.warning(
+                f"[PowerMenu] No commands configured for desktop {desktop!r}, "
+                f"falling back to {first_key!r} commands."
+            )
+            return commands_map[first_key]
+
+        logger.warning(
+            f"[PowerMenu] No commands configured for desktop {desktop!r} and "
+            "no fallback available - using built-in defaults."
+        )
+        return PowerMenuCommands()
+
+    @staticmethod
+    def _run_command(command: str) -> None:
+        """Execute *command* safely without a shell.
+
+        ``$VAR`` / ``${VAR}`` references are expanded via
+        :func:`os.path.expandvars` before the string is split with
+        :func:`shlex.split`.  The resulting argument list is handed directly
+        to :class:`subprocess.Popen` (``shell=False``), so no shell injection
+        is possible regardless of the command string's content.
+        """
+        expanded = os.path.expandvars(command)
+        try:
+            args = shlex.split(expanded)
+        except ValueError as exc:
+            logger.error(f"[PowerMenu] Failed to parse command {command!r}: {exc}")
+            return
+
+        if not args:
+            logger.warning(f"[PowerMenu] Empty command after parsing: {command!r}")
+            return
+
+        try:
+            subprocess.Popen(args)
+        except FileNotFoundError:
+            logger.error(f"[PowerMenu] Command not found: {args[0]!r}")
+        except OSError as exc:
+            logger.error(f"[PowerMenu] Failed to start {args!r}: {exc}")
+
     def lock(self, *args):
-        logger.info("Locking screen...")
-        GLib.spawn_command_line_async("swaylock")
+        logger.info("[PowerMenu] Locking screen...")
+        self._run_command(self._get_commands().lock)
         self.close_menu()
 
     def suspend(self, *args):
-        logger.info("Suspending screen...")
-        GLib.spawn_command_line_async("systemctl suspend")
+        logger.info("[PowerMenu] Suspending system...")
+        self._run_command(self._get_commands().suspend)
         self.close_menu()
 
     def logout(self, *args):
-        logger.info("Logging out...")
-        GLib.spawn_command_line_async("hyprctl dispatch exit")
+        logger.info("[PowerMenu] Logging out...")
+        self._run_command(self._get_commands().logout)
         self.close_menu()
 
     def reboot(self, *args):
-        logger.info("Rebooting system...")
-        GLib.spawn_command_line_async("systemctl reboot")
+        logger.info("[PowerMenu] Rebooting system...")
+        self._run_command(self._get_commands().reboot)
         self.close_menu()
 
     def poweroff(self, *args):
-        logger.info("Powering off system...")
-        GLib.spawn_command_line_async("systemctl poweroff")
+        logger.info("[PowerMenu] Powering off system...")
+        self._run_command(self._get_commands().shutdown)
         self.close_menu()
