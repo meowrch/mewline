@@ -153,7 +153,7 @@ DEFAULT_CONFIG = {
                         "shutdown": "systemctl poweroff",
                     },
                     "bspwm": {
-                        "lock": "i3lock",
+                        "lock": "betterlockscreen --lock dim",
                         "logout": "bspc quit",
                         "suspend": "systemctl suspend",
                         "reboot": "systemctl reboot",
