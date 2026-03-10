@@ -65,6 +65,7 @@ class DynamicIsland:
 
     def __init__(self, monitor: int | None = None):
         self.hidden = False
+        self.monitor = monitor
 
         # Stores the bspwm node ID that was focused just before DI stole input.
         # Used by _restore_x11_focus() to return focus to the exact window,
