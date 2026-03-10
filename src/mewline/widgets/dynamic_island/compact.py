@@ -11,6 +11,7 @@ from fabric.widgets.box import Box
 from fabric.widgets.button import Button
 from fabric.widgets.centerbox import CenterBox
 from fabric.widgets.label import Label
+from gi.repository import GLib
 from loguru import logger
 
 from mewline.config import cfg
@@ -33,6 +34,10 @@ class Compact(BaseDiWidget, CenterBox):
         self.config = cfg.modules.dynamic_island.compact
         self.mpris_manager = MprisPlayerManager()
         self.current_mpris_player = None
+        self._music_update_seq = 0
+        self._music_last_title = None
+        self._music_last_art_url = None
+        self._music_last_playing = None
 
         # Detect window manager and store type
         self.wm_type = self._detect_window_manager()
@@ -207,11 +212,73 @@ class Compact(BaseDiWidget, CenterBox):
     def _update_display(self, *args):
         if not self.config.music.enabled:
             return
+        self._schedule_music_update()
 
-        if self.current_mpris_player and self._is_playing():
-            self._show_music_info()
-        else:
+    def _schedule_music_update(self):
+        self._music_update_seq += 1
+        seq = self._music_update_seq
+        GLib.Thread.new("compact-music-update", self._music_update_worker, seq)
+
+    def _music_update_worker(self, seq):
+        if not self.config.music.enabled:
+            return None
+
+        player = self.current_mpris_player
+        playing = False
+        try:
+            if player is not None:
+                playing = player.playback_status.lower() == "playing"
+        except Exception:
+            playing = False
+
+        if not playing:
+            GLib.idle_add(self._apply_music_state, seq, False, None, None)
+            return None
+
+        try:
+            artist = player.artist or "Unknown Artist"
+        except Exception:
+            artist = "Unknown Artist"
+        try:
+            title = player.title or "Unknown Track"
+        except Exception:
+            title = "Unknown Track"
+        try:
+            art_url = player.arturl or self.config.music.default_album_logo
+        except Exception:
+            art_url = self.config.music.default_album_logo
+
+        full_title = f"{artist} - {title}"
+        if self.config.music.truncation:
+            full_title = truncate(full_title, self.config.music.truncation_size)
+
+        GLib.idle_add(self._apply_music_state, seq, True, full_title, art_url)
+        return None
+
+    def _apply_music_state(self, seq, playing: bool, full_title, art_url):
+        if seq != self._music_update_seq:
+            return False
+
+        if not playing:
+            self._music_last_playing = False
             self._show_window_title()
+            return False
+
+        if full_title and full_title != self._music_last_title:
+            self.music_label.set_label(full_title)
+            self._music_last_title = full_title
+
+        if art_url and art_url != self._music_last_art_url:
+            self.cover.set_style(
+                f"background-image: url('{art_url}'); background-size: cover;"
+            )
+            self._music_last_art_url = art_url
+
+        self.main_container.children = [self.music_box]
+        self.cover.show()
+        self.music_label.show()
+        self._music_last_playing = True
+        return False
 
     def _is_playing(self):
         return (
