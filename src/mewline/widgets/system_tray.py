@@ -121,6 +121,7 @@ class SystemTray(ButtonWidget):
         self._item_buttons: dict[str, tuple[Button, bool]] = {}
 
         self.watcher.connect("item-added", self._on_item_added)
+        self.watcher.connect("item-removed", self._on_item_removed)
         self.connect("clicked", self._on_clicked)
 
         self.hide()
@@ -164,7 +165,7 @@ class SystemTray(ButtonWidget):
     def _sync_chevron(self) -> None:
         # Check either real popover visibility or our fake toggle state
         is_open = (self.popup is not None and self.popup.get_visible()) or self._fake_open
-        
+
         self.chevron.set_label("" if is_open else "")
         if is_open:
             self.add_style_class("active")
@@ -176,7 +177,7 @@ class SystemTray(ButtonWidget):
     # ------------------------------------------------------------------
     def _on_item_added(self, _, identifier: str) -> None:
         item = self.watcher.get_item_for_identifier(identifier)
-        
+
         if item is None or str(item.get_property("title")) == "None":
             return
 
@@ -203,7 +204,7 @@ class SystemTray(ButtonWidget):
         self.show()
         self.chevron.show()
 
-    def _on_item_removed(self, identifier: str) -> None:
+    def _on_item_removed(self, _, identifier: str) -> None:
         entry = self._item_buttons.pop(identifier, None)
         if entry is None:
             return
