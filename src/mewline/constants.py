@@ -173,6 +173,7 @@ DEFAULT_CONFIG = {
                     "truncation": True,
                     "truncation_size": 30,
                     "default_album_logo": "https://sonos-partner-documentation.s3.amazonaws.com/ReadMe-External/content-service-features/add-images/add-album-art/SonosApp-DefaultArt-Alone.png",
+                    "visualizer_enabled": True,
                 },
             },
             "wallpapers": {

@@ -147,6 +147,12 @@
   font-weight: bold;
 }
 
+#di-audio-visualizer {
+  min-width: 36px;
+  min-height: 20px;
+  color: theme.$accent-color;
+}
+
 #dynamic-island-corner-left {
   margin-left: -16px;
 }
