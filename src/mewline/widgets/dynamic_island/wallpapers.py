@@ -41,7 +41,7 @@ class WallpaperApply:
             logger.error("Unknown error when installing wallpaper (feh)")
 
     @staticmethod
-    def apply_with_swww(wallpaper: str):
+    def apply_with_awww(wallpaper: str, command_name: str = "awww"):
         transition_fps = 60
         cursor_pos = "0,0"
 
@@ -74,7 +74,7 @@ class WallpaperApply:
         try:
             subprocess.run(
                 [
-                    "swww",
+                    command_name,
                     "img",
                     str(wallpaper),
                     "--transition-bezier",
@@ -380,8 +380,8 @@ class WallpaperSelector(BaseDiWidget, Box):
                 logger.warning(method_not_supported_msg.format(method=self.config.x11_method))
                 return
         elif WindowManagerContext.is_wayland():
-            if self.config.wayland_method == "swww":
-                WallpaperApply.apply_with_swww(full_path)
+            if self.config.wayland_method in ["swww", "awww"]:
+                WallpaperApply.apply_with_awww(full_path, command_name=self.config.wayland_method)
             else:
                 logger.warning(method_not_supported_msg.format(method=self.config.wayland_method))
                 return
