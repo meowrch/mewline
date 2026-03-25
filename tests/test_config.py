@@ -68,7 +68,7 @@ class MockConstants:
                 },
                 "wallpapers": {
                     "wallpapers_dirs": [],
-                    "method": "swww",
+                    "method": "awww",
                     "save_current_wall": True,
                     "current_wall_path": "/path/to/wall",
                 },

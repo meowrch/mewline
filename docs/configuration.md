@@ -102,7 +102,7 @@ This module controls the compact view of the Dynamic Island that shows the activ
 | Key | Type | Description |
 |---|---|---|
 | `wallpapers_dirs` | `list[str]` | Directories with wallpapers. |
-| `method` | `str` | Wallpaper set method (supported: `swww`). |
+| `method` | `str` | Wallpaper set method (supported: `awww`). |
 | `save_current_wall` | `bool` | Save currently set wallpaper. |
 | `current_wall_path` | `str` | Path to file storing the current wallpaper. |
 

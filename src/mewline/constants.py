@@ -177,7 +177,7 @@ DEFAULT_CONFIG = {
             },
             "wallpapers": {
                 "x11_method": "feh",
-                "wayland_method": "swww",
+                "wayland_method": "awww",
                 "wallpapers_dirs": [*map(str, LIST_WALLPAPERS_PATHS)],
                 "save_current_wall": True,
                 "current_wall_path": str(DEFAULT_CURRENT_WALL_PATH)

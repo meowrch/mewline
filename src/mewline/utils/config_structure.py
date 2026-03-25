@@ -172,7 +172,7 @@ class Compact(BaseModel):
 class WallpapersMenu(BaseModel):
     wallpapers_dirs: list[str]
     x11_method: Literal["feh"]
-    wayland_method: Literal["swww"]
+    wayland_method: Literal["awww"]
     save_current_wall: bool
     current_wall_path: str
 
