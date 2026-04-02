@@ -162,6 +162,7 @@ class MusicModule(BaseModel):
     truncation: bool
     truncation_size: int
     default_album_logo: str
+    visualizer_enabled: bool
 
 
 class Compact(BaseModel):

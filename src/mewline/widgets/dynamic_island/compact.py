@@ -16,10 +16,12 @@ from loguru import logger
 
 from mewline.config import cfg
 from mewline.constants import WINDOW_TITLE_MAP
+from mewline.services import audio_visualizer_service
 from mewline.services.mpris import MprisPlayer
 from mewline.services.mpris import MprisPlayerManager
 from mewline.utils.widget_utils import setup_cursor_hover
 from mewline.utils.widget_utils import text_icon
+from mewline.widgets.audio_visualizer import AudioVisualizerWidget
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
 if TYPE_CHECKING:
@@ -47,7 +49,27 @@ class Compact(BaseDiWidget, CenterBox):
 
         self.cover = Box(style_classes="cover", visible=False)
         self.music_label = Label(style_classes="panel-text", visible=False)
-        self.music_box = Box(children=[self.cover, self.music_label])
+        viz_enabled = self.config.music.visualizer_enabled
+        self.visualizer = (
+            AudioVisualizerWidget(
+                bar_count=6,
+                animated_bars=4,
+                min_width=28,
+                min_height=20,
+                static_level=0.25,
+            )
+            if viz_enabled
+            else None
+        )
+        if self.visualizer is not None:
+            self.visualizer.set_margin_start(4)
+            self.visualizer.hide()
+        music_children: list = [self.cover, self.music_label]
+        if self.visualizer is not None:
+            music_children.append(self.visualizer)
+        self.music_box = Box(
+            orientation="h", spacing=4, children=music_children
+        )
 
         # Create adaptive active window widget
         self.window_title = self._create_active_window_widget()
@@ -274,6 +296,11 @@ class Compact(BaseDiWidget, CenterBox):
             )
             self._music_last_art_url = art_url
 
+        if self.visualizer is not None:
+            audio_visualizer_service.set_callback(self.visualizer.set_levels)
+            audio_visualizer_service.start()
+            self.visualizer.show()
+
         self.main_container.children = [self.music_box]
         self.cover.show()
         self.music_label.show()
@@ -487,6 +514,11 @@ class Compact(BaseDiWidget, CenterBox):
         self.cover.set_style(
             f"background-image: url('{art_url}'); background-size: cover;"
         )
+        
+        if self.visualizer is not None:
+            audio_visualizer_service.set_callback(self.visualizer.set_levels)
+            audio_visualizer_service.start()
+            self.visualizer.show()
 
         # Обновление контейнера
         self.main_container.children = [self.music_box]
@@ -495,6 +527,12 @@ class Compact(BaseDiWidget, CenterBox):
 
     def _show_window_title(self):
         """Show window title with icon."""
+        if self.visualizer is not None:
+            audio_visualizer_service.remove_callback(self.visualizer.set_levels)
+            # Only stop if no callbacks remain
+            if not audio_visualizer_service._callbacks:
+                audio_visualizer_service.stop()
+            self.visualizer.hide()
         # Ensure icon enablement applied before showing row
         self._apply_icon_enablement()
         self.main_container.children = [self.window_row]
