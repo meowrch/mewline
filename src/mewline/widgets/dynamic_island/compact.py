@@ -514,7 +514,7 @@ class Compact(BaseDiWidget, CenterBox):
         self.cover.set_style(
             f"background-image: url('{art_url}'); background-size: cover;"
         )
-        
+
         if self.visualizer is not None:
             audio_visualizer_service.set_callback(self.visualizer.set_levels)
             audio_visualizer_service.start()

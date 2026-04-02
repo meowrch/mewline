@@ -96,9 +96,7 @@ class AudioVisualizerWidget(Gtk.DrawingArea):
         padding_bars_right = self._bar_count - self._animated_bars - padding_bars_left
 
         for i in range(self._bar_count):
-            if i < padding_bars_left:
-                level = self._static_level
-            elif i >= self._bar_count - padding_bars_right:
+            if i < padding_bars_left or i >= self._bar_count - padding_bars_right:
                 level = self._static_level
             else:
                 anim_idx = i - padding_bars_left

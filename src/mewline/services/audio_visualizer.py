@@ -7,12 +7,15 @@ optionally scales by system volume if pulsectl is available.
 import math
 import random
 from collections.abc import Callable
+
 from gi.repository import GLib
 
 try:
     import pulsectl
 except ImportError:
     pulsectl = None
+
+import contextlib
 
 from loguru import logger
 
@@ -29,12 +32,10 @@ class AudioVisualizerService:
         self,
         bar_count: int = 6,
         fps: int = 50,
-        smoothing: float = 0.7,
-        on_levels: Callable[[list[float]], None] | None = None,
+        on_levels: Callable[[list[float]], None] | None = None
     ):
         self._bar_count = bar_count
         self._interval_ms = max(16, int(1000 / fps))
-        self._smoothing = max(0.01, min(1.0, smoothing))
         self._time = 0.0
         self._levels: list[float] = [0.0] * bar_count
         self._targets: list[float] = [0.0] * bar_count
@@ -82,9 +83,9 @@ class AudioVisualizerService:
         for i in range(self._bar_count):
             phase = self._time * 4.0 + i * 1.2
             wave = 0.25 + 0.65 * abs(math.sin(phase))
-            jitter = 0.35 * (random.random() - 0.5)
-            if random.random() < 0.12:
-                jitter += 0.3 * (random.random() - 0.3)
+            jitter = 0.35 * (random.random() - 0.5)  # noqa: S311
+            if random.random() < 0.12:  # noqa: S311
+                jitter += 0.3 * (random.random() - 0.3)  # noqa: S311
             target = scale * max(0.0, min(1.0, wave + jitter))
             self._targets[i] = target
 
@@ -98,7 +99,10 @@ class AudioVisualizerService:
         return True
 
     def set_callback(self, callback: Callable[[list[float]], None] | None) -> None:
-        """Add or remove callback invoked with list of bar levels (0.0–1.0) each frame."""
+        """Add or remove callback invoked with list of bar levels (0.0–1.0).
+
+        Each frame the callback is called with the current bar levels.
+        """
         if callback is None:
             return
         if callback not in self._callbacks:
@@ -140,8 +144,6 @@ class AudioVisualizerService:
         """Release Pulse connection if any."""
         self.stop()
         if self._pulse is not None:
-            try:
+            with contextlib.suppress(Exception):
                 self._pulse.close()
-            except Exception:
-                pass
             self._pulse = None
