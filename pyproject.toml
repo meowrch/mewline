@@ -12,7 +12,7 @@ dependencies = [
     "emoji>=2.14.1",
     "fabric",
     "loguru>=0.7.3",
-    "pillow>=11.2.1",
+    "pillow>=12.2.0",
     "pkgconfig>=1.5.5",
     "psutil>=7.0.0",
     "pydantic>=2.11.5",
