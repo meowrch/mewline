@@ -28,7 +28,7 @@ dev = [
     "pre-commit>=4.1.0",
     "pytest>=8.4.1",
     "ruff>=0.9.4",
-    "vulture>=2.14",
+    "vulture>=2.16",
 ]
 stubs = [
     "pygobject-stubs>=2.12.0",
