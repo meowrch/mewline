@@ -13,7 +13,7 @@ dependencies = [
     "fabric",
     "loguru>=0.7.3",
     "pillow>=11.2.1",
-    "pkgconfig>=1.5.5",
+    "pkgconfig>=1.6.0",
     "psutil>=7.0.0",
     "pydantic>=2.11.5",
     "pytesseract>=0.3.13",
