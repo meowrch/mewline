@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+from pathlib import Path
 
 import setproctitle
 from fabric import Application
@@ -234,11 +235,37 @@ def main(debug_mode=False):
 
     ##==> Theming
     ##############################
-    copy_theme(path=cnst.APP_THEMES_FOLDER / (cfg.theme.name + ".scss"))
+    def _get_theme_source_path(theme_name: str) -> Path:
+        if theme_name == "default":
+            return cnst.DEFAULT_THEME_STYLE
+        path = cnst.APP_THEMES_FOLDER / (theme_name + ".scss")
+        if not path.exists():
+            return cnst.DEFAULT_THEME_STYLE
+        return path
+
+    theme_source_path = _get_theme_source_path(cfg.theme.name)
+    copy_theme(path=theme_source_path)
 
     # Recompile and apply CSS whenever style files change
     main_css_file = monitor_file(str(cnst.STYLES_FOLDER))
     main_css_file.connect("changed", lambda *_: process_and_apply_css(app))
+
+    # Monitor the active theme source file for direct edits
+    theme_file_monitor = None
+
+    def _start_theme_monitor(path):
+        nonlocal theme_file_monitor
+        if theme_file_monitor is not None:
+            theme_file_monitor.cancel()
+        theme_file_monitor = monitor_file(str(path))
+
+        def _on_theme_source_changed(*_):
+            copy_theme(path=path)
+            process_and_apply_css(app)
+
+        theme_file_monitor.connect("changed", _on_theme_source_changed)
+
+    _start_theme_monitor(theme_source_path)
 
     # Monitor config.json to hot-swap theme on change
     current_theme = cfg.theme.name
@@ -254,7 +281,9 @@ def main(debug_mode=False):
 
         if new_theme != current_theme:
             current_theme = new_theme
-            copy_theme(path=cnst.APP_THEMES_FOLDER / (new_theme + ".scss"))
+            new_path = _get_theme_source_path(new_theme)
+            copy_theme(path=new_path)
+            _start_theme_monitor(new_path)
             # CSS will be recompiled by the styles monitor above
 
     config_file.connect("changed", _on_config_changed)
