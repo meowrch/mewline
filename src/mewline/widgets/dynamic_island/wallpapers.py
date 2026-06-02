@@ -25,12 +25,16 @@ from mewline import constants as cnst
 from mewline.config import cfg
 from mewline.utils.window_manager import WindowManagerContext
 from mewline.widgets.dynamic_island.base import BaseDiWidget
+from mewline.widgets.dynamic_island.pawlette_themes import is_pawlette_v2
 
 # Dynamic theme helpers (shared with pawlette_themes.py)
+# Only available for pawlette v2+
 _DYNAMIC_STATE_FILE = cnst.XDG_STATE_HOME / "meowrch" / "dynamic_theme"
 
 
 def _read_dynamic_state() -> bool:
+    if not is_pawlette_v2():
+        return False
     try:
         return _DYNAMIC_STATE_FILE.read_text().strip() == "1"
     except Exception:
@@ -38,6 +42,8 @@ def _read_dynamic_state() -> bool:
 
 
 def _pawlette_apply_image(wall_path: str) -> None:
+    if not is_pawlette_v2():
+        return
     try:
         subprocess.run(
             ["pawlette", "apply", "image", wall_path],

@@ -27,8 +27,41 @@ from PIL import ImageDraw
 from mewline import constants as cnst
 from mewline.widgets.dynamic_island.base import BaseDiWidget
 
+
 # ---------------------------------------------------------------------------
-#   Paths & constants
+#   Version detection
+# ---------------------------------------------------------------------------
+def get_pawlette_version() -> tuple[int, int, int] | None:
+    """Return the installed pawlette version as a (major, minor, patch) tuple."""
+    try:
+        output = subprocess.check_output(
+            ["pacman", "-Q", "pawlette"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        # Format: "pawlette 2.0.0-1"
+        m = re.search(r"(\d+)\.(\d+)\.(\d+)", output)
+        if m:
+            return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    except Exception:  # noqa: S110
+        pass
+
+    return None
+
+
+def is_pawlette_v2() -> bool:
+    """Return True if pawlette >= 2.0.0 (or version unknown → default to v2)."""
+    ver = get_pawlette_version()
+    if ver is None:
+        # If pawlette is installed but we can't determine the version,
+        # assume v2 (the newer code). If it's not installed at all,
+        # it doesn't matter — the widget will show an error anyway.
+        return True
+    return ver >= (2, 0, 0)
+
+
+# ---------------------------------------------------------------------------
+#   Paths & constants  (pawlette v2 only)
 # ---------------------------------------------------------------------------
 _ASSETS_DIR = Path(__file__).resolve().parent.parent.parent / "assets"
 _THEMES_DIR = cnst.XDG_DATA_HOME / "pawlette" / "themes"
@@ -46,7 +79,7 @@ _SPECIAL_RANDOM = "__random_theme__"
 
 
 # ---------------------------------------------------------------------------
-#   Helpers
+#   Helpers  (pawlette v2 only)
 # ---------------------------------------------------------------------------
 def _read_dynamic_state() -> bool:
     """Return True if dynamic theme is enabled."""
@@ -104,9 +137,9 @@ def _is_valid_hex(color: str | None) -> bool:
 
 
 # ---------------------------------------------------------------------------
-#   Widget
+#   Widget  (pawlette v2)
 # ---------------------------------------------------------------------------
-class PawletteThemes(BaseDiWidget, Box):
+class PawletteThemesV2(BaseDiWidget, Box):
     focuse_kb: bool = True
     checking_changes_lock = Lock()
 
@@ -762,3 +795,16 @@ class PawletteThemes(BaseDiWidget, Box):
         if self.get_mapped():
             widget.grab_focus()
         return False
+
+
+# ---------------------------------------------------------------------------
+#   Version-switching: export the correct class as PawletteThemes
+# ---------------------------------------------------------------------------
+if is_pawlette_v2():
+    PawletteThemes = PawletteThemesV2
+else:
+    from mewline.widgets.dynamic_island.pawlette_themes_v1 import (
+        PawletteThemes as PawletteThemesV1,
+    )
+
+    PawletteThemes = PawletteThemesV1
