@@ -1,6 +1,7 @@
 @use "sass:color";
 @use "../theme.scss";
 
+// ── Theme grid ──────────────────────────────────────────────
 #theme-icons {
   opacity: 1;
   animation: fade-in 0.25s ease-in-out;
@@ -36,5 +37,70 @@
     color: theme.$background-base;
     background-color: theme.$accent-color;
   }
+}
+
+// ── Variant picker ──────────────────────────────────────────
+#pawlette-variant-view {
+  padding: 4px;
+}
+
+#variant-header {
+  padding: 4px 8px;
+}
+
+#variant-back-btn {
+  background-color: theme.$background-highlight;
+  border: none;
+  border-radius: 12px;
+  padding: 6px 12px;
+  color: theme.$text-color;
+  font-weight: bold;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background-color: theme.$accent-color;
+    color: theme.$text-on-accent;
+
+    label {
+      color: theme.$text-on-accent;
+    }
+  }
+}
+
+#variant-title-label {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: theme.$text-color;
+}
+
+#variant-list {
+  background-color: transparent;
+}
+
+#variant-row {
+  background-color: transparent;
+  border-radius: 12px;
+  margin: 2px 8px;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: theme.$background-highlight;
+  }
+
+  &:selected {
+    background-color: color.adjust(theme.$accent-color, $alpha: -0.75);
+  }
+}
+
+#variant-label {
+  color: theme.$text-color;
+  font-weight: 500;
+  font-size: 1em;
+}
+
+#variant-color-dot {
+  border-radius: 50%;
+  min-width: 20px;
+  min-height: 20px;
 }
 

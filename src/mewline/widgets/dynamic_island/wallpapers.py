@@ -25,6 +25,33 @@ from mewline import constants as cnst
 from mewline.config import cfg
 from mewline.utils.window_manager import WindowManagerContext
 from mewline.widgets.dynamic_island.base import BaseDiWidget
+from mewline.widgets.dynamic_island.pawlette_themes import is_pawlette_v2
+
+# Dynamic theme helpers (shared with pawlette_themes.py)
+# Only available for pawlette v2+
+_DYNAMIC_STATE_FILE = cnst.XDG_STATE_HOME / "meowrch" / "dynamic_theme"
+
+
+def _read_dynamic_state() -> bool:
+    if not is_pawlette_v2():
+        return False
+    try:
+        return _DYNAMIC_STATE_FILE.read_text().strip() == "1"
+    except Exception:
+        return False
+
+
+def _pawlette_apply_image(wall_path: str) -> None:
+    if not is_pawlette_v2():
+        return
+    try:
+        subprocess.run(
+            ["pawlette", "apply", "image", wall_path],
+            check=True,
+            capture_output=True,
+        )
+    except Exception as e:
+        logger.error(f"Failed to apply dynamic wallpaper theme: {e}")
 
 
 class WallpaperApply:
@@ -377,13 +404,19 @@ class WallpaperSelector(BaseDiWidget, Box):
             if self.config.x11_method == "feh":
                 WallpaperApply.apply_with_feh(full_path)
             else:
-                logger.warning(method_not_supported_msg.format(method=self.config.x11_method))
+                logger.warning(
+                    method_not_supported_msg.format(method=self.config.x11_method)
+                )
                 return
         elif WindowManagerContext.is_wayland():
             if self.config.wayland_method in ["swww", "awww"]:
-                WallpaperApply.apply_with_awww(full_path, command_name=self.config.wayland_method)
+                WallpaperApply.apply_with_awww(
+                    full_path, command_name=self.config.wayland_method
+                )
             else:
-                logger.warning(method_not_supported_msg.format(method=self.config.wayland_method))
+                logger.warning(
+                    method_not_supported_msg.format(method=self.config.wayland_method)
+                )
                 return
         else:
             logger.warning("Unsupported window manager")
@@ -399,6 +432,14 @@ class WallpaperSelector(BaseDiWidget, Box):
                 logger.warning(
                     f'Failed to set a link to the current wallpaper at path "{self.config.current_wall_path}"'
                 )
+
+        # If dynamic theme is enabled, re-apply from the new wallpaper
+        if _read_dynamic_state():
+            GLib.Thread.new(
+                "pawlette_dynamic_wall",
+                _pawlette_apply_image,
+                self.config.current_wall_path,
+            )
 
     def on_search_entry_key_press(self, widget, event):
         if event.keyval in (Gdk.KEY_Up, Gdk.KEY_Down, Gdk.KEY_Left, Gdk.KEY_Right):
