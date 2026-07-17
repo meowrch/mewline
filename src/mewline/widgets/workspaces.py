@@ -2,8 +2,8 @@ import contextlib
 import subprocess
 import threading
 
+from fabric.hyprland.widgets import HyprlandWorkspaces
 from fabric.hyprland.widgets import WorkspaceButton
-from fabric.hyprland.widgets import Workspaces as HyprlandWorkspaces
 from fabric.widgets.box import Box
 from fabric.widgets.eventbox import EventBox
 from gi.repository import Gdk
@@ -20,12 +20,56 @@ from mewline.utils.window_manager import detect_window_manager
 # HYPRLAND
 # ──────────────────────────────────────────────
 
+class HyprlandWorkspacesLuaFix(HyprlandWorkspaces):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._is_lua = self._detect_lua_support()
+
+    def _detect_lua_support(self) -> bool:
+        try:
+            response = self.connection.send_command("eval return 1+1")
+            reply = response.reply.decode().strip().lower()
+
+            if reply == "ok":
+                return True
+        except Exception:
+            ...
+        return False
+
+    def do_action_next(self):
+        if self._is_lua:
+            cmd = 'hl.dispatch(hl.dsp.focus({ workspace = "m+1" }))'
+            return self.connection.send_command(f"eval {cmd}")
+
+        # Fallback to the old syntax if Lua is not supported
+        cmd = f"workspace {'e' if not self._empty_scroll else ''}+1"
+        return self.connection.send_command(f"batch/dispatch {cmd}")
+
+    def do_action_previous(self):
+        if self._is_lua:
+            cmd = 'hl.dispatch(hl.dsp.focus({ workspace = "m-1" }))'
+            return self.connection.send_command(f"eval {cmd}")
+
+        # Fallback to the old syntax if Lua is not supported
+        cmd = f"workspace {'e' if not self._empty_scroll else ''}-1"
+        return self.connection.send_command(f"batch/dispatch {cmd}")
+
+    def do_button_clicked(self, button: WorkspaceButton):
+        if self._is_lua:
+            cmd = f'hl.dispatch(hl.dsp.focus({{ workspace = "{button.id}" }}))'
+            return self.connection.send_command(f"eval {cmd}")
+
+        # Fallback to the old syntax if Lua is not supported
+        return self.connection.send_command(f"batch/dispatch workspace {button.id}")
+
+
 class HyprlandWorkSpacesWidget(BoxWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.config = cfg.modules.workspaces
 
-        self.workspace = HyprlandWorkspaces(
+        # Чистый инстанс нашего прокачанного класса
+        self.workspace = HyprlandWorkspacesLuaFix(
             name="workspaces",
             buttons_factory=self._buttons_factory,
             spacing=4,
